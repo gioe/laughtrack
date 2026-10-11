@@ -173,3 +173,11 @@ Deduplication log for ingested newsletter emails. Prevents re-ingesting the same
 - `processedAt` — when the scraper processed the email (default `now()`)
 
 **Usage:** Before processing any email, check whether `messageId` already exists in this table. If so, skip. After processing, insert a new row to mark the email as done.
+
+
+### ComedyModelCache / ComedyModelAttempt / ComedyModelBudgetMutex
+Durable model fallback cache entries are keyed by the caller's digest of event evidence, source policy, resolved identity/block state, classifier, model, prompt and schema versions. Callers validate cached responses again; only successfully validated provider results are completed. The cache is separate from immutable event eligibility decisions and does not itself authorize publication.
+
+Each provider attempt reserves an integer USD-micro upper bound before network I/O. A singleton database row serializes short reservation transactions across hosts and worker loops. Reservations enforce the supplied UTC-day request and charge limits, active lease count, and same-key single-flight. Every retry creates and charges another attempt. Completed calls charge actual cost; failure or expired ownership retains the conservative reservation. If reported actual cost exceeds its reservation, the excess is charged and the result is not cached. A hard spending bound therefore requires the caller to reserve a true maximum provider cost; unexpected provider overages are observable but cannot be undone after billing. All callers must use the same configured daily limits.
+
+Owner tokens and lease deadlines prevent a late worker from populating the cache after losing ownership. Expired attempts remain in the spend ledger, but a new owner can reserve the key. Provider transport deadlines must be shorter than leases; lease expiry cannot cancel a still-running external request. No provider call occurs inside a database transaction. The cache and attempt ledger have no automatic purge in this task; manual retention must preserve current budget accounting. The additive migration activates no source policy or provider traffic.

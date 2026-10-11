@@ -263,6 +263,11 @@ class EligibilityGate:
                                     lineup_status="partial",
                                     reason_codes=tuple(sorted((*decision.reason_codes, "raw_lineup_partial"))),
                                 )
+                            from laughtrack.core.comedy_eligibility_model import cached_decision
+
+                            decision = cached_decision(
+                                self.transaction, candidate_payload(show), decision, people, denied
+                            )
                             staged = stage_candidate(
                                 cursor,
                                 source_id=source["id"],

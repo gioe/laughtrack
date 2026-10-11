@@ -1370,3 +1370,38 @@ model ApiRequestMetric {
   @@index([routePattern, hourBucket])
   @@map("api_request_metrics")
 }
+
+model ComedyModelBudgetMutex {
+  id Int @id
+
+  @@map("comedy_model_budget_mutex")
+}
+
+model ComedyModelAttempt {
+  token          String            @id
+  cacheKey       String            @map("cache_key")
+  budgetDay      DateTime          @default(dbgenerated("((clock_timestamp() AT TIME ZONE 'UTC'::text))::date")) @map("budget_day") @db.Date
+  reservedMicros BigInt            @map("reserved_micros")
+  chargedMicros  BigInt            @map("charged_micros")
+  actualMicros   BigInt?           @map("actual_micros")
+  state          String            @default("pending")
+  leaseUntil     DateTime          @map("lease_until") @db.Timestamptz
+  createdAt      DateTime          @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz
+  finishedAt     DateTime?         @map("finished_at") @db.Timestamptz
+  cache          ComedyModelCache?
+
+  @@index([budgetDay], map: "comedy_model_attempts_day_idx")
+  @@index([state, leaseUntil], map: "comedy_model_attempts_active_idx")
+  @@index([cacheKey], map: "comedy_model_attempts_key_idx")
+  @@map("comedy_model_attempts")
+}
+
+model ComedyModelCache {
+  cacheKey   String             @id @map("cache_key")
+  ownerToken String             @unique @map("owner_token")
+  result     Json
+  createdAt  DateTime           @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz
+  owner      ComedyModelAttempt @relation(fields: [ownerToken], references: [token], onDelete: Restrict)
+
+  @@map("comedy_model_cache")
+}
