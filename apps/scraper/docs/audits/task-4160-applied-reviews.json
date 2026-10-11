@@ -1,0 +1,760 @@
+{
+  "version": 1,
+  "generated_at": "2026-10-11T16:43:40.741470+00:00",
+  "actor": "Codex agent TASK-4160",
+  "reviewer_kind": "Codex agent evidence review; not independent human adjudication",
+  "status": "applied_exact_off_audit_scopes",
+  "applied_interval_utc": {
+    "before": "2026-10-11T16:41:19.794766+00:00",
+    "after": "2026-10-11T16:41:44.014867+00:00"
+  },
+  "group_count": 15,
+  "candidate_count": 33,
+  "model_calls": 0,
+  "purpose": "Applied reviews tracked separately from original frozen recommendations; no identity unblock, public show write or enforcement enablement",
+  "source_artifact_sha256": {
+    "receipts": "4cc96c853a37f7e8e046cd01602bd39ee3afac56991994235856c6445e9be319",
+    "previews": "c78df82ee7dd3a52c40630c4b4a218cb67f6c89983058186a414dd2399690d65",
+    "plan": "a8fd2b45bebe9ca5253c51e63604a7050872237d6422a17cdfc4c298c8442147"
+  },
+  "plan_digest": "cf767be6bbaed404953933aa67fa00773860d2eed3ccebbc4a60a5feeb50e58d",
+  "preview_digest": "e20815384412a5966d18890a1fb677c0863e4c5a00c8718d3858f7932fec9af6",
+  "checks_unchanged": {
+    "comedian_deny_sha256": true,
+    "comedian_identity_sha256": true,
+    "public_counts": true,
+    "source_policies": true
+  },
+  "before": {
+    "at": "2026-10-11T16:41:19.794766+00:00",
+    "comedian_deny_count": 1759,
+    "comedian_deny_sha256": "438c0583e00dba87cace649f9fae162c0137bb6428197bbb2521ca7d077f9bff",
+    "comedian_identity_count": 12072,
+    "comedian_identity_sha256": "b8a24750973dfa6d611a2cb22c076914637d6476ce605b6288ce8906df741c1b",
+    "public_counts": {
+      "comedians": 12072,
+      "lineup_items": 120370,
+      "publication_links": 0,
+      "shows": 142710,
+      "tickets": 166854
+    },
+    "source_policies": [
+      [
+        192,
+        true,
+        "unreviewed",
+        "off",
+        3
+      ],
+      [
+        527,
+        true,
+        "unreviewed",
+        "off",
+        3
+      ],
+      [
+        595,
+        true,
+        "unreviewed",
+        "off",
+        3
+      ]
+    ]
+  },
+  "after": {
+    "at": "2026-10-11T16:41:44.014867+00:00",
+    "comedian_deny_count": 1759,
+    "comedian_deny_sha256": "438c0583e00dba87cace649f9fae162c0137bb6428197bbb2521ca7d077f9bff",
+    "comedian_identity_count": 12072,
+    "comedian_identity_sha256": "b8a24750973dfa6d611a2cb22c076914637d6476ce605b6288ce8906df741c1b",
+    "public_counts": {
+      "comedians": 12072,
+      "lineup_items": 120370,
+      "publication_links": 0,
+      "shows": 142710,
+      "tickets": 166854
+    },
+    "source_policies": [
+      [
+        192,
+        true,
+        "unreviewed",
+        "off",
+        3
+      ],
+      [
+        527,
+        true,
+        "unreviewed",
+        "off",
+        3
+      ],
+      [
+        595,
+        true,
+        "unreviewed",
+        "off",
+        3
+      ]
+    ]
+  },
+  "migration": {
+    "name": "20261011180000_allow_comedy_off_audit",
+    "started_at": "2026-10-11T16:39:15.118750+00:00",
+    "finished_at": "2026-10-11T16:39:15.361121+00:00",
+    "checksum": "f51d95e07dab2c2d95e89dd556b671a39b01c3db59f115a81a49cd893988d676",
+    "applied_by": "Prisma migrate deploy after sole-pending-migration preflight",
+    "verification": "Parent queried _prisma_migrations and confirmed publication guard trigger exists; six PGlite tests pass, including rejection of publication INSERT/UPDATE from off-mode decisions."
+  },
+  "groups": [
+    {
+      "source_id": 595,
+      "event_id": 132785,
+      "title": "Beetlejuice Afterlife Cabaret",
+      "adjudication_class": "structural_show_or_format_label",
+      "reason": "Current cabaret description explicitly includes comedy alongside burlesque and theatre; the blocked name is the cabaret title.",
+      "evidence_url": "https://longbeach.harvelles.com/shows/372045",
+      "preview_id": "f3627055-8d12-4745-a1d5-032e97c3f28f",
+      "idempotency_key": "task4160-off-v3-event-595-132785",
+      "applied_scopes": [
+        {
+          "action": "approve",
+          "candidate_id": 274,
+          "decision_id": 379,
+          "gate_mode": "off",
+          "identity_fingerprint": "fdfae3752134452e5678ee03155106572baa924fac9bf8c7c10a0d1649049836",
+          "observation_generation": 2,
+          "payload_fingerprint": "a2cb861f547ea89844f7abc3196eab9d041eb22aaf4de89745a5234acaa38667",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 595,
+          "event_key": "fallback:7ac8dd89ba2407f13bf7871bb5d75e064a8bb6c4bb1657deba35da74a660e613",
+          "occurrence_url": "https://longbeach.harvelles.com/shows/372045"
+        },
+        {
+          "action": "approve",
+          "candidate_id": 275,
+          "decision_id": 380,
+          "gate_mode": "off",
+          "identity_fingerprint": "fdfae3752134452e5678ee03155106572baa924fac9bf8c7c10a0d1649049836",
+          "observation_generation": 2,
+          "payload_fingerprint": "1d791fab0e3c20964f34beb7187cdfb31114981619b92399a20c1d631d2bf46a",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 595,
+          "event_key": "fallback:b82fc348a2b460671710d97d8eb72a0caa32788b3bca202a282f50d89d1f0894",
+          "occurrence_url": "https://longbeach.harvelles.com/shows/372046"
+        }
+      ]
+    },
+    {
+      "source_id": 595,
+      "event_id": 121017,
+      "title": "UNDRGRND Comedy",
+      "adjudication_class": "structural_show_or_format_label",
+      "reason": "Current event describes a monthly comedy show with local comics and touring headliners; the blocked database row names the series, not an identified person.",
+      "evidence_url": "https://longbeach.harvelles.com/shows/384259",
+      "preview_id": "e2d88e23-dafd-43cf-abbb-4926407aa705",
+      "idempotency_key": "task4160-off-v3-event-595-121017",
+      "applied_scopes": [
+        {
+          "action": "approve",
+          "candidate_id": 279,
+          "decision_id": 381,
+          "gate_mode": "off",
+          "identity_fingerprint": "e171aa7a0cc1173dc97742c2ff632bcebb805764b7c14e7eabe95983cabf29eb",
+          "observation_generation": 2,
+          "payload_fingerprint": "9ef7f8820c4a7ddfffc6f7783af1cfdb13fec6660b5ae1a552ee0c65f96ff132",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 595,
+          "event_key": "fallback:ef54a953090c739440e626f60011b9d74148c74f7311d50a5469c3e5d9f6470d",
+          "occurrence_url": "https://longbeach.harvelles.com/shows/384259"
+        }
+      ]
+    },
+    {
+      "source_id": 595,
+      "event_id": 145197,
+      "title": "Hey, Rube!  Open Mic and Variety Clown Night",
+      "adjudication_class": "missing_event_evidence",
+      "reason": "Current open-mic description invites short clown bits; contextual operator adjudication supports comic performance rather than a general open-mic assumption.",
+      "evidence_url": "https://longbeach.harvelles.com/shows/390752",
+      "preview_id": "74256856-37cf-4b7d-80db-c1529d12b654",
+      "idempotency_key": "task4160-off-v3-event-595-145197",
+      "applied_scopes": [
+        {
+          "action": "approve",
+          "candidate_id": 285,
+          "decision_id": 384,
+          "gate_mode": "off",
+          "identity_fingerprint": "76233ce1f0a3e23e7830ef45a31b04bc994b35b4b77fa3a14bdbf5032f1346e7",
+          "observation_generation": 2,
+          "payload_fingerprint": "f4c7a785a9d7358cae88537fde87d6c95be71f9531451aad144cf9358ca72ad6",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 595,
+          "event_key": "fallback:012808ee7a054f2e10fa4232c83dc405731924654a21adc3f1039eebc398f256",
+          "occurrence_url": "https://longbeach.harvelles.com/shows/390752"
+        }
+      ]
+    },
+    {
+      "source_id": 595,
+      "event_id": 126130,
+      "title": "Jiggles and Giggles Comedy Cabaret",
+      "adjudication_class": "structural_show_or_format_label",
+      "reason": "Current return engagement promises comedians alongside burlesque; existing blocked performer string names the cabaret series.",
+      "evidence_url": "https://longbeach.harvelles.com/shows/373345",
+      "preview_id": "bca50d49-a58a-4e82-a597-6d7450a5a076",
+      "idempotency_key": "task4160-off-v3-event-595-126130",
+      "applied_scopes": [
+        {
+          "action": "approve",
+          "candidate_id": 317,
+          "decision_id": 389,
+          "gate_mode": "off",
+          "identity_fingerprint": "594d57face3a454efebdaba31304525f488afab84de60f5c63a3c62a5fe51085",
+          "observation_generation": 2,
+          "payload_fingerprint": "f9b81a9c8b97f8898a780d80e1f9537e4836b9dc8a82d1e1eab7aab21daff478",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 595,
+          "event_key": "fallback:52b84f7fb8d08a078656fea41ee33ba8efd08be802c813e63f20295563a8bef8",
+          "occurrence_url": "https://longbeach.harvelles.com/shows/373345"
+        },
+        {
+          "action": "approve",
+          "candidate_id": 318,
+          "decision_id": 390,
+          "gate_mode": "off",
+          "identity_fingerprint": "594d57face3a454efebdaba31304525f488afab84de60f5c63a3c62a5fe51085",
+          "observation_generation": 2,
+          "payload_fingerprint": "3f429aebc53e83a1a8b3c300839afb4837d6655d8c9f39e0412a5b43ab4ff786",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 595,
+          "event_key": "fallback:f0f967b36cae4a4c2c5c6a3f72c43a9cd97ec0654aa9d615324a781b455c25fb",
+          "occurrence_url": "https://longbeach.harvelles.com/shows/373346"
+        }
+      ]
+    },
+    {
+      "source_id": 595,
+      "event_id": 122678,
+      "title": "Potter Parodies Presents: Holiday at Hogwarts",
+      "adjudication_class": "structural_show_or_format_label",
+      "reason": "Current named parody program explicitly includes comedy; existing blocked entity is a show title.",
+      "evidence_url": "https://longbeach.harvelles.com/shows/385055",
+      "preview_id": "b5eefef2-e31c-4a78-a36a-5c7649abee34",
+      "idempotency_key": "task4160-off-v3-event-595-122678",
+      "applied_scopes": [
+        {
+          "action": "approve",
+          "candidate_id": 330,
+          "decision_id": 391,
+          "gate_mode": "off",
+          "identity_fingerprint": "70c0d2ed8e0122fce3a34c9640e2ef739e2d87a833e8f09070b20c1bf8cfa3d1",
+          "observation_generation": 2,
+          "payload_fingerprint": "cd45e01e572bb26f2e774afc39fddd9e3d1e1882190c99db9bf77535b74b2ef4",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 595,
+          "event_key": "fallback:4752d8dcfbcd35cbd8173ea37697dcd0d9e28dbf6aa4c2783b36e45d03e88018",
+          "occurrence_url": "https://longbeach.harvelles.com/shows/385055"
+        },
+        {
+          "action": "approve",
+          "candidate_id": 331,
+          "decision_id": 392,
+          "gate_mode": "off",
+          "identity_fingerprint": "70c0d2ed8e0122fce3a34c9640e2ef739e2d87a833e8f09070b20c1bf8cfa3d1",
+          "observation_generation": 2,
+          "payload_fingerprint": "9c7091eb264175191c9b6afdaca4e111eaa7495c976d44b1c78660940f3283cd",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 595,
+          "event_key": "fallback:3e25772e671ec3e1657074ee30a009d073089c689d465b2f5e7c2e9c10bcd75e",
+          "occurrence_url": "https://longbeach.harvelles.com/shows/385056"
+        }
+      ]
+    },
+    {
+      "source_id": 192,
+      "event_id": 136700,
+      "title": "Special Event: Mario Adrion",
+      "adjudication_class": "missing_event_evidence",
+      "reason": "Event page connects the named performer to the Superior Comedy Tour; this requires contextual operator review of tour billing, not automatic acceptance from performer biography.",
+      "evidence_url": "http://www.goodnightscomedy.com/shows/371123",
+      "preview_id": "69097821-0827-47f7-821d-09f6aaaebf36",
+      "idempotency_key": "task4160-off-v3-event-192-136700",
+      "applied_scopes": [
+        {
+          "action": "approve",
+          "candidate_id": 8,
+          "decision_id": 352,
+          "gate_mode": "off",
+          "identity_fingerprint": "a34ae62ec2defacacd15d909d567aa1e847a3941bc16d366dea694ccd3cb9832",
+          "observation_generation": 2,
+          "payload_fingerprint": "16712d2435b5b76b5346a4632c2a4b2402f29a20630e3fe5aaebb60cd2d50146",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 192,
+          "event_key": "fallback:03efc3bd2c6ecd6fa7a0874be584c1223a99eea7edf65035df859724e3ba19bd",
+          "occurrence_url": "https://goodnightscomedy.com/shows/371123"
+        },
+        {
+          "action": "approve",
+          "candidate_id": 10,
+          "decision_id": 353,
+          "gate_mode": "off",
+          "identity_fingerprint": "a34ae62ec2defacacd15d909d567aa1e847a3941bc16d366dea694ccd3cb9832",
+          "observation_generation": 2,
+          "payload_fingerprint": "f6d6a903919b92e243a3141d3ba96911dc8e2fbb5c4afba1f48411108b7a0649",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 192,
+          "event_key": "fallback:2d76aa356c6111ecba65ae7dbe5b2f160a0df90330a83e734b955e136ccb1578",
+          "occurrence_url": "https://goodnightscomedy.com/shows/371124"
+        },
+        {
+          "action": "approve",
+          "candidate_id": 12,
+          "decision_id": 354,
+          "gate_mode": "off",
+          "identity_fingerprint": "a34ae62ec2defacacd15d909d567aa1e847a3941bc16d366dea694ccd3cb9832",
+          "observation_generation": 2,
+          "payload_fingerprint": "8fcba0c979c3dbec02ffc35fbf68229e47118f900c6bc1e8ffd3bb3874b7cd53",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 192,
+          "event_key": "fallback:9fbb38ae83f620ad6d8517ac3c4785edaf5350e7535b631106033123fdb2a01c",
+          "occurrence_url": "https://goodnightscomedy.com/shows/371126"
+        },
+        {
+          "action": "approve",
+          "candidate_id": 14,
+          "decision_id": 355,
+          "gate_mode": "off",
+          "identity_fingerprint": "a34ae62ec2defacacd15d909d567aa1e847a3941bc16d366dea694ccd3cb9832",
+          "observation_generation": 2,
+          "payload_fingerprint": "ef1b669d3b4525e519bf1996e3104241a206ae6bc21b478814ab4843a9c70718",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 192,
+          "event_key": "fallback:3a9f15e9a6f40cb396e90507b1cb70040f64be01f58010e39c1ac6d4f20a86bd",
+          "occurrence_url": "https://goodnightscomedy.com/shows/371127"
+        },
+        {
+          "action": "approve",
+          "candidate_id": 16,
+          "decision_id": 356,
+          "gate_mode": "off",
+          "identity_fingerprint": "a34ae62ec2defacacd15d909d567aa1e847a3941bc16d366dea694ccd3cb9832",
+          "observation_generation": 2,
+          "payload_fingerprint": "ce7f8ff1138ff6ef3088b89e212d1387db1993af1e5a7aa291e0cbe553253563",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 192,
+          "event_key": "fallback:16655921ac52f2dd821b80a43da592cc0bbbbf9d1c56818be9b88284f3f00a3a",
+          "occurrence_url": "https://goodnightscomedy.com/shows/371125"
+        }
+      ]
+    },
+    {
+      "source_id": 192,
+      "event_id": 142685,
+      "title": "Open Mic at Goodnights",
+      "adjudication_class": "structural_show_or_format_label",
+      "reason": "Current event invites audiences to see 15+ local comedians; blocked open mic night is a format label.",
+      "evidence_url": "http://www.goodnightscomedy.com/shows/385084",
+      "preview_id": "e5f7483e-2d0e-48bc-94a2-c1aae20ca78d",
+      "idempotency_key": "task4160-off-v3-event-192-142685",
+      "applied_scopes": [
+        {
+          "action": "approve",
+          "candidate_id": 20,
+          "decision_id": 357,
+          "gate_mode": "off",
+          "identity_fingerprint": "559dcb27c2f19bf39b68ce6e8bab8f3d648bc3b096dd823ed84dabc4ff8124e1",
+          "observation_generation": 2,
+          "payload_fingerprint": "558f860a0d1f7b2313c63096e2f3a866b55b3cfa55fca4d77bee6fb6eb9effdf",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 192,
+          "event_key": "fallback:7d68d03735d88eaba4dfb161cba6792af2e6a7afbf6ed10d9b3f7d533accf1c4",
+          "occurrence_url": "https://goodnightscomedy.com/shows/385084"
+        }
+      ]
+    },
+    {
+      "source_id": 192,
+      "event_id": 136478,
+      "title": "Special Event: That One Mailman",
+      "adjudication_class": "missing_event_evidence",
+      "reason": "Current live tour promises humorous storytelling and audience engagement; canonical parent resolution only repairs identity, while the event description supports this recommendation.",
+      "evidence_url": "http://www.goodnightscomedy.com/shows/370538",
+      "preview_id": "166f4812-3cc9-48f1-952c-73964533d477",
+      "idempotency_key": "task4160-off-v3-event-192-136478",
+      "applied_scopes": [
+        {
+          "action": "approve",
+          "candidate_id": 21,
+          "decision_id": 358,
+          "gate_mode": "off",
+          "identity_fingerprint": "7d839da1c9d6ac6b57f39b6f2fff49aa61d9943432b3728b8b8a63591b45e9d2",
+          "observation_generation": 2,
+          "payload_fingerprint": "a247f8de9e442587fd5daff6d836c178823c199b38f0cd6a31e518c5f52c889b",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 192,
+          "event_key": "fallback:99674290ed2c054dca7b02f516608ab961fecdc68e77865a5a1eee977a625918",
+          "occurrence_url": "https://goodnightscomedy.com/shows/370538"
+        }
+      ]
+    },
+    {
+      "source_id": 192,
+      "event_id": 142689,
+      "title": "Room 861 at Goodnights: Hunter Luke Edwards",
+      "adjudication_class": "missing_event_evidence",
+      "reason": "Event-page audience promise describes punchlines and laughter; interpretation depends on surrounding current performance context, not historic credits alone.",
+      "evidence_url": "http://www.goodnightscomedy.com/shows/385043",
+      "preview_id": "719ba33f-774b-4224-95c2-bd9ef5332b42",
+      "idempotency_key": "task4160-off-v3-event-192-142689",
+      "applied_scopes": [
+        {
+          "action": "approve",
+          "candidate_id": 61,
+          "decision_id": 359,
+          "gate_mode": "off",
+          "identity_fingerprint": "698a7b6cc7ecef92e9fed6b9898ca448e2faa2224364591a705de4c21e3db3a5",
+          "observation_generation": 2,
+          "payload_fingerprint": "b23c0d13841d5501c4048093f79af3ac50c29acfd816dd77d596d01f66f27917",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 192,
+          "event_key": "fallback:fe7d7fd15dd045c63b88115558444238137378ca2d2daec74e6e2f36c9ba808b",
+          "occurrence_url": "https://goodnightscomedy.com/shows/385043"
+        }
+      ]
+    },
+    {
+      "source_id": 192,
+      "event_id": 142029,
+      "title": "Special Event: Wes Barker",
+      "adjudication_class": "missing_event_evidence",
+      "reason": "Current audience promise describes comedy magic and humorous stories; magic does not negate the comedy component.",
+      "evidence_url": "http://www.goodnightscomedy.com/shows/383446",
+      "preview_id": "24b07308-577d-44ae-90a6-8577c11c1f07",
+      "idempotency_key": "task4160-off-v3-event-192-142029",
+      "applied_scopes": [
+        {
+          "action": "approve",
+          "candidate_id": 79,
+          "decision_id": 360,
+          "gate_mode": "off",
+          "identity_fingerprint": "1441a4cba51c13b5ef4f9324cf23e3e99bd1f4e04641f0ff592df61e7d2ff66a",
+          "observation_generation": 2,
+          "payload_fingerprint": "c73f917880e4bea8ac12aabb2cfca8f6f3525672064cdfd38bd8e2bc9c3066e8",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 192,
+          "event_key": "fallback:87df81fb860997bbc84c3832c2edec9a14917c13689c95c05a249bee2aec9be0",
+          "occurrence_url": "https://goodnightscomedy.com/shows/383446"
+        }
+      ]
+    },
+    {
+      "source_id": 192,
+      "event_id": 137239,
+      "title": "Room 861 at Goodnights: Hassan Phills",
+      "adjudication_class": "missing_event_evidence",
+      "reason": "Event page connects the current act to interactive stand-up; the latest-act sentence is contextual evidence and insufficient as an isolated generic storytelling keyword.",
+      "evidence_url": "http://www.goodnightscomedy.com/shows/372472",
+      "preview_id": "a1f6dbe9-c558-43f6-ba05-55bd7e13efed",
+      "idempotency_key": "task4160-off-v3-event-192-137239",
+      "applied_scopes": [
+        {
+          "action": "approve",
+          "candidate_id": 92,
+          "decision_id": 361,
+          "gate_mode": "off",
+          "identity_fingerprint": "b120db268366741eacf7dca9a3b8436304458f348b1b89df248ff5c81b3be0ef",
+          "observation_generation": 2,
+          "payload_fingerprint": "d476d432d71b825e836ab5baaad76b18a6c3675c1ada2598e24e39ca182930e8",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 192,
+          "event_key": "fallback:96ac3e5f417c6a93deba925633241d2223fb02c6cd04b536961d68c5d13cbabc",
+          "occurrence_url": "https://goodnightscomedy.com/shows/372472"
+        },
+        {
+          "action": "approve",
+          "candidate_id": 94,
+          "decision_id": 362,
+          "gate_mode": "off",
+          "identity_fingerprint": "b120db268366741eacf7dca9a3b8436304458f348b1b89df248ff5c81b3be0ef",
+          "observation_generation": 2,
+          "payload_fingerprint": "bb974b02b2705bf1adf09a9c37c908bea16c97076f002f3f9e6dda19f14102bb",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 192,
+          "event_key": "fallback:e8d7406eaa6c8d50b44ff41a93a04e365532cd0285d7a617aa187822c3851694",
+          "occurrence_url": "https://goodnightscomedy.com/shows/372473"
+        },
+        {
+          "action": "approve",
+          "candidate_id": 96,
+          "decision_id": 363,
+          "gate_mode": "off",
+          "identity_fingerprint": "b120db268366741eacf7dca9a3b8436304458f348b1b89df248ff5c81b3be0ef",
+          "observation_generation": 2,
+          "payload_fingerprint": "2b59a41902699118aeefea557a9853157ece32c635573f1a2e82d8e8fe7c1e9f",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 192,
+          "event_key": "fallback:3d103a5f7f21666d7c33e3377067682c58e43e3feea27fcdeee30adc0b16ada2",
+          "occurrence_url": "https://goodnightscomedy.com/shows/372474"
+        },
+        {
+          "action": "approve",
+          "candidate_id": 98,
+          "decision_id": 364,
+          "gate_mode": "off",
+          "identity_fingerprint": "b120db268366741eacf7dca9a3b8436304458f348b1b89df248ff5c81b3be0ef",
+          "observation_generation": 2,
+          "payload_fingerprint": "911a122c9f167703f0405b6b299ee45ff2c4d22a8186ce76a09f5f460ed60882",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 192,
+          "event_key": "fallback:0b5f04e5f360f5ca51b7c59a6f5969359c6acbbc9fa88a8da798534b9b20b1c0",
+          "occurrence_url": "https://goodnightscomedy.com/shows/372475"
+        },
+        {
+          "action": "approve",
+          "candidate_id": 100,
+          "decision_id": 365,
+          "gate_mode": "off",
+          "identity_fingerprint": "b120db268366741eacf7dca9a3b8436304458f348b1b89df248ff5c81b3be0ef",
+          "observation_generation": 2,
+          "payload_fingerprint": "0c08a444d7216db64fbfbfd773b603fc0f6e0a8f5b4622d1728843cb8603b5c6",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 192,
+          "event_key": "fallback:829fc536708f64d5d193d77bf7c37bcace1f065fdbda697ee13be018313fa171",
+          "occurrence_url": "https://goodnightscomedy.com/shows/372476"
+        }
+      ]
+    },
+    {
+      "source_id": 192,
+      "event_id": 143903,
+      "title": "Special Event: Sarper Guven",
+      "adjudication_class": "missing_event_evidence",
+      "reason": "Current 90-minute program explicitly promises original jokes and observations; valid parent resolution is separate from this performance evidence.",
+      "evidence_url": "http://www.goodnightscomedy.com/shows/387873",
+      "preview_id": "fa4b7bdc-bf6b-42cd-acee-3ad718e9909c",
+      "idempotency_key": "task4160-off-v3-event-192-143903",
+      "applied_scopes": [
+        {
+          "action": "approve",
+          "candidate_id": 118,
+          "decision_id": 366,
+          "gate_mode": "off",
+          "identity_fingerprint": "f139bb281802bb9cf6589f4aae306960adbc56ba3fd759fedac0968e64983692",
+          "observation_generation": 2,
+          "payload_fingerprint": "4d2f5ed3453aa045a51cbeeb83a24ece05919502bbf2ab693f2192c803db2bea",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 192,
+          "event_key": "fallback:19ba3da5422ad8a4e6071e287ac3dfae9ab79cde13d7076d8f5f8f5cfa5d8528",
+          "occurrence_url": "https://goodnightscomedy.com/shows/387873"
+        }
+      ]
+    },
+    {
+      "source_id": 192,
+      "event_id": 143900,
+      "title": "Goodnights Presents: Ladies Laugh Lounge: Holiday Edition",
+      "adjudication_class": "structural_show_or_format_label",
+      "reason": "Named holiday event promises female comedians and a night of comedy; blocked Ladies Laugh Lounge is the series label, not the named headliner Kiki Wynns.",
+      "evidence_url": "http://www.goodnightscomedy.com/shows/387870",
+      "preview_id": "79a67b08-1a47-4e33-beaa-84207a34652c",
+      "idempotency_key": "task4160-off-v3-event-192-143900",
+      "applied_scopes": [
+        {
+          "action": "approve",
+          "candidate_id": 132,
+          "decision_id": 367,
+          "gate_mode": "off",
+          "identity_fingerprint": "99304c7488bcaa04b0541e470b9fc040cdb4c8520eeffe03978960b683e067fc",
+          "observation_generation": 2,
+          "payload_fingerprint": "76671c6f6e23b7cb397b6b8586d649d2f30fa5184417f7b58bbaddb76c3d36a6",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 192,
+          "event_key": "fallback:34330f5238e649fba2fa72152912d833a02f3e7627447d7959a6a5e752025b69",
+          "occurrence_url": "https://goodnightscomedy.com/shows/387870"
+        }
+      ]
+    },
+    {
+      "source_id": 192,
+      "event_id": 133918,
+      "title": "Special Event: Ashley Gavin",
+      "adjudication_class": "missing_event_evidence",
+      "reason": "Current-show sentence promises written material in an event page describing comedy/crowd work; recommendation relies on full event context rather than celebrity credits.",
+      "evidence_url": "http://www.goodnightscomedy.com/shows/364772",
+      "preview_id": "b24f649b-b288-43ed-9a1f-3492fada2a26",
+      "idempotency_key": "task4160-off-v3-event-192-133918",
+      "applied_scopes": [
+        {
+          "action": "approve",
+          "candidate_id": 157,
+          "decision_id": 368,
+          "gate_mode": "off",
+          "identity_fingerprint": "dbbc649fb4cb65d1ae5fe093ad0957fa9915faa706cd340908ee90ccdfd32f19",
+          "observation_generation": 2,
+          "payload_fingerprint": "ee9f9545fa6217e62dccb35114ff1d8f65214752b4b3788ae3c148124ebc6699",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 192,
+          "event_key": "fallback:571809a9f97bcea0ee728fa035a2b7305a73cb4101969fdd3332162715c8453e",
+          "occurrence_url": "https://goodnightscomedy.com/shows/364772"
+        },
+        {
+          "action": "approve",
+          "candidate_id": 159,
+          "decision_id": 369,
+          "gate_mode": "off",
+          "identity_fingerprint": "dbbc649fb4cb65d1ae5fe093ad0957fa9915faa706cd340908ee90ccdfd32f19",
+          "observation_generation": 2,
+          "payload_fingerprint": "da24d2a7b0eb0232f8e145d3ae55608e2486aa64cbd5447b293fc7b84cc144c4",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 192,
+          "event_key": "fallback:317756602a84de046f2b38de34045029208d41ab416152b7bef6704355ecf619",
+          "occurrence_url": "https://goodnightscomedy.com/shows/364773"
+        },
+        {
+          "action": "approve",
+          "candidate_id": 161,
+          "decision_id": 370,
+          "gate_mode": "off",
+          "identity_fingerprint": "dbbc649fb4cb65d1ae5fe093ad0957fa9915faa706cd340908ee90ccdfd32f19",
+          "observation_generation": 2,
+          "payload_fingerprint": "ffbcb5596d378ee990f4af5f1a915df83e599766a0ad0ceab35fb9830cff7fc4",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 192,
+          "event_key": "fallback:664c899acdfe3a78302baf0fbc75e9f8df8de5687fc8bfa63e24dd62a009b629",
+          "occurrence_url": "https://goodnightscomedy.com/shows/364774"
+        },
+        {
+          "action": "approve",
+          "candidate_id": 163,
+          "decision_id": 371,
+          "gate_mode": "off",
+          "identity_fingerprint": "dbbc649fb4cb65d1ae5fe093ad0957fa9915faa706cd340908ee90ccdfd32f19",
+          "observation_generation": 2,
+          "payload_fingerprint": "3c9315113bc96f690e3d6a47125a17b7db2e4c580cf2ca7c198c30384e4c5f16",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 192,
+          "event_key": "fallback:161e5033c3da87bb2135459059510a27555c432762d17b0e2f1a2e9deb070185",
+          "occurrence_url": "https://goodnightscomedy.com/shows/364775"
+        },
+        {
+          "action": "approve",
+          "candidate_id": 165,
+          "decision_id": 372,
+          "gate_mode": "off",
+          "identity_fingerprint": "dbbc649fb4cb65d1ae5fe093ad0957fa9915faa706cd340908ee90ccdfd32f19",
+          "observation_generation": 2,
+          "payload_fingerprint": "525646d91c8a12517b6aa7c732b667ff7d696bcc7b7bc3c857e0dc49412a652b",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 192,
+          "event_key": "fallback:58ae16c67ccf149547c1c0ac2fbdb0a9a54621fc3490380d0aa47e52a94df49e",
+          "occurrence_url": "https://goodnightscomedy.com/shows/364771"
+        }
+      ]
+    },
+    {
+      "source_id": 192,
+      "event_id": 144549,
+      "title": "Room 861 at Goodnights: SAANIYA ABBAS: HELLARIOUS",
+      "adjudication_class": "missing_event_evidence",
+      "reason": "Current HELLARIOUS run, punchline-led description and show-specific reviews jointly support the recommendation; quotations are contextual evidence, not generic review-keyword permission.",
+      "evidence_url": "http://www.goodnightscomedy.com/shows/389372",
+      "preview_id": "3f49ace2-997f-455d-8e98-f2f76529a4d8",
+      "idempotency_key": "task4160-off-v3-event-192-144549",
+      "applied_scopes": [
+        {
+          "action": "approve",
+          "candidate_id": 185,
+          "decision_id": 374,
+          "gate_mode": "off",
+          "identity_fingerprint": "a3426031735678756005caf10b50b938a6f1f769745f83fc30cbcacddadba61b",
+          "observation_generation": 2,
+          "payload_fingerprint": "8299a3936b6aae91e3f47b5b13dd8c5b03fabddcd64944394de871c15421dcb8",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 192,
+          "event_key": "fallback:4412a47ec7d1b762a715510aa638bc69de12b61f6cc355dbada8e6039de94bdf",
+          "occurrence_url": "https://goodnightscomedy.com/shows/389372"
+        },
+        {
+          "action": "approve",
+          "candidate_id": 186,
+          "decision_id": 375,
+          "gate_mode": "off",
+          "identity_fingerprint": "a3426031735678756005caf10b50b938a6f1f769745f83fc30cbcacddadba61b",
+          "observation_generation": 2,
+          "payload_fingerprint": "d6800daed1bb535efe5a6ec9356588c08c028a3a8f0a4db2cee9c7bee68aa432",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 192,
+          "event_key": "fallback:dd4e0145dbdfdcdf2e338feb72301b35b5edee69042db13944e3e26aaed5b265",
+          "occurrence_url": "https://goodnightscomedy.com/shows/389373"
+        },
+        {
+          "action": "approve",
+          "candidate_id": 187,
+          "decision_id": 376,
+          "gate_mode": "off",
+          "identity_fingerprint": "a3426031735678756005caf10b50b938a6f1f769745f83fc30cbcacddadba61b",
+          "observation_generation": 2,
+          "payload_fingerprint": "19b3a011c15cff8b11e56975262813c714a71d03f1cc81d7812645f620c2a869",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 192,
+          "event_key": "fallback:164a83bfa67b0a3a910804b0cf4159b183532f79057927a6b941e2bb051f1849",
+          "occurrence_url": "https://goodnightscomedy.com/shows/389374"
+        },
+        {
+          "action": "approve",
+          "candidate_id": 188,
+          "decision_id": 377,
+          "gate_mode": "off",
+          "identity_fingerprint": "a3426031735678756005caf10b50b938a6f1f769745f83fc30cbcacddadba61b",
+          "observation_generation": 2,
+          "payload_fingerprint": "cbda4667b666aa741004fe3b3a5e9f7ad468672eaf21c17b40df7f21e9e8d15a",
+          "policy_version": 3,
+          "review_version": 1,
+          "source_id": 192,
+          "event_key": "fallback:9e2201c48370f0824fb2b4e11a3013ccadb25e782289dac1928d74776a199a51",
+          "occurrence_url": "https://goodnightscomedy.com/shows/389375"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Approvals bind source/event, observation generation, payload and identity fingerprints, review version and source policy version3.",
+    "Any source policy version increase invalidates these scopes; approvals do not automatically carry into later enforcement.",
+    "Original task-4160-adjudications.json retains applied:false as the historical recommendation artifact; this separate receipt records subsequent execution.",
+    "Known-label development review does not complete criterion13560 or authorize enforcement."
+  ]
+}

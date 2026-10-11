@@ -147,3 +147,64 @@ The CLI invoked no public writer, performed no shadow staging and made zero
 model calls. These counts establish neither current public suppression nor an
 enforcement pass. The strict fresh selection remains empty and criterion 13560
 remains incomplete.
+
+## Subsequent v3 extraction and applied reviews
+
+After the replay above, conservative event-bound extraction was expanded to
+retain separate description and biography-tab program statements. The v3
+reconstruction reused the original provider inventory and 147 saved pages; it
+performed no new fetches. Eight supported development groups gained explicit
+program evidence. The remaining nine contextual cases and six structural-label
+cases received exact event reviews rather than broader automatic acceptance.
+
+The after-review replay completed at **2026-10-11 16:42:25.830775 UTC**.
+[`task-4160-development-results.json`](task-4160-development-results.json), SHA-256
+`e782f9b574aa053385ac12be9541ca019d49dfa9b4e1518bc930afc7348f7d09`, separates
+automatic baseline decisions from review-assisted effective decisions:
+
+| Source | Automatic comedy accepted, occurrences / gold | Review-assisted comedy accepted, occurrences / gold | Fully retained comedy groups, automatic → assisted | Accepted non-comedy occurrences / gold | Unresolved unknown occurrences |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 527 — Santa Monica | 0 / 0 | 0 / 0 | 0 → 0 (of 0) | 0 / 42 | 8 |
+| 595 — Long Beach | 15 / 23 | 23 / 23 | 9 → 14 (of 14) | 0 / 51 | 10 |
+| 192 — Goodnights | 3 / 28 | 28 / 28 | 3 → 13 (of 13) | 0 / 1 | 124 |
+| Total | 18 / 51 | 51 / 51 | 12 → 27 (of 27) | 0 / 94 | 142 |
+
+The group column compares automatic versus assisted retained groups: its total
+means 12 automatic and 27 assisted out of 27 confirmed-comedy groups. All 94
+confirmed non-comedy occurrences (60 groups) remain in reject/review, and all
+142 unknown occurrences (60 groups) remain unresolved and withheld in the
+eligibility evaluation. These are potential coverage losses, not successful
+non-comedy removals. All 350 provider occurrences transformed without losses.
+The 26 unlabelled Goodnights groups, comprising 63 occurrences, still lack saved
+detail pages and are excluded from gold metrics. No gold labels changed.
+
+The review-assisted gain is attributable to **33 candidate approvals across 15
+native event groups**, not additional automatic classifier accuracy. The actor
+was `Codex agent TASK-4160`, not an independent human adjudicator. Reviews were
+applied between **2026-10-11 16:41:19.794766 and 16:41:44.014867 UTC** using the
+explicit off-audit workflow. The curated receipt
+[`task-4160-applied-reviews.json`](task-4160-applied-reviews.json), SHA-256
+`a668ff238563a66bafbe2d06ba13b7e88cc249ac17ec49342cb77e9851ff5034`, records
+event reasons, evidence URLs, candidate scopes and before/after checks. The
+original adjudications artifact remains the unchanged historical recommendation.
+
+The database migration `20261011180000_allow_comedy_off_audit` was applied via
+Prisma migrate deploy after a sole-pending-migration preflight, from
+**2026-10-11 16:39:15.118750 to 16:39:15.361121 UTC**. The parent verified its
+database migration record, checksum and publication-guard trigger. Six PGlite
+tests passed, including rejection of off-mode publication INSERT and UPDATE.
+Audit decisions and operator reviews were persisted; no production show writer
+was invoked. Before/after snapshots show unchanged comedian identity and deny
+hashes, source policies, and public table counts: 142,710 shows, 166,854 tickets,
+120,370 lineup items and 12,072 comedians. Publication-link count remained zero.
+
+All three sources remain enabled, `unreviewed/off/version 3`; off mode bypasses
+screening in ordinary publication. These approvals are fenced to the recorded
+payload, identity, observation, review and policy versions. A later source policy
+version increase does **not** carry them into enforcement automatically.
+
+This is known-label development validation with zero model calls, not an
+independent holdout or publication outcome. Fresh validation and enforcement
+criteria 13560/13561 remain incomplete. TASK-4161 is intended to collect unseen
+groups; scheduled collection is still pending and is not evidence that a fresh
+sample exists. The earlier frozen empty selection and thresholds remain intact.

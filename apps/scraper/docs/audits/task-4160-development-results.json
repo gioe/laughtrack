@@ -1,0 +1,915 @@
+{
+  "after": {
+    "generated_at": "2026-10-11T16:42:25.830775+00:00",
+    "sources": [
+      {
+        "baseline_full_feed": {
+          "reject": 39,
+          "review": 11
+        },
+        "by_gold": {
+          "comedy": {
+            "baseline": {
+              "accepted_fraction": null,
+              "group_denominator": 0,
+              "groups": {},
+              "occurrence_denominator": 0,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 0,
+                "review": 0
+              },
+              "withheld_or_missing_fraction": null
+            },
+            "effective": {
+              "accepted_fraction": null,
+              "group_denominator": 0,
+              "groups": {},
+              "occurrence_denominator": 0,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 0,
+                "review": 0
+              },
+              "withheld_or_missing_fraction": null
+            }
+          },
+          "non_comedy": {
+            "baseline": {
+              "accepted_fraction": 0.0,
+              "group_denominator": 42,
+              "groups": {
+                "all_occurrences_accepted": 0,
+                "all_occurrences_withheld_or_missing": 42,
+                "any_occurrence_accepted": 0,
+                "any_occurrence_withheld_or_missing": 42
+              },
+              "occurrence_denominator": 42,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 39,
+                "review": 3
+              },
+              "withheld_or_missing_fraction": 1.0
+            },
+            "effective": {
+              "accepted_fraction": 0.0,
+              "group_denominator": 42,
+              "groups": {
+                "all_occurrences_accepted": 0,
+                "all_occurrences_withheld_or_missing": 42,
+                "any_occurrence_accepted": 0,
+                "any_occurrence_withheld_or_missing": 42
+              },
+              "occurrence_denominator": 42,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 38,
+                "review": 4
+              },
+              "withheld_or_missing_fraction": 1.0
+            }
+          },
+          "unknown": {
+            "baseline": {
+              "accepted_fraction": 0.0,
+              "group_denominator": 8,
+              "groups": {
+                "all_occurrences_accepted": 0,
+                "all_occurrences_withheld_or_missing": 8,
+                "any_occurrence_accepted": 0,
+                "any_occurrence_withheld_or_missing": 8
+              },
+              "occurrence_denominator": 8,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 0,
+                "review": 8
+              },
+              "withheld_or_missing_fraction": 1.0
+            },
+            "effective": {
+              "accepted_fraction": 0.0,
+              "group_denominator": 8,
+              "groups": {
+                "all_occurrences_accepted": 0,
+                "all_occurrences_withheld_or_missing": 8,
+                "any_occurrence_accepted": 0,
+                "any_occurrence_withheld_or_missing": 8
+              },
+              "occurrence_denominator": 8,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 0,
+                "review": 8
+              },
+              "withheld_or_missing_fraction": 1.0
+            }
+          }
+        },
+        "effective_full_feed": {
+          "reject": 38,
+          "review": 12
+        },
+        "full_feed_groups": 50,
+        "full_feed_occurrences": 50,
+        "labeled_groups": 50,
+        "labeled_occurrences": 50,
+        "outside_frozen_gold_occurrences": 0,
+        "policy": {
+          "gate_mode": "off",
+          "policy": "unreviewed",
+          "version": 3
+        },
+        "publication_semantics": "Eligibility evaluation only; off mode bypasses screening, shadow does not enforce classifier decisions. No public writer invoked.",
+        "review_counts_full_feed": {
+          "active": 0,
+          "stale": 1
+        },
+        "source_id": 527,
+        "transformation_losses": {
+          "conversion_lost": 0,
+          "upstream_filtered": 0
+        },
+        "transformed_occurrences": 50
+      },
+      {
+        "baseline_full_feed": {
+          "accept": 15,
+          "reject": 36,
+          "review": 33
+        },
+        "by_gold": {
+          "comedy": {
+            "baseline": {
+              "accepted_fraction": 0.6521739130434783,
+              "group_denominator": 14,
+              "groups": {
+                "all_occurrences_accepted": 9,
+                "all_occurrences_withheld_or_missing": 5,
+                "any_occurrence_accepted": 9,
+                "any_occurrence_withheld_or_missing": 5
+              },
+              "occurrence_denominator": 23,
+              "occurrences": {
+                "accept": 15,
+                "missing": 0,
+                "reject": 7,
+                "review": 1
+              },
+              "withheld_or_missing_fraction": 0.34782608695652173
+            },
+            "effective": {
+              "accepted_fraction": 1.0,
+              "group_denominator": 14,
+              "groups": {
+                "all_occurrences_accepted": 14,
+                "all_occurrences_withheld_or_missing": 0,
+                "any_occurrence_accepted": 14,
+                "any_occurrence_withheld_or_missing": 0
+              },
+              "occurrence_denominator": 23,
+              "occurrences": {
+                "accept": 23,
+                "missing": 0,
+                "reject": 0,
+                "review": 0
+              },
+              "withheld_or_missing_fraction": 0.0
+            }
+          },
+          "non_comedy": {
+            "baseline": {
+              "accepted_fraction": 0.0,
+              "group_denominator": 17,
+              "groups": {
+                "all_occurrences_accepted": 0,
+                "all_occurrences_withheld_or_missing": 17,
+                "any_occurrence_accepted": 0,
+                "any_occurrence_withheld_or_missing": 17
+              },
+              "occurrence_denominator": 51,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 27,
+                "review": 24
+              },
+              "withheld_or_missing_fraction": 1.0
+            },
+            "effective": {
+              "accepted_fraction": 0.0,
+              "group_denominator": 17,
+              "groups": {
+                "all_occurrences_accepted": 0,
+                "all_occurrences_withheld_or_missing": 17,
+                "any_occurrence_accepted": 0,
+                "any_occurrence_withheld_or_missing": 17
+              },
+              "occurrence_denominator": 51,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 27,
+                "review": 24
+              },
+              "withheld_or_missing_fraction": 1.0
+            }
+          },
+          "unknown": {
+            "baseline": {
+              "accepted_fraction": 0.0,
+              "group_denominator": 6,
+              "groups": {
+                "all_occurrences_accepted": 0,
+                "all_occurrences_withheld_or_missing": 6,
+                "any_occurrence_accepted": 0,
+                "any_occurrence_withheld_or_missing": 6
+              },
+              "occurrence_denominator": 10,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 2,
+                "review": 8
+              },
+              "withheld_or_missing_fraction": 1.0
+            },
+            "effective": {
+              "accepted_fraction": 0.0,
+              "group_denominator": 6,
+              "groups": {
+                "all_occurrences_accepted": 0,
+                "all_occurrences_withheld_or_missing": 6,
+                "any_occurrence_accepted": 0,
+                "any_occurrence_withheld_or_missing": 6
+              },
+              "occurrence_denominator": 10,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 2,
+                "review": 8
+              },
+              "withheld_or_missing_fraction": 1.0
+            }
+          }
+        },
+        "effective_full_feed": {
+          "accept": 23,
+          "reject": 29,
+          "review": 32
+        },
+        "full_feed_groups": 37,
+        "full_feed_occurrences": 84,
+        "labeled_groups": 37,
+        "labeled_occurrences": 84,
+        "outside_frozen_gold_occurrences": 0,
+        "policy": {
+          "gate_mode": "off",
+          "policy": "unreviewed",
+          "version": 3
+        },
+        "publication_semantics": "Eligibility evaluation only; off mode bypasses screening, shadow does not enforce classifier decisions. No public writer invoked.",
+        "review_counts_full_feed": {
+          "active": 8,
+          "stale": 0
+        },
+        "source_id": 595,
+        "transformation_losses": {
+          "conversion_lost": 0,
+          "upstream_filtered": 0
+        },
+        "transformed_occurrences": 84
+      },
+      {
+        "baseline_full_feed": {
+          "accept": 3,
+          "reject": 2,
+          "review": 211
+        },
+        "by_gold": {
+          "comedy": {
+            "baseline": {
+              "accepted_fraction": 0.10714285714285714,
+              "group_denominator": 13,
+              "groups": {
+                "all_occurrences_accepted": 3,
+                "all_occurrences_withheld_or_missing": 10,
+                "any_occurrence_accepted": 3,
+                "any_occurrence_withheld_or_missing": 10
+              },
+              "occurrence_denominator": 28,
+              "occurrences": {
+                "accept": 3,
+                "missing": 0,
+                "reject": 1,
+                "review": 24
+              },
+              "withheld_or_missing_fraction": 0.8928571428571429
+            },
+            "effective": {
+              "accepted_fraction": 1.0,
+              "group_denominator": 13,
+              "groups": {
+                "all_occurrences_accepted": 13,
+                "all_occurrences_withheld_or_missing": 0,
+                "any_occurrence_accepted": 13,
+                "any_occurrence_withheld_or_missing": 0
+              },
+              "occurrence_denominator": 28,
+              "occurrences": {
+                "accept": 28,
+                "missing": 0,
+                "reject": 0,
+                "review": 0
+              },
+              "withheld_or_missing_fraction": 0.0
+            }
+          },
+          "non_comedy": {
+            "baseline": {
+              "accepted_fraction": 0.0,
+              "group_denominator": 1,
+              "groups": {
+                "all_occurrences_accepted": 0,
+                "all_occurrences_withheld_or_missing": 1,
+                "any_occurrence_accepted": 0,
+                "any_occurrence_withheld_or_missing": 1
+              },
+              "occurrence_denominator": 1,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 0,
+                "review": 1
+              },
+              "withheld_or_missing_fraction": 1.0
+            },
+            "effective": {
+              "accepted_fraction": 0.0,
+              "group_denominator": 1,
+              "groups": {
+                "all_occurrences_accepted": 0,
+                "all_occurrences_withheld_or_missing": 1,
+                "any_occurrence_accepted": 0,
+                "any_occurrence_withheld_or_missing": 1
+              },
+              "occurrence_denominator": 1,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 0,
+                "review": 1
+              },
+              "withheld_or_missing_fraction": 1.0
+            }
+          },
+          "unknown": {
+            "baseline": {
+              "accepted_fraction": 0.0,
+              "group_denominator": 46,
+              "groups": {
+                "all_occurrences_accepted": 0,
+                "all_occurrences_withheld_or_missing": 46,
+                "any_occurrence_accepted": 0,
+                "any_occurrence_withheld_or_missing": 46
+              },
+              "occurrence_denominator": 124,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 1,
+                "review": 123
+              },
+              "withheld_or_missing_fraction": 1.0
+            },
+            "effective": {
+              "accepted_fraction": 0.0,
+              "group_denominator": 46,
+              "groups": {
+                "all_occurrences_accepted": 0,
+                "all_occurrences_withheld_or_missing": 46,
+                "any_occurrence_accepted": 0,
+                "any_occurrence_withheld_or_missing": 46
+              },
+              "occurrence_denominator": 124,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 1,
+                "review": 123
+              },
+              "withheld_or_missing_fraction": 1.0
+            }
+          }
+        },
+        "effective_full_feed": {
+          "accept": 28,
+          "reject": 1,
+          "review": 187
+        },
+        "full_feed_groups": 86,
+        "full_feed_occurrences": 216,
+        "labeled_groups": 60,
+        "labeled_occurrences": 153,
+        "outside_frozen_gold_occurrences": 63,
+        "policy": {
+          "gate_mode": "off",
+          "policy": "unreviewed",
+          "version": 3
+        },
+        "publication_semantics": "Eligibility evaluation only; off mode bypasses screening, shadow does not enforce classifier decisions. No public writer invoked.",
+        "review_counts_full_feed": {
+          "active": 25,
+          "stale": 0
+        },
+        "source_id": 192,
+        "transformation_losses": {
+          "conversion_lost": 0,
+          "upstream_filtered": 0
+        },
+        "transformed_occurrences": 216
+      }
+    ]
+  },
+  "before": {
+    "generated_at": "2026-10-11T16:38:44.659440+00:00",
+    "sources": [
+      {
+        "baseline_full_feed": {
+          "reject": 39,
+          "review": 11
+        },
+        "by_gold": {
+          "comedy": {
+            "baseline": {
+              "accepted_fraction": null,
+              "group_denominator": 0,
+              "groups": {},
+              "occurrence_denominator": 0,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 0,
+                "review": 0
+              },
+              "withheld_or_missing_fraction": null
+            },
+            "effective": {
+              "accepted_fraction": null,
+              "group_denominator": 0,
+              "groups": {},
+              "occurrence_denominator": 0,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 0,
+                "review": 0
+              },
+              "withheld_or_missing_fraction": null
+            }
+          },
+          "non_comedy": {
+            "baseline": {
+              "accepted_fraction": 0.0,
+              "group_denominator": 42,
+              "groups": {
+                "all_occurrences_accepted": 0,
+                "all_occurrences_withheld_or_missing": 42,
+                "any_occurrence_accepted": 0,
+                "any_occurrence_withheld_or_missing": 42
+              },
+              "occurrence_denominator": 42,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 39,
+                "review": 3
+              },
+              "withheld_or_missing_fraction": 1.0
+            },
+            "effective": {
+              "accepted_fraction": 0.0,
+              "group_denominator": 42,
+              "groups": {
+                "all_occurrences_accepted": 0,
+                "all_occurrences_withheld_or_missing": 42,
+                "any_occurrence_accepted": 0,
+                "any_occurrence_withheld_or_missing": 42
+              },
+              "occurrence_denominator": 42,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 38,
+                "review": 4
+              },
+              "withheld_or_missing_fraction": 1.0
+            }
+          },
+          "unknown": {
+            "baseline": {
+              "accepted_fraction": 0.0,
+              "group_denominator": 8,
+              "groups": {
+                "all_occurrences_accepted": 0,
+                "all_occurrences_withheld_or_missing": 8,
+                "any_occurrence_accepted": 0,
+                "any_occurrence_withheld_or_missing": 8
+              },
+              "occurrence_denominator": 8,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 0,
+                "review": 8
+              },
+              "withheld_or_missing_fraction": 1.0
+            },
+            "effective": {
+              "accepted_fraction": 0.0,
+              "group_denominator": 8,
+              "groups": {
+                "all_occurrences_accepted": 0,
+                "all_occurrences_withheld_or_missing": 8,
+                "any_occurrence_accepted": 0,
+                "any_occurrence_withheld_or_missing": 8
+              },
+              "occurrence_denominator": 8,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 0,
+                "review": 8
+              },
+              "withheld_or_missing_fraction": 1.0
+            }
+          }
+        },
+        "effective_full_feed": {
+          "reject": 38,
+          "review": 12
+        },
+        "full_feed_groups": 50,
+        "full_feed_occurrences": 50,
+        "labeled_groups": 50,
+        "labeled_occurrences": 50,
+        "outside_frozen_gold_occurrences": 0,
+        "policy": {
+          "gate_mode": "off",
+          "policy": "unreviewed",
+          "version": 3
+        },
+        "publication_semantics": "Eligibility evaluation only; off mode bypasses screening, shadow does not enforce classifier decisions. No public writer invoked.",
+        "review_counts_full_feed": {
+          "active": 0,
+          "stale": 1
+        },
+        "source_id": 527,
+        "transformation_losses": {
+          "conversion_lost": 0,
+          "upstream_filtered": 0
+        },
+        "transformed_occurrences": 50
+      },
+      {
+        "baseline_full_feed": {
+          "accept": 15,
+          "reject": 36,
+          "review": 33
+        },
+        "by_gold": {
+          "comedy": {
+            "baseline": {
+              "accepted_fraction": 0.6521739130434783,
+              "group_denominator": 14,
+              "groups": {
+                "all_occurrences_accepted": 9,
+                "all_occurrences_withheld_or_missing": 5,
+                "any_occurrence_accepted": 9,
+                "any_occurrence_withheld_or_missing": 5
+              },
+              "occurrence_denominator": 23,
+              "occurrences": {
+                "accept": 15,
+                "missing": 0,
+                "reject": 7,
+                "review": 1
+              },
+              "withheld_or_missing_fraction": 0.34782608695652173
+            },
+            "effective": {
+              "accepted_fraction": 0.6521739130434783,
+              "group_denominator": 14,
+              "groups": {
+                "all_occurrences_accepted": 9,
+                "all_occurrences_withheld_or_missing": 5,
+                "any_occurrence_accepted": 9,
+                "any_occurrence_withheld_or_missing": 5
+              },
+              "occurrence_denominator": 23,
+              "occurrences": {
+                "accept": 15,
+                "missing": 0,
+                "reject": 7,
+                "review": 1
+              },
+              "withheld_or_missing_fraction": 0.34782608695652173
+            }
+          },
+          "non_comedy": {
+            "baseline": {
+              "accepted_fraction": 0.0,
+              "group_denominator": 17,
+              "groups": {
+                "all_occurrences_accepted": 0,
+                "all_occurrences_withheld_or_missing": 17,
+                "any_occurrence_accepted": 0,
+                "any_occurrence_withheld_or_missing": 17
+              },
+              "occurrence_denominator": 51,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 27,
+                "review": 24
+              },
+              "withheld_or_missing_fraction": 1.0
+            },
+            "effective": {
+              "accepted_fraction": 0.0,
+              "group_denominator": 17,
+              "groups": {
+                "all_occurrences_accepted": 0,
+                "all_occurrences_withheld_or_missing": 17,
+                "any_occurrence_accepted": 0,
+                "any_occurrence_withheld_or_missing": 17
+              },
+              "occurrence_denominator": 51,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 27,
+                "review": 24
+              },
+              "withheld_or_missing_fraction": 1.0
+            }
+          },
+          "unknown": {
+            "baseline": {
+              "accepted_fraction": 0.0,
+              "group_denominator": 6,
+              "groups": {
+                "all_occurrences_accepted": 0,
+                "all_occurrences_withheld_or_missing": 6,
+                "any_occurrence_accepted": 0,
+                "any_occurrence_withheld_or_missing": 6
+              },
+              "occurrence_denominator": 10,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 2,
+                "review": 8
+              },
+              "withheld_or_missing_fraction": 1.0
+            },
+            "effective": {
+              "accepted_fraction": 0.0,
+              "group_denominator": 6,
+              "groups": {
+                "all_occurrences_accepted": 0,
+                "all_occurrences_withheld_or_missing": 6,
+                "any_occurrence_accepted": 0,
+                "any_occurrence_withheld_or_missing": 6
+              },
+              "occurrence_denominator": 10,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 2,
+                "review": 8
+              },
+              "withheld_or_missing_fraction": 1.0
+            }
+          }
+        },
+        "effective_full_feed": {
+          "accept": 15,
+          "reject": 36,
+          "review": 33
+        },
+        "full_feed_groups": 37,
+        "full_feed_occurrences": 84,
+        "labeled_groups": 37,
+        "labeled_occurrences": 84,
+        "outside_frozen_gold_occurrences": 0,
+        "policy": {
+          "gate_mode": "off",
+          "policy": "unreviewed",
+          "version": 3
+        },
+        "publication_semantics": "Eligibility evaluation only; off mode bypasses screening, shadow does not enforce classifier decisions. No public writer invoked.",
+        "review_counts_full_feed": {
+          "active": 0,
+          "stale": 0
+        },
+        "source_id": 595,
+        "transformation_losses": {
+          "conversion_lost": 0,
+          "upstream_filtered": 0
+        },
+        "transformed_occurrences": 84
+      },
+      {
+        "baseline_full_feed": {
+          "accept": 3,
+          "reject": 2,
+          "review": 211
+        },
+        "by_gold": {
+          "comedy": {
+            "baseline": {
+              "accepted_fraction": 0.10714285714285714,
+              "group_denominator": 13,
+              "groups": {
+                "all_occurrences_accepted": 3,
+                "all_occurrences_withheld_or_missing": 10,
+                "any_occurrence_accepted": 3,
+                "any_occurrence_withheld_or_missing": 10
+              },
+              "occurrence_denominator": 28,
+              "occurrences": {
+                "accept": 3,
+                "missing": 0,
+                "reject": 1,
+                "review": 24
+              },
+              "withheld_or_missing_fraction": 0.8928571428571429
+            },
+            "effective": {
+              "accepted_fraction": 0.10714285714285714,
+              "group_denominator": 13,
+              "groups": {
+                "all_occurrences_accepted": 3,
+                "all_occurrences_withheld_or_missing": 10,
+                "any_occurrence_accepted": 3,
+                "any_occurrence_withheld_or_missing": 10
+              },
+              "occurrence_denominator": 28,
+              "occurrences": {
+                "accept": 3,
+                "missing": 0,
+                "reject": 1,
+                "review": 24
+              },
+              "withheld_or_missing_fraction": 0.8928571428571429
+            }
+          },
+          "non_comedy": {
+            "baseline": {
+              "accepted_fraction": 0.0,
+              "group_denominator": 1,
+              "groups": {
+                "all_occurrences_accepted": 0,
+                "all_occurrences_withheld_or_missing": 1,
+                "any_occurrence_accepted": 0,
+                "any_occurrence_withheld_or_missing": 1
+              },
+              "occurrence_denominator": 1,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 0,
+                "review": 1
+              },
+              "withheld_or_missing_fraction": 1.0
+            },
+            "effective": {
+              "accepted_fraction": 0.0,
+              "group_denominator": 1,
+              "groups": {
+                "all_occurrences_accepted": 0,
+                "all_occurrences_withheld_or_missing": 1,
+                "any_occurrence_accepted": 0,
+                "any_occurrence_withheld_or_missing": 1
+              },
+              "occurrence_denominator": 1,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 0,
+                "review": 1
+              },
+              "withheld_or_missing_fraction": 1.0
+            }
+          },
+          "unknown": {
+            "baseline": {
+              "accepted_fraction": 0.0,
+              "group_denominator": 46,
+              "groups": {
+                "all_occurrences_accepted": 0,
+                "all_occurrences_withheld_or_missing": 46,
+                "any_occurrence_accepted": 0,
+                "any_occurrence_withheld_or_missing": 46
+              },
+              "occurrence_denominator": 124,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 1,
+                "review": 123
+              },
+              "withheld_or_missing_fraction": 1.0
+            },
+            "effective": {
+              "accepted_fraction": 0.0,
+              "group_denominator": 46,
+              "groups": {
+                "all_occurrences_accepted": 0,
+                "all_occurrences_withheld_or_missing": 46,
+                "any_occurrence_accepted": 0,
+                "any_occurrence_withheld_or_missing": 46
+              },
+              "occurrence_denominator": 124,
+              "occurrences": {
+                "accept": 0,
+                "missing": 0,
+                "reject": 1,
+                "review": 123
+              },
+              "withheld_or_missing_fraction": 1.0
+            }
+          }
+        },
+        "effective_full_feed": {
+          "accept": 3,
+          "reject": 2,
+          "review": 211
+        },
+        "full_feed_groups": 86,
+        "full_feed_occurrences": 216,
+        "labeled_groups": 60,
+        "labeled_occurrences": 153,
+        "outside_frozen_gold_occurrences": 63,
+        "policy": {
+          "gate_mode": "off",
+          "policy": "unreviewed",
+          "version": 3
+        },
+        "publication_semantics": "Eligibility evaluation only; off mode bypasses screening, shadow does not enforce classifier decisions. No public writer invoked.",
+        "review_counts_full_feed": {
+          "active": 0,
+          "stale": 0
+        },
+        "source_id": 192,
+        "transformation_losses": {
+          "conversion_lost": 0,
+          "upstream_filtered": 0
+        },
+        "transformed_occurrences": 216
+      }
+    ]
+  },
+  "criterion_13560_completed": false,
+  "frozen_gold_groups": {
+    "comedy": 27,
+    "non_comedy": 60,
+    "unknown": 60
+  },
+  "frozen_gold_occurrences": {
+    "comedy": 51,
+    "non_comedy": 94,
+    "unknown": 142
+  },
+  "frozen_gold_sha256": "cc86177c3446a3ac95e573ad629798feecb7dd04a5a2b103e8eda10f01199a76",
+  "generated_at": "2026-10-11T16:42:40.239725+00:00",
+  "independent_validation": false,
+  "input_sha256": {
+    "after_replay": "2601c6b49acc8363b8ddd69c830b70270d42238a2bbd4d3386efd35fa8ea27a3",
+    "before_replay": "a993999a290a4e463493bbb8915b988444f4493200d66363134016796134f723",
+    "enriched_payload": "94adfe20439215c0e4d90bf995954f9a1d1cae2c1ead602327782f5819e7e8a3"
+  },
+  "limitations": [
+    "All labeled groups were previously exposed; improvements are development-set results.",
+    "Human-reviewed effective accepts are not automatic classifier improvements.",
+    "Off mode bypasses screening during ordinary publication; eligibility counts do not prove suppression or publication.",
+    "Group coverage fails if any labeled occurrence is review, reject or missing; leakage means any non-comedy occurrence accepted.",
+    "Unknowns stay unknown and are never counted as successful comedy retention or non-comedy rejection.",
+    "Repeated native groups/series and their occurrences are not independent replications.",
+    "The 26 previously unlabelled Goodnights groups (63 occurrences) have no saved detail pages or gold labels."
+  ],
+  "model_calls": 0,
+  "model_cost_usd": 0,
+  "public_writes_by_replay": 0,
+  "purpose": "Known-label development validation before and after scoped human reviews; not independent validation",
+  "version": 1
+}
