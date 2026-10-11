@@ -1,0 +1,3070 @@
+{
+  "scope": {
+    "endpoint": "https://www.laugh-track.com/api/v1/shows/search",
+    "params": {
+      "fromDate": "2026-10-11",
+      "toDate": "2026-10-17",
+      "size": 500,
+      "page": "0 through 5",
+      "sort": "date_asc"
+    },
+    "authentication": "anonymous",
+    "location_filter": null,
+    "timezone_header": null,
+    "unique_shows": 2886,
+    "unique_venue_title_groups": 2175,
+    "unique_clubs": 702,
+    "pagination": [
+      {
+        "file": "page-0.json",
+        "sha256": "6a3d85ace52c52c6517819301e7ee3e3544143c4872d6faf5cd98f1bfa2d247d",
+        "reported_total": 2886,
+        "returned": 500,
+        "saved_at_utc": "2026-10-11T17:04:53.010424+00:00"
+      },
+      {
+        "file": "page-1.json",
+        "sha256": "8bc5e2f92f845b7673bf9be59ce455e3fe51d0c75ee952ce5ee30007cbe7ad4b",
+        "reported_total": 2886,
+        "returned": 500,
+        "saved_at_utc": "2026-10-11T17:04:53.022459+00:00"
+      },
+      {
+        "file": "page-2.json",
+        "sha256": "52e2bbb672beb7ebdbabdd18b4168aa2440ff9e9c4f7cc3607ac5e383fc9c7f1",
+        "reported_total": 2886,
+        "returned": 500,
+        "saved_at_utc": "2026-10-11T17:04:53.592301+00:00"
+      },
+      {
+        "file": "page-3.json",
+        "sha256": "24e7010a78a965be7a932f77795951fd6104eee1b4149b0bf2d6e93375a363c3",
+        "reported_total": 2886,
+        "returned": 500,
+        "saved_at_utc": "2026-10-11T17:04:53.965217+00:00"
+      },
+      {
+        "file": "page-4.json",
+        "sha256": "c9970584b9d3c1a4e5ac6cd25108c42e617ee57a17709e85b65119e3e09327b7",
+        "reported_total": 2886,
+        "returned": 500,
+        "saved_at_utc": "2026-10-11T17:04:53.620483+00:00"
+      },
+      {
+        "file": "page-5.json",
+        "sha256": "94440d3a4406672a05cdcb2e873c48a672dd49e53020f27b73f7847d85b186ef",
+        "reported_total": 2886,
+        "returned": 386,
+        "saved_at_utc": "2026-10-11T17:04:55.050424+00:00"
+      }
+    ]
+  },
+  "method": "Agent title triage across all 2175 exact venue/title groups, followed by targeted reading of returned descriptions and lineups for suspicious listings. Repeated occurrences grouped for review, counted separately in show totals. No production classifier run and no provider-model API call. These are content audit judgments, not independently verified ground truth.",
+  "limitations": [
+    "Flags are a conservative triage set, not an exhaustive false-positive rate; remaining listings are not certified comedy.",
+    "No description or lineup is not evidence of non-comedy.",
+    "Public lineups do not expose blocked identities or parent links, so blocked-only and blocked-only-with-parents rates cannot be calculated from this endpoint.",
+    "A non-comedy event at a venue does not establish that comedy never occurs there.",
+    "Movie screenings, workshops, mixed variety and drag require separate format decisions; do not blanket exclude them.",
+    "Offset pagination is not a transactional snapshot, though all six pages reported the same total and all 2886 IDs were unique.",
+    "This assesses published-content precision; cannot measure missed comedy/recall or substitute for the fresh validation required by TASK-4160.",
+    "This audit exposes these listings to the agent. Do not subsequently treat these judgments as blind independent validation labels."
+  ],
+  "show_counts": {
+    "screening_not_live_comedy": 9,
+    "needs_more_evidence": 116,
+    "class_workshop_or_mixer_review": 27,
+    "strong_non_comedy_flag": 56,
+    "promotion_or_unavailable_event": 4
+  },
+  "strong_flag_share": 0.019404019404019403,
+  "strong_flag_venue_count": 30,
+  "strong_flags_by_venue": {
+    "Mic Drop Comedy Plano": 10,
+    "The Rockwell": 4,
+    "Dharma Bums": 3,
+    "Keller Auditorium": 3,
+    "Mic Drop Comedy Detroit": 3,
+    "Comedy Key West": 3,
+    "The Tiny Cupboard": 2,
+    "Harvelle's Long Beach": 2,
+    "Deaf Puppy Comedy Club": 2,
+    "Ohio Star Theater at Dutch Valley": 2,
+    "The Comedy Loft of DC": 2,
+    "Uncle Vinnie's Comedy Club": 2,
+    "Charlotte Comedy Zone": 1,
+    "Flappers Comedy Club And Restaurant Burbank": 1,
+    "Give a Hoot Comedy Club": 1,
+    "Numerica Veterans Arena": 1,
+    "Comix Roadhouse": 1,
+    "Comedy Cabin": 1,
+    "Grove 34": 1,
+    "West Nyack Levity Live": 1,
+    "Planet Of The Tapes": 1,
+    "Jacques' Cabaret": 1,
+    "Dead Crow Comedy": 1,
+    "Lyric Hyperion Theater & Cafe": 1,
+    "Sports Drink": 1,
+    "Laugh Camp Comedy Club": 1,
+    "Harvelle's Santa Monica": 1,
+    "Comedy In Harlem": 1,
+    "Uptown Theater": 1,
+    "Snappers Palm Harbor": 1
+  },
+  "missing_description_count": 1423,
+  "empty_public_lineup_count": 1398,
+  "flags": [
+    {
+      "index": 29,
+      "club": "American Theatre",
+      "name": "The Addams Family - 7pm - Classic Movie Nights!",
+      "count": 1,
+      "ids": [
+        6781738
+      ],
+      "description": "You Frightened Me. Do It Again! The 1991 American supernatural black comedy film based on the comic strip characters created by Charles Addams. Directed by Barry Sonnenfeld - Starring Anjelica Huston, Raul Julia and Christopher Lloyd. A bizarre, macabre, aristocratic family who reconnect with someone whom they believe to be a long-lost relative, Gomez's brother Fester Addams. No Refunds / No Exchanges | Please note: You Frightened Me. Do It Again! The 1991 American supernatural black comedy film based on the comic strip characters created by Charles Addams. Directed by Barry Sonnenfeld - Starring Anjelica Huston, Raul Julia and Christopher Lloyd. A bizarre, macabre, aristocratic family who reconnect with someone whom they believe to be a long-lost relative, Gomez's brother Fester Addams. No Refunds / No Exchanges",
+      "lineup": [],
+      "url": "https://www.ticketmaster.com/the-addams-family-7pm-classic-movie-hampton-virginia-10-15-2026/event/0100651BD3EDDD2B",
+      "assessment": "screening_not_live_comedy",
+      "reason": "Movie screening rather than a live comedy performance. A comedy film may still be comedy content; this is a format distinction.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/6781738"
+      ]
+    },
+    {
+      "index": 32,
+      "club": "Amish Country Theater",
+      "name": "Jukebox Heroes LIVE!",
+      "count": 1,
+      "ids": [
+        2964831
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=181407",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/2964831"
+      ]
+    },
+    {
+      "index": 69,
+      "club": "BABS Comedy Club",
+      "name": "Comedy Writing Workshop Series (18+)",
+      "count": 1,
+      "ids": [
+        1597069
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.babscomedyclub.com/shows/371703",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/1597069"
+      ]
+    },
+    {
+      "index": 70,
+      "club": "BABS Comedy Club",
+      "name": "Improv Workshop Series (18+)",
+      "count": 1,
+      "ids": [
+        1597068
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.babscomedyclub.com/shows/371693",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/1597068"
+      ]
+    },
+    {
+      "index": 98,
+      "club": "Bergen Performing Arts Center",
+      "name": "An Evening With John Cusack (featuring Screening Of High Fidelity)",
+      "count": 1,
+      "ids": [
+        2832229
+      ],
+      "description": "",
+      "lineup": [
+        "John Cusack"
+      ],
+      "url": "https://www.ticketmaster.com/an-evening-with-john-cusack-featuring-englewood-new-jersey-10-17-2026/event/000064CAC5776B2F",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/2832229"
+      ]
+    },
+    {
+      "index": 110,
+      "club": "Big Laugh Comedy Club",
+      "name": "FREE Intro To Improv Class",
+      "count": 1,
+      "ids": [
+        7761511
+      ],
+      "description": "Free Saturday Improv Class2 hours. 30 spots. 100% fun.Taking an improv class is like a workout for your confidence and creativity. With no script and no pressure, you’ll learn to say “Yes, and…” to new ideas, think on your feet, and adapt when life throws curveballs. Along the way, you’ll sharpen your communication, strengthen your listening skills, and discover how freeing it feels to let go of perfection.And yes—you’ll laugh. A lot.What You’ll Do:Hour 1: Build the FoundationDiscover the “Yes, and…” mindset, play warm-up games, and unlock tools to collaborate, support, and create without fear of being wrong.Hour 2: Play the GamesJump into classic short-form improv games like Professor Know-It-All, Freeze and Justify, Conducted Story, and more. You’ll put your new skills into action, connect with others, and surprise yourself with what you create.By the end, you’ll walk out feeling lighter, braver, and more creative—with stories (and friends) you’ll keep long after class ends.Who’s Teaching:Your guide is Kevin Small, a nationally recognized improviser and teacher.Featured on HBO’s Sketch Pad 2Former Training Director & Performer at Four Day Weekend (one of the most respected improv institutions in the country)Performed for 12+ years with ACME Comedy’s Main Company in Los Angeles, where he wrote and performed sketch comedy alongside stars like Bryan Cranston, Mayim Bialik, Wendi McLendon-Covey, Joel McHale, and Neil Flynn.Kevin brings decades of stage and teaching experience, a supportive style, and a passion for helping people discover their creative voice.By the end, you’ll walk out feeling lighter, braver, and more creative—with stories (and friends) you’ll keep long after class ends.Why Join?✔ Only 30 spots available — keeps it intimate, supportive, and fun✔ No experience needed (improv isn’t about being “funny”)✔ Build confidence and flexibility in just 2 hours✔ 100% FREEReady to jump in? Say “Yes, and…”—and claim your spot before they’re gone!Garage Parking OptionsAvailable for parking on weekdays and weekends - check ratesCity Center Garage #2 - 400 Jones StreetThe Tower Garage - 400 Taylor StreetStreet Parking OptionsDowntown parking meters are free every night after 6pm and on weekends! Ticket Info- First come, first serve GA and Preferred seating- There are no refunds - This event is all ages, valid ID required- 2 Drink Minimum Per Person (Includes non-acoholic options, sodas, and teas)- If you don't show up 20 MINUTES after the scheduled show time, you will forfeit your tickets- No heckling during the show, if you can't play nicely you will be asked to leave - No backpacks or other large bags allowed in venue- No animals allowed in venue- Make sure to have fun and be respectful during the show Grab your tickets before you are stuck wishing you had. Get them now!",
+      "lineup": [],
+      "url": "https://fortworth.blcomedy.com/events/free-intro-to-improv-class-oct-17",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7761511"
+      ]
+    },
+    {
+      "index": 235,
+      "club": "Charlotte Comedy Zone",
+      "name": "R&B Bingo",
+      "count": 1,
+      "ids": [
+        5144686
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.cltcomedyzone.com/shows/383212",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills bingo/trivia/skills games without an explicit comedy performance; requires event-level confirmation before removal.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/5144686"
+      ]
+    },
+    {
+      "index": 254,
+      "club": "Cleveland Funny Bone",
+      "name": "Hocus Pocus Tribute Drag Brunch",
+      "count": 1,
+      "ids": [
+        5963500
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.etix.com/ticket/p/42291290/hocus-pocus-tribute-drag-brunch-cleveland-funny-bone-comedy-club-cleveland?partner_id=100",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/5963500"
+      ]
+    },
+    {
+      "index": 257,
+      "club": "Club Cafe",
+      "name": "Ian McConnell w/ Cherokee Social",
+      "count": 1,
+      "ids": [
+        6543185
+      ],
+      "description": "",
+      "lineup": [
+        "Ian McConnell",
+        "Cherokee Social"
+      ],
+      "url": "https://www.ticketweb.com/event/ian-mcconnell-w-cherokee-social-club-cafe-tickets/14983963",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/6543185"
+      ]
+    },
+    {
+      "index": 258,
+      "club": "Club Cafe",
+      "name": "Mother of Earl w/ Poster Child & Chet Vincent and Tim Good",
+      "count": 1,
+      "ids": [
+        7679984
+      ],
+      "description": "",
+      "lineup": [
+        "Mother of Earl"
+      ],
+      "url": "https://www.ticketweb.com/event/mother-of-earl-w-poster-club-cafe-tickets/14349614",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7679984"
+      ]
+    },
+    {
+      "index": 259,
+      "club": "Club Cafe",
+      "name": "RH Pioneers + Jacob Perez w/ Cody Piper",
+      "count": 1,
+      "ids": [
+        8015302
+      ],
+      "description": "",
+      "lineup": [
+        "Cody Piper",
+        "RH Pioneers + Jacob Perez"
+      ],
+      "url": "https://www.ticketweb.com/event/rh-pioneers-jacob-perez-club-cafe-tickets/14364674",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/8015302"
+      ]
+    },
+    {
+      "index": 260,
+      "club": "Club Cafe",
+      "name": "WYEP Pesents: The Laurel Lowlifes w/ Blooming Trio & Becks!",
+      "count": 1,
+      "ids": [
+        6606947
+      ],
+      "description": "",
+      "lineup": [
+        "The Laurel Lowlifes"
+      ],
+      "url": "https://www.ticketweb.com/event/wyep-pesents-the-laurel-lowlifes-club-cafe-tickets/15049003",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/6606947"
+      ]
+    },
+    {
+      "index": 282,
+      "club": "Comedy Cabin",
+      "name": "Paint & Sip at Comedy Cabin",
+      "count": 1,
+      "ids": [
+        4178610
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.cabinlaughs.com/shows/380218",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills a paint-and-sip activity.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/4178610"
+      ]
+    },
+    {
+      "index": 305,
+      "club": "Comedy In Harlem",
+      "name": "Thursday Nite Jazz Party",
+      "count": 1,
+      "ids": [
+        7900194
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.comedyinharlem.com/shows/390571",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7900194"
+      ]
+    },
+    {
+      "index": 307,
+      "club": "Comedy Key West",
+      "name": "A Pirate Looks Back: Jimmy Buffett Tribute Show",
+      "count": 3,
+      "ids": [
+        4178531,
+        4178532,
+        4178533
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.comedykeywest.com/shows/380405",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/4178531",
+        "https://www.laugh-track.com/show/4178532",
+        "https://www.laugh-track.com/show/4178533"
+      ]
+    },
+    {
+      "index": 325,
+      "club": "Comedy Plex Comedy Club",
+      "name": "Chicago Burlesque Showcase: Halloween Edition",
+      "count": 1,
+      "ids": [
+        5238103
+      ],
+      "description": "Chicago Burlesque Showcase Glitter, Glamour, and Giggles! A Halloween-themed romp by Oak Park's favorite new burlesque show. Be prepared for a mix of glitter and gore, camp, and creepiness. Join us in our “underground” lair, as vampire hostess MsPixy guides you through an evening of sexy spooks and hedonistic horrors. Our Halloween edition features international burlesque superstar Red Rum, as well as special out-of-town guest performers and the stage return of Viva la Muerte! Join the fun by dressing up, tossing tips, and maybe even hop on stage for our costume contest (the prize categories are a SECRET! until show night!) A must-see show that put world-renowed performers practically in your lap at your beloved local laugh lair! Purchase VIP for front row seating and a few other exciting extras!! Friday, October 16th: 10pm show Red Rum Dahlia Fatale Morteisha Addams Diva la Vida Spiffy Kins Dusty Bahls *2 Drink Minimum Per Person *Outside Food Welcome *Cheap Parking in Holley Court Garage (Next to club) *Cashless Establishment",
+      "lineup": [],
+      "url": "https://www.comedyplex.com/event/chicago-burlesque-showcase-halloween-edition-951/register",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/5238103"
+      ]
+    },
+    {
+      "index": 355,
+      "club": "Comedy on State",
+      "name": "Drag Bingo with Bianca Lynn Breeze & Renae Sance",
+      "count": 1,
+      "ids": [
+        4562223
+      ],
+      "description": "<p>Join us for a night of lighthearted fun for drag bingo hosted by the talented Bianca Lynn Breeze & Renae Sance! Pre-sale tickets available online only are $15 (which reserves […]</p>\\n",
+      "lineup": [],
+      "url": "https://www.madisoncomedy.com/event/dragbingo26/",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/4562223"
+      ]
+    },
+    {
+      "index": 366,
+      "club": "Comix Roadhouse",
+      "name": "BULL RIDES",
+      "count": 1,
+      "ids": [
+        5925360
+      ],
+      "description": "**RIDE THE COMIX BULL TONIGHT** - STARTS @ 6:30 & STOPS 1 HOUR BEFORE CLOSE - TICKETS AVAILABLE AT OUR HOST DESK - DAY OF PURCHASES ONLY - WAIVER REQUIRED, MUST BE 18+ 18 and Over",
+      "lineup": [],
+      "url": "https://events.leapevents.com/event/bull-rides-oct2026ufrfx4e",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Description sells mechanical bull rides with a waiver, not a comedy performance.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/5925360"
+      ]
+    },
+    {
+      "index": 371,
+      "club": "Comix Roadhouse",
+      "name": "SUMMER ORLANDO'S DRAG BINGO",
+      "count": 1,
+      "ids": [
+        6720036
+      ],
+      "description": "Join us for an unforgettable evening at COMIX UNCENSORED Presents DRAG BINGO starring the sensational SUMMER ORLANDO—Connecticut’s premier theatre-drag queen and illusionist! With a reputation for Broadway-quality costumes, live singing, side-splitting comedic timing and dynamic hosting, Summer Orlando has made history as the first male actor to portray Dorothy in a licensed production of The Wizard of Oz and has been hand-picked by Disney to appear in Hocus Pocus 2 for her show-stopping impersonation of Winifred Sanderson. This lively event blends the classic bingo game with the full spectacle of a drag-queen performance: think dazzling outfits, audience interaction, prizes, and performance flair. Whether you’re celebrating with friends or simply looking for a fun night out, DRAG BINGO with Summer Orlando promises big laughs, big numbers, and big fun—no bingo experience necessary, just bring your spirit and be ready to shout “BINGO!” in style. Each Guest Receives 1 Game Card And 1 Dabber. * *THIS SHOW IS 21+** Comix Roadhouse brings that same anything-goes energy to the table: Connecticut Magazine named it the state's Best Casino Casual Dining pick for 2026, and OpenTable diners voted it a 2026 Diners' Choice favorite — proof this is as much a destination as it is a stage. MAKE A FULL NIGHT OF IT AT COMIX ROADHOUSE DINNER & A SHOW Arrive Early And Enjoy Dinner Before The Show CHECK OUT THE ROADHOUSE MENU MAKE A ROADHOUSE RESERVATION THURSDAY NIGHT AT THE ROADHOUSE Start The Night Early With Line Dancing And Stay For Comedy And Karaoke LINE DANCING — THURSDAYS @ 6:30 HEADLINER PREVIEW SHOW — THURSDAYS @ 8:00 KARAOKE — THURSDAYS @ 9:15 WEEKEND NIGHTLIFE The Party Continues In The Roadhouse After The Comedy Show LIVE BANDS — FRIDAYS & SATURDAYS @ 9:15 EXPLORE MORE COMEDY HEADLINER SHOWS COMEDY CLUB CALENDAR 21+ | $10 FOOD-BEV MIN A 15.00% SERVICE FEE will be applied to your order.",
+      "lineup": [],
+      "url": "https://events.leapevents.com/event/summer-orlando-drag-bingo-101626ooo8jx7",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/6720036"
+      ]
+    },
+    {
+      "index": 383,
+      "club": "Crescent Theater",
+      "name": "Crescent Comedy Workshop",
+      "count": 1,
+      "ids": [
+        7444231
+      ],
+      "description": "Have you always been the funny friend? Do you have stories that kill at parties but arent sure how to turn them into a stand-up set? Most people think you have to be stage-ready before you show up, but every great comedian started with a messy notebook and a little bit of nerves.The Crescent Comedy Workshop is your low-pressure entry point into the local comedy scene. This isnt a high-stakes showits a collaborative gym where we build jokes from the ground up. Bring a notebook, a pen, and that one funny thought youve been sitting on. Well help you find the tags, the punchlines, and the confidence to get moving.",
+      "lineup": [],
+      "url": "https://www.ticketweb.com/event/crescent-comedy-workshop-crescent-theater-tickets/15039973",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7444231"
+      ]
+    },
+    {
+      "index": 410,
+      "club": "Dead Crow Comedy",
+      "name": "Meeser Eddie's Funtime Trivia",
+      "count": 1,
+      "ids": [
+        7444729
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "http://deadcrowcomedy.com/shows/389268",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills bingo/trivia/skills games without an explicit comedy performance; requires event-level confirmation before removal.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7444729"
+      ]
+    },
+    {
+      "index": 413,
+      "club": "Deaf Puppy Comedy Club",
+      "name": "Monday Night Football Madness",
+      "count": 1,
+      "ids": [
+        6394650
+      ],
+      "description": "",
+      "lineup": [
+        "NFL Sunday"
+      ],
+      "url": "Http://www.deafpuppyclub.com/shows/386292",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Football viewing event; Game Day description explicitly advertises televised games and food/drink specials.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/6394650"
+      ]
+    },
+    {
+      "index": 415,
+      "club": "Deaf Puppy Comedy Club",
+      "name": "Trivia/Skills Competition w/Jacob Goss",
+      "count": 1,
+      "ids": [
+        6394652
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "Http://www.deafpuppyclub.com/shows/386261",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills bingo/trivia/skills games without an explicit comedy performance; requires event-level confirmation before removal.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/6394652"
+      ]
+    },
+    {
+      "index": 431,
+      "club": "Des Moines Funny Bone",
+      "name": "Psychic Medium Cindy Kaza",
+      "count": 1,
+      "ids": [
+        836638
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.etix.com/ticket/p/34347718/psychic-medium-cindy-kaza-west-des-moines-funny-bone-comedy-club-des-moines?partner_id=100",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/836638"
+      ]
+    },
+    {
+      "index": 434,
+      "club": "Desert Ridge Improv",
+      "name": "Stand-Up Comedy Class",
+      "count": 1,
+      "ids": [
+        1776066
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.desertridgeimprov.com/shows/341680",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/1776066"
+      ]
+    },
+    {
+      "index": 435,
+      "club": "Desert Ridge Improv",
+      "name": "Twilight vs. Sinners Drag Brunch",
+      "count": 1,
+      "ids": [
+        6660156
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.desertridgeimprov.com/shows/387119",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/6660156"
+      ]
+    },
+    {
+      "index": 437,
+      "club": "Dharma Bums",
+      "name": "An Evening of Singer-Songwriters - Hopkins, Eshbaugh, & McCarthy",
+      "count": 1,
+      "ids": [
+        4451007
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://services.seatengine.com/api/v1/venues/633/shows/381184",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/4451007"
+      ]
+    },
+    {
+      "index": 438,
+      "club": "Dharma Bums",
+      "name": "Brandon Warrick",
+      "count": 1,
+      "ids": [
+        7740739
+      ],
+      "description": "",
+      "lineup": [
+        "Brandon Warrick"
+      ],
+      "url": "https://services.seatengine.com/api/v1/venues/633/shows/390087",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7740739"
+      ]
+    },
+    {
+      "index": 440,
+      "club": "Dharma Bums",
+      "name": "Psychedelic Community of New Hope MeetUp",
+      "count": 1,
+      "ids": [
+        4191178
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://services.seatengine.com/api/v1/venues/633/shows/380390",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Community meetup or sewing circle, without comedy billing.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/4191178"
+      ]
+    },
+    {
+      "index": 441,
+      "club": "Dharma Bums",
+      "name": "River Guild Monthly Sewing Circle",
+      "count": 1,
+      "ids": [
+        7155359
+      ],
+      "description": "",
+      "lineup": [
+        "River guild",
+        "river guild spet 26"
+      ],
+      "url": "https://services.seatengine.com/api/v1/venues/633/shows/388507",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Community meetup or sewing circle, without comedy billing.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7155359"
+      ]
+    },
+    {
+      "index": 442,
+      "club": "Dharma Bums",
+      "name": "Skaht Kpraile, Our Bodies Themselves, Gaia Raga",
+      "count": 1,
+      "ids": [
+        7673045
+      ],
+      "description": "",
+      "lineup": [
+        "Skaht Kpraile, Our Bodies Themselves, Gaia Raga"
+      ],
+      "url": "https://services.seatengine.com/api/v1/venues/633/shows/389925",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7673045"
+      ]
+    },
+    {
+      "index": 443,
+      "club": "Dharma Bums",
+      "name": "The Fitzkee Brothers",
+      "count": 1,
+      "ids": [
+        6453910
+      ],
+      "description": "",
+      "lineup": [
+        "The Fitzkee Brothers"
+      ],
+      "url": "https://services.seatengine.com/api/v1/venues/633/shows/386553",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/6453910"
+      ]
+    },
+    {
+      "index": 459,
+      "club": "Dunlap's Corner Bar",
+      "name": "Fistula",
+      "count": 1,
+      "ids": [
+        4137995
+      ],
+      "description": "",
+      "lineup": [
+        "Vile Light"
+      ],
+      "url": "https://www.dunlapsbar.com/shows/380163",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/4137995"
+      ]
+    },
+    {
+      "index": 460,
+      "club": "Dunlap's Corner Bar",
+      "name": "G.S. Harper's Cleveland Jubilee",
+      "count": 1,
+      "ids": [
+        7961797
+      ],
+      "description": "",
+      "lineup": [
+        "GS Harper"
+      ],
+      "url": "https://www.dunlapsbar.com/shows/372088",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7961797"
+      ]
+    },
+    {
+      "index": 461,
+      "club": "Dunlap's Corner Bar",
+      "name": "Sunny Daze & The Weathermen",
+      "count": 1,
+      "ids": [
+        7107776
+      ],
+      "description": "",
+      "lineup": [
+        "Dick Golden",
+        "Sunny Daze",
+        "The Rock N' Roll Experience",
+        "The Weathermen",
+        "Plum Shed"
+      ],
+      "url": "https://www.dunlapsbar.com/shows/388129",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7107776"
+      ]
+    },
+    {
+      "index": 464,
+      "club": "Dunlap's Corner Bar",
+      "name": "Whippet",
+      "count": 1,
+      "ids": [
+        7383532
+      ],
+      "description": "",
+      "lineup": [
+        "Reins for Horse",
+        "Whippet",
+        "Learner"
+      ],
+      "url": "https://www.dunlapsbar.com/shows/389223",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7383532"
+      ]
+    },
+    {
+      "index": 496,
+      "club": "Endgames Training Center - South",
+      "name": "Endgames Drop-In Classes",
+      "count": 1,
+      "ids": [
+        4019380
+      ],
+      "description": "Endgames Improv offers single-day improv classes for the novice to seasoned performers. Meet new improvisers or brush up on your skills.",
+      "lineup": [],
+      "url": "https://www.eventbrite.com/e/endgames-drop-in-classes-tickets-1993755220535",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/4019380"
+      ]
+    },
+    {
+      "index": 520,
+      "club": "Flappers Comedy Club And Restaurant Burbank",
+      "name": "Game Day Burbank",
+      "count": 1,
+      "ids": [
+        5394642
+      ],
+      "description": "Get ready for Game Day—your new Sunday destination for football, food, and drinks without the packed sports-bar hassle. Catch the day’s biggest matchups on multiple TVs, including featured games and NFL RedZone, while kicking back in the bar or on the patio. We’re serving up game-day specials including $5 PBRs, $8 draft beers, $10 wings, and $10 nachos. No cover, no expensive tickets, and best of all—no waiting in line just to watch the game. Bring your friends, grab a table, order a cold one, and settle in for an afternoon of football. Whether you’re cheering for the Rams, Chargers, or your hometown team, there’s a seat waiting for you every Sunday.",
+      "lineup": [],
+      "url": "https://www.flapperscomedy.com/site/shows.php?event_id=79179",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Football viewing event; Game Day description explicitly advertises televised games and food/drink specials.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/5394642"
+      ]
+    },
+    {
+      "index": 553,
+      "club": "Flop House Comedy Club",
+      "name": "The Game Room aka The Flophouse Acting Workshop for Stand-Ups",
+      "count": 1,
+      "ids": [
+        7620334
+      ],
+      "description": "Two hour weekly acting workshop exclusively for stand-up comedians. Instead of serious intensive acting class, this workshop will equip stand-up comedians with acting skills, techniques, and mindset through games that derive from improv, clowning, and various acting approaches. Periodically the class will also offer tutorials on practical concerns actors will often have on set or on stage, but will largely focus on games the acclimate and acclimatize comedians to the actor's practice. This workshop will not only make comics better actors, but add presence and stage-craft to their stand-up comedy.",
+      "lineup": [],
+      "url": "https://www.eventbrite.com/e/tickets-2002456852350",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7620334"
+      ]
+    },
+    {
+      "index": 556,
+      "club": "Fort Lauderdale Improv",
+      "name": "Book Your Holiday Party",
+      "count": 1,
+      "ids": [
+        4270545
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.improvftl.com/shows/380821",
+      "assessment": "promotion_or_unavailable_event",
+      "reason": "Holiday party booking promotion or closed-for-private-event notice; unsuitable as a public show listing regardless of genre.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/4270545"
+      ]
+    },
+    {
+      "index": 559,
+      "club": "Fort Lauderdale Improv",
+      "name": "Stand Up Comedy Workshop",
+      "count": 1,
+      "ids": [
+        7159607
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.improvftl.com/shows/388576",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7159607"
+      ]
+    },
+    {
+      "index": 568,
+      "club": "Fraze Pavilion",
+      "name": "Hocus Pocus",
+      "count": 1,
+      "ids": [
+        2841620
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.ticketmaster.com/event/Z7r9jZ1A70YP_",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/2841620"
+      ]
+    },
+    {
+      "index": 585,
+      "club": "Give a Hoot Comedy Club",
+      "name": "Trivia Night Benefitting Soroptimist Int.",
+      "count": 1,
+      "ids": [
+        4242752
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://giveahootcomedy.com/shows/380664",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills bingo/trivia/skills games without an explicit comedy performance; requires event-level confirmation before removal.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/4242752"
+      ]
+    },
+    {
+      "index": 596,
+      "club": "Goodnights Comedy Club",
+      "name": "Room 861 at Goodnights: Invasion of The Body Snatchers",
+      "count": 1,
+      "ids": [
+        6995716
+      ],
+      "description": "",
+      "lineup": [
+        "Invasion of The Body Snatchers"
+      ],
+      "url": "http://www.goodnightscomedy.com/shows/387875",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/6995716"
+      ]
+    },
+    {
+      "index": 636,
+      "club": "Grove 34",
+      "name": "JAZZ AND JOINTS",
+      "count": 1,
+      "ids": [
+        8089311
+      ],
+      "description": "ENJOY A NIGHT OF LIVE JAZZ AND CANNABIS SPONSORED BY TERP BROS NYC! EACH TICKET COMES WITH A FREE GIFT BAG COURTESY OF TERP BROS",
+      "lineup": [],
+      "url": "https://ti.to/grove34/jazz-and-joints-copy-2",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/8089311"
+      ]
+    },
+    {
+      "index": 645,
+      "club": "Hamburger Mary's - Las Vegas",
+      "name": "Drag Brunch at Hamburger Mary's",
+      "count": 5,
+      "ids": [
+        2826599,
+        2826600,
+        2826601,
+        2826602,
+        2826603
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.universe.com/events/drag-brunch-at-hamburger-marys-tickets-L20XGT?ref=ticketmaster",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/2826599",
+        "https://www.laugh-track.com/show/2826600",
+        "https://www.laugh-track.com/show/2826601",
+        "https://www.laugh-track.com/show/2826602",
+        "https://www.laugh-track.com/show/2826603"
+      ]
+    },
+    {
+      "index": 656,
+      "club": "Harvelle's Long Beach",
+      "name": "All-Star Jam Session",
+      "count": 1,
+      "ids": [
+        4189446
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://longbeach.harvelles.com/shows/380456",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/4189446"
+      ]
+    },
+    {
+      "index": 657,
+      "club": "Harvelle's Long Beach",
+      "name": "ERNESTO and FRIENDS",
+      "count": 1,
+      "ids": [
+        5025862
+      ],
+      "description": "",
+      "lineup": [
+        "Ernesto Ledezma"
+      ],
+      "url": "https://longbeach.harvelles.com/shows/382815",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/5025862"
+      ]
+    },
+    {
+      "index": 658,
+      "club": "Harvelle's Long Beach",
+      "name": "Kraken Karaoke",
+      "count": 1,
+      "ids": [
+        4189445
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://longbeach.harvelles.com/shows/380463",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills karaoke without an explicit comedy performance.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/4189445"
+      ]
+    },
+    {
+      "index": 659,
+      "club": "Harvelle's Long Beach",
+      "name": "Little Monster's Burlesque: Gaga Tribute",
+      "count": 2,
+      "ids": [
+        5075951,
+        5075952
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://longbeach.harvelles.com/shows/382983",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/5075951",
+        "https://www.laugh-track.com/show/5075952"
+      ]
+    },
+    {
+      "index": 660,
+      "club": "Harvelle's Long Beach",
+      "name": "Soul Shack Productions: Wednesday Night Live",
+      "count": 1,
+      "ids": [
+        5471817
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://longbeach.harvelles.com/shows/383787",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/5471817"
+      ]
+    },
+    {
+      "index": 661,
+      "club": "Harvelle's Long Beach",
+      "name": "Spotlight Dance",
+      "count": 1,
+      "ids": [
+        520039
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://longbeach.harvelles.com/shows/361572",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills a dance event without comedy evidence in the API.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/520039"
+      ]
+    },
+    {
+      "index": 662,
+      "club": "Harvelle's Santa Monica",
+      "name": "ALL-STAR JAM SESSION BENEFIT",
+      "count": 1,
+      "ids": [
+        4665059
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://santamonica.harvelles.com/shows/381857",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/4665059"
+      ]
+    },
+    {
+      "index": 663,
+      "club": "Harvelle's Santa Monica",
+      "name": "AMERICAN WOMXN",
+      "count": 1,
+      "ids": [
+        6877897
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://santamonica.harvelles.com/shows/387682",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/6877897"
+      ]
+    },
+    {
+      "index": 664,
+      "club": "Harvelle's Santa Monica",
+      "name": "COME SING WITH THE BAND - LIVE BAND KARAOKE",
+      "count": 1,
+      "ids": [
+        5404829
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://santamonica.harvelles.com/shows/383725",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills karaoke without an explicit comedy performance.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/5404829"
+      ]
+    },
+    {
+      "index": 665,
+      "club": "Harvelle's Santa Monica",
+      "name": "THE NO CHASERS",
+      "count": 1,
+      "ids": [
+        5404828
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://santamonica.harvelles.com/shows/383721",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/5404828"
+      ]
+    },
+    {
+      "index": 666,
+      "club": "Harvelle's Santa Monica",
+      "name": "THE TOLEDO SHOW",
+      "count": 1,
+      "ids": [
+        4665058
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://santamonica.harvelles.com/shows/381853",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/4665058"
+      ]
+    },
+    {
+      "index": 667,
+      "club": "Harvelle's Santa Monica",
+      "name": "WESTERN REVENGE",
+      "count": 1,
+      "ids": [
+        7202938
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://santamonica.harvelles.com/shows/388645",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7202938"
+      ]
+    },
+    {
+      "index": 671,
+      "club": "Helium & Elements Restaurant - Buffalo",
+      "name": "Special Event: Stone Cold & The Jackal",
+      "count": 1,
+      "ids": [
+        3532268
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://buffalo.heliumcomedy.com/shows/385736",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/3532268"
+      ]
+    },
+    {
+      "index": 693,
+      "club": "Helium Comedy Club - Indianapolis",
+      "name": "Special Event: Challenge Mania Live",
+      "count": 1,
+      "ids": [
+        6278723
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://indianapolis.heliumcomedy.com/shows/385919",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/6278723"
+      ]
+    },
+    {
+      "index": 695,
+      "club": "Helium Comedy Club - Indianapolis",
+      "name": "Special Event: Dolly Parton Drag Brunch",
+      "count": 1,
+      "ids": [
+        7805089
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://indianapolis.heliumcomedy.com/shows/390382",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7805089"
+      ]
+    },
+    {
+      "index": 706,
+      "club": "Helium Comedy Club - Portland",
+      "name": "Special Event: Love, Lies and Port Charles with Laura Wright and James Patrick Stuart",
+      "count": 1,
+      "ids": [
+        2347127
+      ],
+      "description": "",
+      "lineup": [
+        "Laura Wright",
+        "James Patrick Stuart",
+        "Port Charles"
+      ],
+      "url": "https://portland.heliumcomedy.com/shows/375382",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/2347127"
+      ]
+    },
+    {
+      "index": 721,
+      "club": "Highwire Improv",
+      "name": "RPG Improv with Dave Hill - Friday Option",
+      "count": 1,
+      "ids": [
+        7430403
+      ],
+      "description": "In improvisation and gaming, the fundamental action is the same: play. This two hour workshop will explore it all!",
+      "lineup": [
+        "Dave Hill"
+      ],
+      "url": "https://www.eventbrite.com/e/rpg-improv-with-dave-hill-friday-option-tickets-2002181832759",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7430403"
+      ]
+    },
+    {
+      "index": 722,
+      "club": "Highwire Improv",
+      "name": "RPG Improv with Dave Hill - Saturday Option",
+      "count": 1,
+      "ids": [
+        7430404
+      ],
+      "description": "In improvisation and gaming, the fundamental action is the same: play. This two hour workshop will explore it all!",
+      "lineup": [
+        "Dave Hill"
+      ],
+      "url": "https://www.eventbrite.com/e/rpg-improv-with-dave-hill-saturday-option-tickets-2002182002266",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7430404"
+      ]
+    },
+    {
+      "index": 724,
+      "club": "Highwire Improv",
+      "name": "Youth RPG Improv with Dave Hill!",
+      "count": 1,
+      "ids": [
+        7430402
+      ],
+      "description": "If you’re a young person curious about what improvisation is, or how to use it while gaming, this is the perfect class!",
+      "lineup": [
+        "Dave Hill"
+      ],
+      "url": "https://www.eventbrite.com/e/youth-rpg-improv-with-dave-hill-tickets-2002181305181",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7430402"
+      ]
+    },
+    {
+      "index": 729,
+      "club": "Hilarities 4th Street Theatre",
+      "name": "Stone Cold and the Jackal",
+      "count": 1,
+      "ids": [
+        5773102
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.hilarities.com/shows/384526",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/5773102"
+      ]
+    },
+    {
+      "index": 774,
+      "club": "IMAX THEATRE at TROPICANA",
+      "name": "Digger: The IMAX Experience",
+      "count": 7,
+      "ids": [
+        7360067,
+        7360068,
+        7360069,
+        7360070,
+        7360071,
+        7360072,
+        7360073
+      ],
+      "description": "RATED R The world's most powerful man embarks on a frantic mission to prove that he is humanity's savior before the disaster he has unleashed destroys everything. | Please note: RATED R This event takes places on multiple dates at multiple times. Please make sure you are purchasing tickets for the correct show. We would like to assure you that Tropicana Atlantic City will remain open for business, and all events, shows and movies are being presented as scheduled. Should any event be cancelled or postponed for unforeseen reasons, ticket holders will receive a full refund.",
+      "lineup": [
+        "Digger"
+      ],
+      "url": "https://www.ticketmaster.com/digger-the-imax-experience-atlantic-city-new-jersey-10-11-2026/event/02006531EEAE08F6",
+      "assessment": "screening_not_live_comedy",
+      "reason": "Movie screening rather than a live comedy performance. A comedy film may still be comedy content; this is a format distinction.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7360067",
+        "https://www.laugh-track.com/show/7360068",
+        "https://www.laugh-track.com/show/7360069",
+        "https://www.laugh-track.com/show/7360070",
+        "https://www.laugh-track.com/show/7360071",
+        "https://www.laugh-track.com/show/7360072",
+        "https://www.laugh-track.com/show/7360073"
+      ]
+    },
+    {
+      "index": 779,
+      "club": "Ice House Comedy Club",
+      "name": "Social Hour",
+      "count": 3,
+      "ids": [
+        7087975,
+        7087978,
+        2466263
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://tockify.com/theicehouse/detail/1527/1792027800000",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7087975",
+        "https://www.laugh-track.com/show/7087978",
+        "https://www.laugh-track.com/show/2466263"
+      ]
+    },
+    {
+      "index": 820,
+      "club": "Jacques' Cabaret",
+      "name": "Karaoke",
+      "count": 1,
+      "ids": [
+        3179111
+      ],
+      "description": "Karaoke Downstairs (moved Downstairs ONLY on the nights of High Key) 9pm to Midnight Guest Host Weekly No Cover",
+      "lineup": [],
+      "url": "https://events.timely.fun/fwq8raf8/agenda/event/karaoke-5/20261013210000",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills karaoke without an explicit comedy performance.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/3179111"
+      ]
+    },
+    {
+      "index": 838,
+      "club": "Keller Auditorium",
+      "name": "Oregon Ballet Theatre Presents Swan Lake",
+      "count": 1,
+      "ids": [
+        6393473
+      ],
+      "description": "",
+      "lineup": [
+        "Swan Lake"
+      ],
+      "url": "https://www.ticketmaster.com/event/Z7r9jZ1AAvkAJ",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills Swan Lake ballet, including explicit Oregon Ballet Theatre billing.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/6393473"
+      ]
+    },
+    {
+      "index": 839,
+      "club": "Keller Auditorium",
+      "name": "Swan Lake",
+      "count": 2,
+      "ids": [
+        6791420,
+        6791421
+      ],
+      "description": "",
+      "lineup": [
+        "Swan Lake"
+      ],
+      "url": "https://www.ticketmaster.com/event/Z7r9jZ1AAvPpk",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills Swan Lake ballet, including explicit Oregon Ballet Theatre billing.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/6791420",
+        "https://www.laugh-track.com/show/6791421"
+      ]
+    },
+    {
+      "index": 846,
+      "club": "Krackpots Comedy Club",
+      "name": "COMEDY WORKSHOP - THE HISTORY OF COMEDY & 10 THINGS YOU SHOULD BE DOING AS A COMEDIAN",
+      "count": 1,
+      "ids": [
+        7633748
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "http://www.krackpotscomedyclub.com/shows/389751",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7633748"
+      ]
+    },
+    {
+      "index": 860,
+      "club": "Largo at the Coronet",
+      "name": "Megan Mullally and her band, Nancy And Beth",
+      "count": 1,
+      "ids": [
+        3599116
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://wl.seetickets.us/event/megan-mullally-and-her-band-nancy-and-beth/697715?afflky=LargoAtTheCoronet",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/3599116"
+      ]
+    },
+    {
+      "index": 868,
+      "club": "Laugh Camp Comedy Club",
+      "name": "Improv 101; The basics of improv, Tuesdays at 6:30, Oct 13 - Dec 1",
+      "count": 1,
+      "ids": [
+        7270318
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.camp-bar.net/shows/388792",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7270318"
+      ]
+    },
+    {
+      "index": 869,
+      "club": "Laugh Camp Comedy Club",
+      "name": "Interactive Music Trivia from Music Mayhem - No tickets or reservations needed.",
+      "count": 1,
+      "ids": [
+        7129453
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.camp-bar.net/shows/388490",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills bingo/trivia/skills games without an explicit comedy performance; requires event-level confirmation before removal.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7129453"
+      ]
+    },
+    {
+      "index": 921,
+      "club": "Laughs Unlimited",
+      "name": "Travis Holp",
+      "count": 1,
+      "ids": [
+        475914
+      ],
+      "description": "",
+      "lineup": [
+        "Travis Holp"
+      ],
+      "url": "https://www.laughsunlimited.com/shows/360213",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/475914"
+      ]
+    },
+    {
+      "index": 925,
+      "club": "Lesher Center for the Arts",
+      "name": "(WORKSHOP) Diablo Improv Festival: ASA ERLENDSON",
+      "count": 1,
+      "ids": [
+        6064566
+      ],
+      "description": "Comedy and Improv. Presenter: Spontaneous Mind. Asa Erlendson was born in Walnut Creek, CA at John Muir Hospital. No kidding! He is excited to return to his childhood stomping grounds so that he may share his passion for improv. Asa has been doing improv since 2007, and since then has dibbled, dabbled, or gotten deep into stand-up, mime, clown, dance, music, and sketch, and he also acted in a feature-length movie (A Colorado Road Trip). He has performed from California to New York, and learned from improv luminaries of various schools. A forever-learner, he is honored to serve as a guide for anyone on an improv journey. In addition to being an artist, he also works as a science communicator, has an old fat cat named Halloumi (like the Greek cheese), and loves martial arts movies, philosophy, and riding his bicycle.. Spektrix web event ID: SPO-12627wl1.",
+      "lineup": [],
+      "url": "https://purchase.lesherartscenter.org/EventAvailability?EventId=105401APRJVMGJLHSJCNQLVPBJJLBQLJQ",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/6064566"
+      ]
+    },
+    {
+      "index": 926,
+      "club": "Lesher Center for the Arts",
+      "name": "(WORKSHOP) Diablo Improv Festival: Navaris Darson: Character Crash Course",
+      "count": 1,
+      "ids": [
+        6064565
+      ],
+      "description": "Comedy and Improv. Presenter: Spontaneous Mind. Character Crash Course Everything you need to know about Groundlings-style character! This comprehensive overview of character-based improv focuses on defining and creating funny yet believable Groundlings-style improv characters, fueling character comedy within scenes, and exploring relationships. For intermediate and advanced level improvisers. Students should possess a solid degree of proficiency with improv fundamentals.. Spektrix web event ID: SPO-12627wv2.",
+      "lineup": [],
+      "url": "https://purchase.lesherartscenter.org/EventAvailability?EventId=105201ASGSJBSQQDKPHKRNPNHMLLTKGMH",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/6064565"
+      ]
+    },
+    {
+      "index": 931,
+      "club": "Liberty Funny Bone",
+      "name": "Hocus Pocus Tribute Drag Brunch",
+      "count": 1,
+      "ids": [
+        5912532
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.etix.com/ticket/p/77746238/hocus-pocus-tribute-drag-brunch-liberty-township-funny-bone-comedy-club-cincinnati?partner_id=100",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/5912532"
+      ]
+    },
+    {
+      "index": 956,
+      "club": "Loony Bin Comedy Club - Wichita",
+      "name": "Cindy Kaza",
+      "count": 1,
+      "ids": [
+        3846440
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://wichita.loonybincomedy.com/events",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/3846440"
+      ]
+    },
+    {
+      "index": 965,
+      "club": "Louisville Comedy Club",
+      "name": "The Extraordinary Card Magic of Jason Ladanye",
+      "count": 1,
+      "ids": [
+        394454
+      ],
+      "description": "",
+      "lineup": [
+        "Jason Ladanye"
+      ],
+      "url": "https://www.louisvillecomedy.com/shows/364555",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/394454"
+      ]
+    },
+    {
+      "index": 986,
+      "club": "Lyric Hyperion Theater & Cafe",
+      "name": "The Lyric Sessions: Music Open Mic",
+      "count": 1,
+      "ids": [
+        3214719
+      ],
+      "description": "An open mic for performing musicians!",
+      "lineup": [],
+      "url": "https://www.eventbrite.com/e/the-lyric-sessions-music-open-mic-tickets-1992383893860",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/3214719"
+      ]
+    },
+    {
+      "index": 992,
+      "club": "MadLab Theatre",
+      "name": "David Razowsky Weekend Intensive",
+      "count": 1,
+      "ids": [
+        4574523
+      ],
+      "description": "<p>This two-day intensive explores a different way of working. You'll learn to listen deeply, respond honestly, and follow what changes you. Through guided exercises and scene work, you'll develop greater presence, stronger relationships on stage, and the confidence to let authentic moments unfold.</p><p><br /></p><p>Saturday and Sunday 10:30am to 5:30pm with a one hour break for lunch. More information will be sent in the week prior to the event with directions and instructions on free parking.</p>",
+      "lineup": [],
+      "url": "https://ci.ovationtix.com/35811/production/1284023?performanceId=11844537",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/4574523"
+      ]
+    },
+    {
+      "index": 1022,
+      "club": "Mesa Arts Center",
+      "name": "Whispers In The Dark: Stories by Edgar Allan Poe Southwest Shakespeare Company SSC",
+      "count": 1,
+      "ids": [
+        5734291
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://boxoffice.mesaartscenter.com/Online/default.asp?BOset::WScontent::SearchCriteria::search_criteria=EdgarAllanPoe&BOparam::WScontent::search::article_search_id=90D2C441-0944-4735-93D1-6DDCA86CCB70&doWork::WScontent::search=1",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/5734291"
+      ]
+    },
+    {
+      "index": 1023,
+      "club": "Miami Improv",
+      "name": "Book Your Holiday Party",
+      "count": 1,
+      "ids": [
+        4270487
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "http://www.miamiimprov.com/shows/380837",
+      "assessment": "promotion_or_unavailable_event",
+      "reason": "Holiday party booking promotion or closed-for-private-event notice; unsuitable as a public show listing regardless of genre.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/4270487"
+      ]
+    },
+    {
+      "index": 1029,
+      "club": "Mic Drop Comedy",
+      "name": "ADVANCED STAND UP COMEDY CLASS",
+      "count": 1,
+      "ids": [
+        6990836
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "http://www.micdropcomedy.com/shows/387927",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/6990836"
+      ]
+    },
+    {
+      "index": 1031,
+      "club": "Mic Drop Comedy",
+      "name": "DAYTIME AT MIC DROP",
+      "count": 1,
+      "ids": [
+        4853056
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "http://www.micdropcomedy.com/shows/382407",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/4853056"
+      ]
+    },
+    {
+      "index": 1034,
+      "club": "Mic Drop Comedy",
+      "name": "INTRO TO STAND UP COMEDY CLASS",
+      "count": 1,
+      "ids": [
+        6990837
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "http://www.micdropcomedy.com/shows/387921",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/6990837"
+      ]
+    },
+    {
+      "index": 1045,
+      "club": "Mic Drop Comedy Chandler",
+      "name": "MUSICAL COMEDY WORKSHOP W/ JAMIE SHRINER",
+      "count": 1,
+      "ids": [
+        7084481
+      ],
+      "description": "",
+      "lineup": [
+        "Jamie Shriner"
+      ],
+      "url": "https://www.micdropcomedychandler.com/shows/388167",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7084481"
+      ]
+    },
+    {
+      "index": 1047,
+      "club": "Mic Drop Comedy Detroit",
+      "name": "DETROIT GHOST WALK",
+      "count": 3,
+      "ids": [
+        523419,
+        8210519,
+        523421
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "http://micdropcomedyDetroit.com/shows/378066",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills a ghost/history walking tour without comedy evidence in the API; confirm the actual tour before removal.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/523419",
+        "https://www.laugh-track.com/show/8210519",
+        "https://www.laugh-track.com/show/523421"
+      ]
+    },
+    {
+      "index": 1052,
+      "club": "Mic Drop Comedy Plano",
+      "name": "APPARITION EXPEDITION WALKING TOUR - LIMITED EVENT",
+      "count": 7,
+      "ids": [
+        6483869,
+        6483870,
+        6483871,
+        6483873,
+        6483874,
+        6483875,
+        6483878
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://micdropcomedyplano.com/shows/386736",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills a ghost/history walking tour without comedy evidence in the API; confirm the actual tour before removal.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/6483869",
+        "https://www.laugh-track.com/show/6483870",
+        "https://www.laugh-track.com/show/6483871",
+        "https://www.laugh-track.com/show/6483873",
+        "https://www.laugh-track.com/show/6483874",
+        "https://www.laugh-track.com/show/6483875",
+        "https://www.laugh-track.com/show/6483878"
+      ]
+    },
+    {
+      "index": 1055,
+      "club": "Mic Drop Comedy Plano",
+      "name": "ONCE UPON A PLANO: WALKING TOUR OF DOWNTOWN PLANO",
+      "count": 2,
+      "ids": [
+        6911294,
+        6911306
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://micdropcomedyplano.com/shows/387711",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills a ghost/history walking tour without comedy evidence in the API; confirm the actual tour before removal.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/6911294",
+        "https://www.laugh-track.com/show/6911306"
+      ]
+    },
+    {
+      "index": 1056,
+      "club": "Mic Drop Comedy Plano",
+      "name": "PLANO GHOST WALK",
+      "count": 1,
+      "ids": [
+        476367
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://micdropcomedyplano.com/shows/378041",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills a ghost/history walking tour without comedy evidence in the API; confirm the actual tour before removal.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/476367"
+      ]
+    },
+    {
+      "index": 1066,
+      "club": "Music Farm",
+      "name": "Oct (On Company Time) w/ Lewky",
+      "count": 1,
+      "ids": [
+        2840948
+      ],
+      "description": "Doors at 7:00 pm | Show at 8:00 pm AGE POLICY: Minors 17 & under are required to be accompanied by an adult, age 18 or older. The venue is not responsible for minors on the premises. Parents and/or guardians are responsible for minor children when on the venue premises. Children 2 & under do not need a ticket. CASHLESS VENUE - The Music Farm services all credit and debit payments only. No cash accepted at the box office or bar. ACCESSIBILITY: The Music Farm is a general admission venue. If you have specific needs or questions, please email us at info@musicfarm.com or call 843-853-2252 and we would be happy to help. BAG POLICY: Bags (max size 12\" x 6\" x 12\") are allowed and will be searched upon entry. Exceptions will be made for necessary medical equipment and nursing mothers. We encourage you to pack light with only the necessities to make the entry process as soon as possible. | Please note: Doors at 7:00 pm | Show at 8:00 pm AGE POLICY: Minors 17 & under are required to be accompanied by an adult, age 18 or older. The venue is not responsible for minors on the premises. Parents and/or guardians are responsible for minor children when on the venue premises. Children 2 & under do not need a ticket. CASHLESS VENUE - The Music Farm services all credit and debit payments only. No cash accepted at the box office or bar. ACCESSIBILITY: The Music Farm is a general admission venue. If you have specific needs or questions, please email us at info@musicfarm.com or call 843-853-2252 and we would be happy to help. BAG POLICY: Bags (max size 12\" x 6\" x 12\") are allowed and will be searched upon entry. Exceptions will be made for necessary medical equipment and nursing mothers. We encourage you to pack light with only the necessities to make the entry process as soon as possible.",
+      "lineup": [
+        "On Company Time"
+      ],
+      "url": "https://www.ticketmaster.com/oct-on-company-time-w-lewky-charleston-south-carolina-10-11-2026/event/2D00648FAF60234E",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/2840948"
+      ]
+    },
+    {
+      "index": 1136,
+      "club": "Numerica Veterans Arena",
+      "name": "Disney Worlds Collide Concert Tour",
+      "count": 1,
+      "ids": [
+        2875901
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.ticketmaster.com/event/Z7r9jZ1A7-gxb",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/2875901"
+      ]
+    },
+    {
+      "index": 1141,
+      "club": "Off Cabot Comedy and Events",
+      "name": "Ross Livermore",
+      "count": 1,
+      "ids": [
+        8039539
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://thecabot.org/event/ross-livermore/",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/8039539"
+      ]
+    },
+    {
+      "index": 1142,
+      "club": "Off Cabot Comedy and Events",
+      "name": "The Music Box Open Mic hosted by Brian Donnelly",
+      "count": 1,
+      "ids": [
+        7988371
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://thecabot.org/book/?show=220401AHNKSPJNBPQPSDKVJQJVCVDNLRN",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7988371"
+      ]
+    },
+    {
+      "index": 1149,
+      "club": "Ohio Star Theater at Dutch Valley",
+      "name": "2026 Chris Collins & Boulder Canyon John Denver Tribute",
+      "count": 2,
+      "ids": [
+        2965043,
+        2965044
+      ],
+      "description": "",
+      "lineup": [
+        "Chris Collins"
+      ],
+      "url": "https://ci.ovationtix.com/35490/production/1254109?performanceId=11705190",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/2965043",
+        "https://www.laugh-track.com/show/2965044"
+      ]
+    },
+    {
+      "index": 1150,
+      "club": "Ohio Star Theater at Dutch Valley",
+      "name": "2026 Elijah: Prophet of Fire",
+      "count": 5,
+      "ids": [
+        2964704,
+        2964705,
+        2964706,
+        2964707,
+        2964708
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://ci.ovationtix.com/35490/production/1251155?performanceId=11691895",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/2964704",
+        "https://www.laugh-track.com/show/2964705",
+        "https://www.laugh-track.com/show/2964706",
+        "https://www.laugh-track.com/show/2964707",
+        "https://www.laugh-track.com/show/2964708"
+      ]
+    },
+    {
+      "index": 1157,
+      "club": "Omaha Funny Bone",
+      "name": "Hocus Pocus Tribute Drag Show",
+      "count": 1,
+      "ids": [
+        6312444
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.etix.com/ticket/p/85357255/hocus-pocus-tribute-drag-show-omaha-funny-bone-comedy-club-omaha?partner_id=100",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/6312444"
+      ]
+    },
+    {
+      "index": 1160,
+      "club": "Omaha Funny Bone",
+      "name": "Psychic Medium Cindy Kaza",
+      "count": 1,
+      "ids": [
+        836349
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.etix.com/ticket/p/80105295/psychic-medium-cindy-kaza-omaha-funny-bone-comedy-club-omaha?partner_id=100",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/836349"
+      ]
+    },
+    {
+      "index": 1164,
+      "club": "One Night Stans Comedy Club",
+      "name": "Dueling Pianos",
+      "count": 1,
+      "ids": [
+        6482909
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.standingroomonlytickets.com/WebOffice/EventList/571",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/6482909"
+      ]
+    },
+    {
+      "index": 1167,
+      "club": "Ontario Improv",
+      "name": "Hocus Pocus Drag Brunch",
+      "count": 1,
+      "ids": [
+        3948740
+      ],
+      "description": "Hocus Pocus Drag Brunch Performing at Ontario Improv",
+      "lineup": [],
+      "url": "https://www.ticketweb.com/event/hocus-pocus-drag-brunch-ontario-improv-tickets/14251144?pl=ontarioimprov&REFID=ontarioWP",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/3948740"
+      ]
+    },
+    {
+      "index": 1199,
+      "club": "Peak Improv Theater",
+      "name": "Corporate Mixer - Learn How Improv Can Help Your Business!",
+      "count": 1,
+      "ids": [
+        8131238
+      ],
+      "description": "The Peak Improv Theater is a thriving community founded by professional comedians who are not only funny but can help your business thrive, too! If your company is looking for a way to build trust, listening skills, and team cooperation, a private improv workshop for your group is the perfect way to develop essential tools in a safe and fun environment.Our educators have over 30 years of combined experience leading corporate training workshops that can help your team more effectively work together and communicate. Not only that, but they'd love to meet you in this laidback corporate mixer. Come enjoy free food & drinks, all while you learn about the power of saying \"yes... and\"!SIGN UP HERE",
+      "lineup": [],
+      "url": "https://peakimprov.com/events-2-1/corporate-mixer-learn-how-improv-can-help-your-business-1",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/8131238"
+      ]
+    },
+    {
+      "index": 1202,
+      "club": "Peak Improv Theater",
+      "name": "Stage Combat Workshop",
+      "count": 1,
+      "ids": [
+        7842978
+      ],
+      "description": "Participants will learn basic unarmed combat definitions and safety protocol. Exploration will include techniques such as falls, contact moves (hair pulls, choking, etc.) and non-contact slaps, punches, and kicks. The workshop will end with a short choreographed fight.Teacher: Wolf SherrillSIGN UP",
+      "lineup": [],
+      "url": "https://peakimprov.com/events-2-1/stage-combat-workshop",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7842978"
+      ]
+    },
+    {
+      "index": 1219,
+      "club": "Planet Of The Tapes",
+      "name": "Lyons Lane",
+      "count": 1,
+      "ids": [
+        5247156
+      ],
+      "description": "",
+      "lineup": [
+        "Lyons Lane"
+      ],
+      "url": "https://www.planetofthetapes.biz/shows/383296",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/5247156"
+      ]
+    },
+    {
+      "index": 1222,
+      "club": "Planet Of The Tapes",
+      "name": "Movie Trivia w/ Greg Welsh!",
+      "count": 1,
+      "ids": [
+        2664013
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.planetofthetapes.biz/shows/383072",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills bingo/trivia/skills games without an explicit comedy performance; requires event-level confirmation before removal.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/2664013"
+      ]
+    },
+    {
+      "index": 1223,
+      "club": "Planet Of The Tapes",
+      "name": "My Ride's Here",
+      "count": 1,
+      "ids": [
+        4707308
+      ],
+      "description": "",
+      "lineup": [
+        "My Ride's Here"
+      ],
+      "url": "https://www.planetofthetapes.biz/shows/381875",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/4707308"
+      ]
+    },
+    {
+      "index": 1224,
+      "club": "Planet Of The Tapes",
+      "name": "Saturdays at Sunnydale",
+      "count": 1,
+      "ids": [
+        7282011
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.planetofthetapes.biz/shows/388825",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7282011"
+      ]
+    },
+    {
+      "index": 1225,
+      "club": "Planet Of The Tapes",
+      "name": "Silas Fangs: Holy Ghost Contest",
+      "count": 2,
+      "ids": [
+        5679770,
+        5679771
+      ],
+      "description": "",
+      "lineup": [
+        "Silas Fangs"
+      ],
+      "url": "https://www.planetofthetapes.biz/shows/384245",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/5679770",
+        "https://www.laugh-track.com/show/5679771"
+      ]
+    },
+    {
+      "index": 1226,
+      "club": "Planet Of The Tapes",
+      "name": "The Louisville Gore Club",
+      "count": 1,
+      "ids": [
+        2664011
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.planetofthetapes.biz/shows/376323",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/2664011"
+      ]
+    },
+    {
+      "index": 1227,
+      "club": "Planet Of The Tapes",
+      "name": "Twin Peaks Tuesdays",
+      "count": 1,
+      "ids": [
+        7281991
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.planetofthetapes.biz/shows/388808",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7281991"
+      ]
+    },
+    {
+      "index": 1229,
+      "club": "Post Office Cafe",
+      "name": "Drag Brunch",
+      "count": 1,
+      "ids": [
+        4912266
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://postofficecafecabaret.thundertix.com/orders/new?event_id=261488&performance_id=3241643",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/4912266"
+      ]
+    },
+    {
+      "index": 1230,
+      "club": "Post Office Cafe",
+      "name": "Misleading Ladies",
+      "count": 1,
+      "ids": [
+        4633653
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://postofficecafecabaret.thundertix.com/orders/new?event_id=261488&performance_id=3246388",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/4633653"
+      ]
+    },
+    {
+      "index": 1231,
+      "club": "Post Office Cafe",
+      "name": "Queen of the PO Drag Brunch",
+      "count": 1,
+      "ids": [
+        4912267
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://postofficecafecabaret.thundertix.com/orders/new?event_id=261488&performance_id=3241681",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/4912267"
+      ]
+    },
+    {
+      "index": 1232,
+      "club": "Post Office Cafe",
+      "name": "The Devil Wears Payless",
+      "count": 1,
+      "ids": [
+        5019150
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://postofficecafecabaret.thundertix.com/orders/new?event_id=263005&performance_id=3272206",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/5019150"
+      ]
+    },
+    {
+      "index": 1269,
+      "club": "Punchline Comedy Lounge",
+      "name": "BATTLE OF THE SEXES GAME NIGHT - HOSTED BY: LALA LOVE & SHAWN E",
+      "count": 1,
+      "ids": [
+        6619048
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.comedypunchline.com/shows/387013",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/6619048"
+      ]
+    },
+    {
+      "index": 1286,
+      "club": "Red Room (Provincetown)",
+      "name": "Speakeasy: Zoë Lewis and the Bootleggers",
+      "count": 1,
+      "ids": [
+        519773
+      ],
+      "description": "",
+      "lineup": [
+        "Zoe Lewis"
+      ],
+      "url": "https://redroom.club/shows/365637",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/519773"
+      ]
+    },
+    {
+      "index": 1290,
+      "club": "Revolution Hall",
+      "name": "Ashley Cooke: The Baby Blues Tour",
+      "count": 1,
+      "ids": [
+        8135326
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.etix.com/ticket/p/65736762/ashley-cookethe-baby-blues-tour-portland-revolution-hall",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/8135326"
+      ]
+    },
+    {
+      "index": 1335,
+      "club": "Saxe Theater at Planet Hollywood Inside the Miracle Mile Mall",
+      "name": "Vegas! The Show",
+      "count": 5,
+      "ids": [
+        2873795,
+        2873797,
+        2873799,
+        2873801,
+        2873802
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.ticketmaster.com/event/Z7r9jZ1A7xpbK",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/2873795",
+        "https://www.laugh-track.com/show/2873797",
+        "https://www.laugh-track.com/show/2873799",
+        "https://www.laugh-track.com/show/2873801",
+        "https://www.laugh-track.com/show/2873802"
+      ]
+    },
+    {
+      "index": 1345,
+      "club": "Sheba's Speakeasy Comedy Club",
+      "name": "Sinful Sunday at Sheba's Speakeasy! Get Flirty!",
+      "count": 3,
+      "ids": [
+        6576467,
+        7658397,
+        7658412
+      ],
+      "description": "Every laugh is heard. The audience becomes a little community for 90 minutes instead of a collection of strangers hiding in the dark.",
+      "lineup": [],
+      "url": "https://www.eventbrite.com/e/sinful-sunday-at-shebas-speakeasy-get-flirty-tickets-1998130650564",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/6576467",
+        "https://www.laugh-track.com/show/7658397",
+        "https://www.laugh-track.com/show/7658412"
+      ]
+    },
+    {
+      "index": 1362,
+      "club": "Snappers Palm Harbor",
+      "name": "Audio Star Band",
+      "count": 1,
+      "ids": [
+        7182661
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.snappersgrill.com/shows/388659",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7182661"
+      ]
+    },
+    {
+      "index": 1376,
+      "club": "Spokane Comedy Club",
+      "name": "Tucked & Loaded Drag Bingo: Welcome to the Fun House",
+      "count": 1,
+      "ids": [
+        3679014
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.spokanecomedyclub.com/shows/379206",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/3679014"
+      ]
+    },
+    {
+      "index": 1377,
+      "club": "Sports Drink",
+      "name": "Bing-Oh at SPORTS DRINK (Thursday, 7:00p)",
+      "count": 1,
+      "ids": [
+        506936
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://event.tixologi.com/event/13586/tickets",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/506936"
+      ]
+    },
+    {
+      "index": 1378,
+      "club": "Sports Drink",
+      "name": "Community Night at SPORTS DRINK (Wednesday, 6:30p)",
+      "count": 1,
+      "ids": [
+        1094627
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://event.tixologi.com/event/13532/tickets",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/1094627"
+      ]
+    },
+    {
+      "index": 1383,
+      "club": "Sports Drink",
+      "name": "Tropical Trivia with Sean Bahama at SPORTS DRINK (Wednesday, 7:30p)",
+      "count": 1,
+      "ids": [
+        1094628
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://event.tixologi.com/event/13533/tickets",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills bingo/trivia/skills games without an explicit comedy performance; requires event-level confirmation before removal.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/1094628"
+      ]
+    },
+    {
+      "index": 1410,
+      "club": "Stampede - Aurora",
+      "name": "Ladies Night at Stampede",
+      "count": 1,
+      "ids": [
+        2831863
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.ticketmaster.com/event/Z7r9jZ1A70vOy",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/2831863"
+      ]
+    },
+    {
+      "index": 1416,
+      "club": "StandUpLive Phoenix",
+      "name": "Stand-Up Comedy Class",
+      "count": 1,
+      "ids": [
+        1778518
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://phoenix.standuplive.com/shows/341671",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/1778518"
+      ]
+    },
+    {
+      "index": 1460,
+      "club": "Summit City Comedy Club",
+      "name": "Summit City Divas Drag Brunch",
+      "count": 1,
+      "ids": [
+        4738029
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://summitcity.seatengine.com/shows/382122",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/4738029"
+      ]
+    },
+    {
+      "index": 1474,
+      "club": "Tacoma Comedy Club",
+      "name": "It's Bingo B**** - A Drag Bingo Event!",
+      "count": 1,
+      "ids": [
+        3621437
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.tacomacomedyclub.com/shows/379124",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/3621437"
+      ]
+    },
+    {
+      "index": 1494,
+      "club": "Tempe Improv",
+      "name": "Stand-Up Comedy Class",
+      "count": 1,
+      "ids": [
+        509065
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "http://www.tempeimprov.com/shows/341676",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/509065"
+      ]
+    },
+    {
+      "index": 1509,
+      "club": "The Annoyance Theatre",
+      "name": "Jay Collen: Come Hang Out with the Magician",
+      "count": 1,
+      "ids": [
+        7451325
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://theannoyance.thundertix.com/orders/new?event_id=261569&performance_id=3279356",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7451325"
+      ]
+    },
+    {
+      "index": 1512,
+      "club": "The Annoyance Theatre",
+      "name": "King of Drag Season 2 Watch Party",
+      "count": 1,
+      "ids": [
+        7451327
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://theannoyance.thundertix.com/orders/new?event_id=270726&performance_id=3275389",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7451327"
+      ]
+    },
+    {
+      "index": 1555,
+      "club": "The Clocktower Cabaret",
+      "name": "Nightmare",
+      "count": 2,
+      "ids": [
+        3313756,
+        3313757
+      ],
+      "description": "<div><span style=\"font-size:14px\"><i>Selena Bone 'Em Harder presents</i></span></div><div><span style=\"font-size:14px\"><b><span style=\"font-size:18px\">NIGHTMARE</span><br /></b></span><i>Burlesque & Aerial Remix of The Nightmare Before Christmas</i></div><div><span style=\"font-size:14px\"><br /></span></div><div><div><i>What’s this? What’s this?!</i></div><div><br /></div><div>NIGHTMARE has transformed once again - this year stepping fully into the twisted, whimsical world of<i> The Nightmare Before Christmas!</i></div><div><br /></div><div>Burlesque, aerial, and variety performances from Halloweentown bring the movie to life with all your favorite characters, including Jack, Sally, Oogie, and Zero… and maybe a few surprise Halloweentown cameos, too!</div><div><br /></div><div>Perfect for bachelorettes, birthdays, and any special celebration, or just feeling the holiday blues? Let’s toast to the most wonderful time of the year, Halloween! </div><div><br /></div><div><br /></div><div><div><i>Wouldn't you like to see something strange?</i></div><div><i>Come with us and you will see</i></div><div><i>This, our town of Halloween!\"</i></div></div></div><div style=\"color:rgb( 59 , 69 , 74 )\"><br /></div><div><i style=\"color:rgb( 0 , 0 , 0 );font-size:14px;font-weight:400;letter-spacing:normal;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 )\"><br /></i></div><div><i style=\"color:rgb( 0 , 0 , 0 );font-size:14px;font-weight:400;letter-spacing:normal;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 )\">FRIDAY and SATURDAY:</i><br /></div><div><b><span style=\"font-size:18px\">OCTOBER 16, 17</span></b></div><div>Doors 6:30 PM | Show 7:00 PM<br />Doors 9:00 PM | Show 9:30 PM </div><div><b><br /></b></div><div><b><br /></b></div><div><i>SUNDAY:</i></div><div><b style=\"color:rgb( 0 , 0 , 0 );font-size:14px;font-style:normal;letter-spacing:normal;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 )\"><span style=\"font-size:18px\">OCTOBER 18</span></b><i><br /></i>Doors 5:30 PM | Show 6:00 PM</div><div>Doors 8:00 PM | Show 8:30 PM</div><div><b><br /></b></div><div><i style=\"color:rgb( 0 , 0 , 0 );font-size:14px;font-weight:400;letter-spacing:normal;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 )\"><br />FRIDAY:</i><b><br /></b></div><div><b><span style=\"font-size:18px\">DECEMBER 4<br /></span></b></div><div style=\"color:rgb( 0 , 0 , 0 );font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 )\">Doors 9:00 PM | Show 9:30 PM </div><div><b><span style=\"font-size:18px\"><br /></span></b></div><div><b><span style=\"font-size:18px\"><br /></span></b><i style=\"color:rgb( 0 , 0 , 0 );font-size:14px;font-weight:400;letter-spacing:normal;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 )\">FRIDAY and SATURDAY:</i></div><div><b style=\"color:rgb( 0 , 0 , 0 );font-size:14px;font-style:normal;letter-spacing:normal;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 )\"><span style=\"font-size:18px\">DECEMBER 11, 12</span></b></div><div style=\"color:rgb( 0 , 0 , 0 );font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 )\">Doors 6:30 PM | Show 7:00 PM<br />Doors 9:00 PM | Show 9:30 PM </div><div style=\"color:rgb( 0 , 0 , 0 );font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 )\"><br /></div><div style=\"color:rgb( 0 , 0 , 0 );font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 )\"><br /></div><div style=\"color:rgb( 0 , 0 , 0 );font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 )\"><i style=\"color:rgb( 0 , 0 , 0 );font-size:14px;font-weight:400;letter-spacing:normal;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 )\">SUNDAY:</i><br /></div><div><b style=\"color:rgb( 0 , 0 , 0 );font-size:14px;font-style:normal;letter-spacing:normal;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 )\"><span style=\"font-size:18px\">DECEMBER 13</span></b></div><div style=\"color:rgb( 0 , 0 , 0 );font-size:14px;font-style:normal;letter-spacing:normal;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 )\">Doors 5:30 PM | Show 6:00 PM</div><div><span style=\"font-size:18px\"><b><br /></b></span></div><div><i><br /></i></div><div><b>This show is appropriate for adults. No one under 18 is permitted.</b></div><div> All Shows 18+ unless otherwise noted.</div><div><br /></div><div><br /></div><div><i><b><span style=\"font-size:14px\">Follow us on </span><a href=\"https://www.instagram.com/theclocktowercabaret/\" rel=\"nofollow\">Instagram</a><span style=\"font-size:14px\"> and </span><a href=\"https://www.facebook.com/TheClocktowerCabaret\" rel=\"nofollow\">Facebook</a><span style=\"font-size:14px\"> for exclusive content!</span></b></i></div><div><br /></div><div> <br /></div><p><i>Thank you for supporting live entertainment, small businesses, and independent artists. We couldn't do it without you!</i></p><div><br /></div><div> <br /></div><p><b>DOORS & ARRIVAL</b> </p><div><span style=\"color:rgb( 17 , 16 , 19 )\">Doors open and service begins 30 minutes before showtime. We recommend arriving at least 15 minutes early. Unclaimed seats may be released once the show begins.</span></div><div><br /></div><p><b>GROUP TICKETS</b><br /> Seats are assigned based on order of purchase, ticket type, and party size. To ensure your group is seated together, have all members include the same first and last name in the comments at checkout.</p><div><br /></div><p><b>ACCESSIBLE SEATING</b><br /> If you or someone in your party requires accessible seating, please contact us in advance so we can make the necessary accommodations.</p><div> <br /></div><p><b>TICKET POLICY</b><br /> All ticket sales are final and non-refundable.</p><div><br /></div><p><b>DRESS CODE</b> </p><div><span style=\"color:rgb( 17 , 16 , 19 )\">There's no formal dress code, but we've noticed that people who dress up have a blast! On themed nights, we </span><i style=\"color:rgb( 17 , 16 , 19 )\">especially</i><span style=\"color:rgb( 17 , 16 , 19 )\"> invite you to lean in — it isn't required, but definitely adds to the magic.</span></div><div><br /></div><div> <br /></div><p><i>ONLINE TICKETS SOLD OUT? </i><a href=\"https://www.clocktowercabaret.com/waitlist\" rel=\"nofollow\">Join the waitlist.</a><i> </i></p>",
+      "lineup": [],
+      "url": "https://ci.ovationtix.com/35628/production/1073788?performanceId=11831677",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/3313756",
+        "https://www.laugh-track.com/show/3313757"
+      ]
+    },
+    {
+      "index": 1556,
+      "club": "The Clocktower Cabaret",
+      "name": "The King Penny Radio Show",
+      "count": 1,
+      "ids": [
+        4154085
+      ],
+      "description": "<div><b style=\"font-weight:normal\"><span style=\"font-size:11pt;color:#000000;background-color:transparent;font-weight:700;font-style:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap\">An Unscripted 1940s-Style Comedy Event</span></b><span style=\"font-size:18px\">﻿</span></div><div><b><span style=\"font-size:18px\">The King Penny Radio Show</span></b></div><div><br /></div><div><br /></div><span style=\"font-size:14px\">Join Denver's hit 1940s Improvised Radio Show every month at The Clocktower Cabaret! </span><div><span style=\"font-size:14px\"><br /></span></div><div><span style=\"font-size:14px\">Travel back in time as \"The King Penny Players\" bring a golden-era radio show to life before your very eyes, based entirely on audience suggestions! Complete with old-timey mics, a Foley Artist, and a world-class pianist, you won't want to miss this ring-a-ding of a show! </span><div><br /><div><span style=\"font-size:14px\">This vintage variety show will also feature some very exciting special guests, serving up a healthy dose of entertainment. Be sure to knock your socks off and get your jitterbugs jitterbuggin'. </span></div><div><span style=\"font-size:14px\"><br /></span></div><div><span style=\"font-size:14px\">Brought to you by King Penny, Home of Soft Goods, Hard Goods, Whole Goods, and everything Good in between. King Penny- Where you don't have to be a monarch to shop like royalty. </span></div><div><br /></div></div><div><br /></div><div><span style=\"font-size:14px\"><span style=\"font-size:14px\">THURSDAYS</span></span><br /></div><div><span style=\"font-size:18px\"><b>October 15th</b></span></div><div><span style=\"font-size:18px\"><b>November 19th</b></span></div><div><span style=\"font-size:18px\"><b>December 17th</b></span><br /></div><div><span style=\"font-size:18px\"><b>January 21st</b></span></div><div><span style=\"font-size:18px\"><b>February 18th</b></span></div><div><span style=\"font-size:14px\">﻿Doors 7:00 PM | Show 7:30 PM</span><span style=\"font-size:18px\"><b><br /></b></span></div><div><br /></div><div><br /></div><div><b><span style=\"font-size:18px\">VIP Seating</span></b></div><p>Reserved seating in the <strong>first two rows</strong> of the theater</p><p><strong style=\"letter-spacing:0px\">Two suggestion cards per guest</strong><span style=\"letter-spacing:0px\">, doubling your chances of being selected</span></p><p><strong style=\"color:rgb( 0 , 0 , 0 )\">Exclusive opportunity to draw the first card</strong><span style=\"color:rgb( 0 , 0 , 0 )\"> from the suggestion bucket</span></p><p><span style=\"color:rgb( 0 , 0 , 0 )\">Surprise VIP extras throughout the night</span></p></div><div><br /></div><div><br /></div><div><b><span style=\"font-size:18px\">General Reserved</span></b></div><div><span style=\"font-size:14px\">﻿Best available seats after VIP based on order of ticket purchase and party size. </span><b><span style=\"font-size:18px\"><br /></span></b></div><div><div><span style=\"font-size:14px\"><i><br /></i></span></div><div><br /></div></div><div><div><span style=\"font-size:14px\"><br /><b><span style=\"font-size:18px\">Check out: </span></b></span></div><div><a href=\"https://admin.ovationtix.com/sm/production/editProductionInformation/www.KingPennyRadio.com\" style=\"color:rgb( 51 , 122 , 183 );text-decoration:inherit;background-color:inherit;font-weight:inherit\" rel=\"nofollow\"><span style=\"font-size:14px\">www.KingPennyRadio.com</span></a></div><div><span style=\"font-size:14px\">@KingPennyRadio on </span><a href=\"https://www.instagram.com/kingpennyradio/\" style=\"color:rgb( 51 , 122 , 183 );text-decoration:inherit;background-color:inherit;font-weight:inherit\" rel=\"nofollow\">Instagram</a><span style=\"font-size:14px\"> </span></div><div><span style=\"font-size:14px\">The King Penny Radio Show on </span><a href=\"https://www.facebook.com/profile.php?id=100091515357865\" style=\"color:rgb( 51 , 122 , 183 );text-decoration:inherit;background-color:inherit;font-weight:inherit\" rel=\"nofollow\">Facebook</a><span style=\"font-size:14px\"> </span></div></div><div><div><br /></div><div><br /></div><div> <br /></div></div><p><b>18+</b></p><div><div><br /></div></div><p><b></b></p><p><b><i>Follow The Clocktower Cabaret on </i></b><a href=\"https://www.instagram.com/theclocktowercabaret/\" rel=\"nofollow\"><b><i>Instagram</i></b></a><b><i> and </i></b><a href=\"https://www.facebook.com/TheClocktowerCabaret\" rel=\"nofollow\"><b><i>Facebook</i></b></a><i>!</i></p><div><div> <br /></div></div><p><i>Thank you for supporting live entertainment, small businesses, and independent artists. We couldn't do it without you!</i></p><div><div><br /></div></div><div><div> <br /></div></div><p><b>DOORS & ARRIVAL</b> </p><div><div><span style=\"color:rgb( 17 , 16 , 19 )\">Doors open and service begins 30 minutes before showtime. We recommend arriving at least 15 minutes early. Unclaimed seats may be released once the show begins.</span></div></div><div><div> <br /></div></div><p><b>GROUP TICKETS</b><br /> Seats are assigned based on order of purchase, ticket type, and party size. To ensure your group is seated together, have all members include the same first and last name in the comments at checkout.</p><div><div> <br /></div></div><p><b>ACCESSIBLE SEATING</b><br /> If you or someone in your party requires accessible seating, please contact us in advance so we can make the necessary accommodations.</p><div><div> <br /></div></div><p><b>TICKET POLICY</b><br /> All ticket sales are final and non-refundable.</p><div><div> <br /></div></div><p><b>DRESS CODE</b> </p><div><div><span style=\"color:rgb( 17 , 16 , 19 )\">There's no formal dress code, but we've noticed that people who dress up have a blast! On themed nights, we </span><i style=\"color:rgb( 17 , 16 , 19 )\">especially</i><span style=\"color:rgb( 17 , 16 , 19 )\"> invite you to lean in — it isn't required, but definitely adds to the magic.</span></div></div><div><div><br /></div></div><div><div> <br /></div></div><p><i>ONLINE TICKETS SOLD OUT? </i><a href=\"https://www.clocktowercabaret.com/waitlist\" rel=\"nofollow\">Join the waitlist.</a><i> </i></p><p><b></b></p><div><div><br /></div></div>",
+      "lineup": [],
+      "url": "https://ci.ovationtix.com/35628/production/1199408?performanceId=11839235",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/4154085"
+      ]
+    },
+    {
+      "index": 1557,
+      "club": "The Clocktower Cabaret",
+      "name": "The Legend of Sleepy Hollow",
+      "count": 1,
+      "ids": [
+        3313773
+      ],
+      "description": "<div><strong><span style=\"font-size:14px\"><i>DEEDEE'S BURLESQUE BOOK CLUB PRESENTS</i></span></strong></div><div><strong><span style=\"font-size:18px\">THE LEGEND OF SLEEPY HOLLOW</span></strong></div><div style=\"font-weight:bold\"><strong><br /></strong></div><div><b><i><br /></i></b></div><p>Washington Irving's classic ghost story gets a wickedly sexy makeover!</p><p><br /></p><p>A nerdy schoolteacher, a wealthy farmer's daughter, a jealous rival, and a headless ghost rider horsin' around town. Heads will roll, and clothes will too. </p><p><br /></p><p>The fog-drenched village of Sleepy Hollow never looked this good.</p><p><br /></p><div><span style=\"color:rgb( 49 , 24 , 115 );font-size:14px\"> </span><div><br /></div><div><b><span style=\"font-size:18px\">FRIDAY, OCTOBER 9</span></b></div><div><span style=\"font-size:18px\"><b>SATURDAY, OCTOBER 10</b></span></div><div><span style=\"font-size:14px\"><i>7 PM AND 9:30 PM*</i></span></div><div><br /></div><div><br /></div><div><span style=\"font-size:18px\"><b>SUNDAY, OCTOBER 11</b></span></div><div><span style=\"font-size:14px\"><i>7 PM*</i></span></div><div> <br /></div></div><p><b>18+</b></p><div><div> <br /></div></div><p><br /><b></b></p><p><i><b>Follow us on </b><a href=\"https://www.instagram.com/theclocktowercabaret/\" rel=\"nofollow\"><b>Instagram</b></a><b> and </b><a href=\"https://www.facebook.com/TheClocktowerCabaret\" rel=\"nofollow\"><b>Facebook</b></a><b> for exclusive content!</b></i></p><div><div> <br /></div></div><div><br /></div><p style=\"margin:0px;color:rgb( 17 , 16 , 19 );font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 )\"><i>Thank you for supporting live entertainment, small businesses, and independent artists. We couldn't do it without you!</i></p><div style=\"color:rgb( 0 , 0 , 0 );font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 )\"><div><br /></div></div><p><br /><b></b></p><p><b>*DOORS & ARRIVAL</b> </p><p>Doors open and service begins 30 minutes before showtime. We recommend arriving at least 15 minutes early. Unclaimed seats may be released once the show begins.</p><div><div> <br /></div></div><p><b>GROUP TICKETS</b><br /> Seats are assigned based on order of purchase, ticket type, and party size. To ensure your group is seated together, have all members include the same first and last name in the comments at checkout.</p><div><div><br /></div></div><p><b>ACCESSIBLE SEATING</b><br /> If you or someone in your party requires accessible seating, please contact us in advance so we can make the necessary accommodations.</p><div><div><br /></div></div><p><b>TICKET POLICY</b><br /> All ticket sales are final and non-refundable.</p><div><div><br /></div></div><div><div><b style=\"color:rgb( 17 , 16 , 19 )\">DRESS CODE</b><span style=\"color:rgb( 17 , 16 , 19 )\"> </span></div></div><div><div><span style=\"color:rgb( 17 , 16 , 19 )\">No formal dress code is required, but we've noticed something: people who dress up have a blast! On themed nights, we </span><i style=\"color:rgb( 17 , 16 , 19 )\">especially</i><span style=\"color:rgb( 17 , 16 , 19 )\"> invite you to lean in — it isn't required, but definitely adds to the magic.</span></div></div>",
+      "lineup": [],
+      "url": "https://ci.ovationtix.com/35628/production/1235741?performanceId=11827078",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/3313773"
+      ]
+    },
+    {
+      "index": 1605,
+      "club": "The Comedy Loft of DC",
+      "name": "Creepypasties: A Burlesque and Variety Tribute to Urban Legends",
+      "count": 2,
+      "ids": [
+        392538,
+        392539
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.dccomedyloft.com/shows/345612",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/392538",
+        "https://www.laugh-track.com/show/392539"
+      ]
+    },
+    {
+      "index": 1606,
+      "club": "The Comedy Loft of DC",
+      "name": "Jazz Room",
+      "count": 2,
+      "ids": [
+        3407383,
+        3407384
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.dccomedyloft.com/shows/378538",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/3407383",
+        "https://www.laugh-track.com/show/3407384"
+      ]
+    },
+    {
+      "index": 1654,
+      "club": "The Den Theatre",
+      "name": "4000 Miles",
+      "count": 4,
+      "ids": [
+        5686062,
+        5686057,
+        5686054,
+        5686052
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://thedentheatre.com/calendar/2026/10/8/4000-miles-the-den-theatre-comedy-club-chicago-afg7z-aj7f6",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/5686062",
+        "https://www.laugh-track.com/show/5686057",
+        "https://www.laugh-track.com/show/5686054",
+        "https://www.laugh-track.com/show/5686052"
+      ]
+    },
+    {
+      "index": 1685,
+      "club": "The Empire Strips Back Theater",
+      "name": "The Empire Strips Back",
+      "count": 7,
+      "ids": [
+        2830668,
+        2830669,
+        2830670,
+        2830671,
+        2830672,
+        2830673,
+        2830674
+      ],
+      "description": "For full details please visit www.riolasvegas.com/shows/the-empire-strips-back This event has a no refund policy Transporting audiences to a galaxy far, far away, to a world of burlesque fantasy, of menacing and sexy dance, of dangerous seduction, of hilarious parody, and even the droids you're looking for. Your favorite characters are scantily clad, seriously sultry and live on stage! Created by Russall S. Beattie Disclaimer: This is a parody production. Star Wars and its characters are registered trademarks of Lucasfilm Entertainment Company Ltd or Lucasfilm Ltd. This production is not sponsored, endorsed by or affiliated with Disney, Lucasfilm Entertainment Company Ltd, Lucasfilm Ltd or any of its subsidiaries or affiliated companies and/or third-party licensors. | Please note: Age restriction: 18+ with a valid Government Issued ID. All guests must have a ticket to enter. Location: The Empire Strips Back Theater, Rio Las Vegas Show times: Monday, Tuesday, Wednesday, Thursday - 8:00pm Friday & Saturday 7:00 PM & 9:30 pm Sunday 7:00 pm Show Length: 95 Minutes plus 15 Minute Intermission Prices From: $39.00 Other Information: FREE PARKING Weapons of any kind are strictly prohibited. All guests and their belongings are subject to security screening prior to entry. No photography or video recording. Venue utilizes smoke, haze, strobing lights and other stage effects. The venue reserves the right to implement security procedures designed to protect the experience of our customers. FM Transmitted Assisted Listening Devices with Hearing Aid Loop available on request",
+      "lineup": [],
+      "url": "https://www.ticketmaster.com/the-empire-strips-back-las-vegas-nevada-10-11-2026/event/390064C9C6551F1F",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/2830668",
+        "https://www.laugh-track.com/show/2830669",
+        "https://www.laugh-track.com/show/2830670",
+        "https://www.laugh-track.com/show/2830671",
+        "https://www.laugh-track.com/show/2830672",
+        "https://www.laugh-track.com/show/2830673",
+        "https://www.laugh-track.com/show/2830674"
+      ]
+    },
+    {
+      "index": 1687,
+      "club": "The FanaticSalon Theater | Culver City Comedy Club",
+      "name": "Improv Drop-In with Jeff Michalski",
+      "count": 1,
+      "ids": [
+        4381150
+      ],
+      "description": "Move. Read. Play. Jeff Michalski is forwarding improv and acting to the next evolutionary level. Jeff Michalski has taught all forms of improvisation for over twenty years, as well as developed his own long-form techniques. He has performed across the United States, Canada, and Ireland in theatres and nightclubs and has directed Second City companies in Chicago, Los Angeles, Kilkenny, and Toronto. Founder of the Second City ETC, he also helped create the Second City Training Program in Chicago and Los Angeles. As a producer, director and performer, he has worked with Dan Castellaneta, Chris Farley, Amy Sedaris, Mike Meyer, Steven Colbert, Ryan Stiles, and many more. $30",
+      "lineup": [],
+      "url": "https://fanaticsalon.com/event/improv-drop-in-with-jeff-michalski/2026-10-17/",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/4381150"
+      ]
+    },
+    {
+      "index": 1719,
+      "club": "The Improv Collective",
+      "name": "Intro to Improv Drop Ins",
+      "count": 1,
+      "ids": [
+        7155173
+      ],
+      "description": "These classes are tailored for students ranging in experience from new to improv to those with a level one or two class under their belt. First timers welcome! We will coach you in scene fundamentals, making choices, and using emotion. This 2 hour class is a “drop-in,” meaning no tickets are required and you just show up ready to play! Each session costs $10. Hope to see you there! Wednesdays at 7pm. NOTE: To preserve class quality, we can only 20 students per drop in. If you arrive after the maximum has been met, you are welcome to observe at no charge. We apologize for any inconvenience and appreciate you! *Address* 1215 Baker, Costa Mesa, CA 92626 *Cost* $10 cash or card (on location) *When* Every Wednesday at 7pm",
+      "lineup": [],
+      "url": "https://jetbook.co/e/intro-to-improv-drop-insg0bn",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7155173"
+      ]
+    },
+    {
+      "index": 1756,
+      "club": "The Lounge at World Stage",
+      "name": "Audawind",
+      "count": 1,
+      "ids": [
+        3024099
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.etix.com/ticket/v/1599/music-hall-at-world-stage",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/3024099"
+      ]
+    },
+    {
+      "index": 1757,
+      "club": "The Lounge at World Stage",
+      "name": "Tour Godz Presents The Impact Tour",
+      "count": 1,
+      "ids": [
+        7658448
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://www.etix.com/ticket/v/1599/music-hall-at-world-stage",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7658448"
+      ]
+    },
+    {
+      "index": 1838,
+      "club": "The Rockwell",
+      "name": "Andro Queen, Headfirst & Friends",
+      "count": 1,
+      "ids": [
+        5593576
+      ],
+      "description": "Andro Queen, Headfirst & Friends ARTIST INSTAGRAMS: @weareheadfirst / @androqueen / @merejane333 / @sunbear1000 Timeline: DOORS: 7:00 PM SHOW: 8:00 PM Age Limit: This event is All Ages ID: Valid ID required for Alcohol Consumption Start Time: Performances will begin no later than 15 minutes after stated show time. Refund Policy: All sales are final. No Refunds. ADA Accessibility: The Rockwell is partially ADA Accessible with an elevator and restrooms in saloon wide enough for wheelchair use.",
+      "lineup": [
+        "Andro Queen, Headfirst"
+      ],
+      "url": "https://therockwell.org/calendar/andro-queen-and-co/",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/5593576"
+      ]
+    },
+    {
+      "index": 1839,
+      "club": "The Rockwell",
+      "name": "Foamflower EP Release Show",
+      "count": 1,
+      "ids": [
+        7758349
+      ],
+      "description": "Foamflower EP Release Show Join us at The Rockwell for a curated night of Indie Pop/Rock, featuring Foamflower’s EP release, and special guests! Foamflower has been a band for almost four years. Starting in February of 2023, the group met and started performing under the band name “Knee Socks.” Three years and three drummers later, foamflower is celebrating their success throwing an album release party, with their new album “Without a Reason” coming out this October. They are so thankful for everyone that has supported them all this time, and can’t wait to share their music. SOCIAL MEDIA: @foamflower.band Presented by The Rockwell Timeline: DOORS: 7:00 PM SHOW: 8:00 PM Age Limit: This event is 21+ ID: Valid ID required for Alcohol Consumption/Entry Start Time: Performances will begin no later than 15 minutes after stated show time. Refund Policy: All sales are final. No Refunds. ADA Accessibility: The Rockwell is partially ADA Accessible with an elevator and restrooms in saloon wide enough for wheelchair use.",
+      "lineup": [],
+      "url": "https://therockwell.org/calendar/foamflower-ep-release/",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7758349"
+      ]
+    },
+    {
+      "index": 1840,
+      "club": "The Rockwell",
+      "name": "Jamie Webster",
+      "count": 1,
+      "ids": [
+        4846030
+      ],
+      "description": "Jamie Webster Music with rare meaning, ‘people’s poet’ Jamie Webster has built a movement around songcraft that distils struggle, finds hope and the tugs at the ties that bind. Creating pin-sharp pictures of people he sees around him striving and failing, through no fault of their own, to make better lives, Webster’s motivations and inspirations are unambiguous. SOCIAL MEDIA: @jamiewebstermusic Presented by Get To The Gig & MassConcerts Timeline: Doors 7:00 PM Show 8:00 PM Age Limit: This event is All Ages ID: Valid ID required for Alcohol Consumption Start Time: Performances will begin no later than 15 minutes after stated show time. Refund Policy: REFUNDS DETERMINED BY GET TO THE GIG. ADA Accessibility: The Rockwell is partially ADA Accessible with an elevator and restrooms in saloon wide enough for wheelchair use.",
+      "lineup": [],
+      "url": "https://therockwell.org/calendar/jamie-webster/",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/4846030"
+      ]
+    },
+    {
+      "index": 1841,
+      "club": "The Rockwell",
+      "name": "Jiwon, Sally Boy, & Jazz Cuti",
+      "count": 1,
+      "ids": [
+        7422401
+      ],
+      "description": "Jiwon, Sally Boy, & Jazz Cuti ARTIST BIO: jiwon is from nyc and grew up immersed in a diverse musical environment. proficient in piano, cello, bass guitar, and drums, Jiwon found music to be his expressive refuge. his style, an eclectic mix inspired by artists like Lou Reed and Jai Paul, defies easy categorization. while studying philosophy at harvard, he deepened his musical commitment, and during the pandemic, major label interest affirmed his career choice. jiwon’s recent single “telephone” received critical acclaim for its introspective and authentic sound. as he continues to innovate, jiwon remains dedicated to his craft, distinguishing himself with genuine passion and sincerity in a crowded musical landscape. SOCIAL MEDIA: Jiwon, Sally Boy, Jazz Cuti Presented by The Rockwell Timeline: DOORS: 7:00 PM SHOW: 8:00 PM Age Limit: This event is All Ages/18+/21+ ID: Valid ID required for Alcohol Consumption/Entry Start Time: Performances will begin no later than 15 minutes after stated show time. Refund Policy: All sales are final. No Refunds. ADA Accessibility: The Rockwell is partially ADA Accessible with an elevator and restrooms in saloon wide enough for wheelchair use.",
+      "lineup": [],
+      "url": "https://therockwell.org/calendar/jiwon-sallyboy-jazzcuti/",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7422401"
+      ]
+    },
+    {
+      "index": 1842,
+      "club": "The Rockwell",
+      "name": "Rockwell Open Mic @ Saloon",
+      "count": 1,
+      "ids": [
+        7184908
+      ],
+      "description": "Rockwell Open Mic @ Saloon The Rockwell Open Mic is back! This time hosted at our sister bar next door, Saloon! The Rockwell Open Mic is open to all acts, sword swallowing, poetry, comedy, music, magic — show us your talent! Sign up in advance here on this GOOGLE FORM Otherwise, first-come, first-serve spots available Doors: 6:30 PM Mic: 7:00 PM – 9:00 PM Address: 255 Elm Street, Somerville, MA Ages: All Ages ADA Accessible",
+      "lineup": [],
+      "url": "https://therockwell.org/calendar/rockwell-open-mic-saloon/2026-10-12/",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7184908"
+      ]
+    },
+    {
+      "index": 1843,
+      "club": "The Rockwell",
+      "name": "Sex Mex",
+      "count": 1,
+      "ids": [
+        4846032
+      ],
+      "description": "Sex Mex The first few years of Sex Mex were very unstable. It see sawed from the desire to have a band, to the desire to get rid of everybody in a moments notice. The only solution was to have the band without having a band. No sound compromise. No people compromise. A completely digital band made up of digital Clark’s. At the end of the day, Sex Mex is just an extension of Clark. The very loud, obnoxious extension of an otherwise, shy, quiet person. SOCIAL MEDIA: @sexmexsux Presented by Get To The Gig & MassConcerts Timeline: Doors 7:00 PM Show 8:00 PM Age Limit: This event is 21+ ID: Valid ID required for Entry Start Time: Performances will begin no later than 15 minutes after stated show time. Refund Policy: REFUNDS DETERMINED BY GET TO THE GIG. ADA Accessibility: The Rockwell is partially ADA Accessible with an elevator and restrooms in saloon wide enough for wheelchair use.",
+      "lineup": [],
+      "url": "https://therockwell.org/calendar/sex-mex/",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/4846032"
+      ]
+    },
+    {
+      "index": 1893,
+      "club": "The Tiny Cupboard",
+      "name": "Free Karaoke",
+      "count": 2,
+      "ids": [
+        7747014,
+        7795577
+      ],
+      "description": "Sing whatever you want on stage in front of people.In our game bar area! Free just support the bar.",
+      "lineup": [],
+      "url": "https://www.thetinycupboard.com/events/free-karaoke-2026-10-11220000",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills karaoke without an explicit comedy performance.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7747014",
+        "https://www.laugh-track.com/show/7795577"
+      ]
+    },
+    {
+      "index": 1930,
+      "club": "Tommy T's Pleasanton",
+      "name": "Tommy T's Wing Wednesday!",
+      "count": 1,
+      "ids": [
+        6396077
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "http://tommyts.com/shows/386494",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/6396077"
+      ]
+    },
+    {
+      "index": 1943,
+      "club": "Uncle Vinnie's Comedy Club",
+      "name": "Cameron Mathison, Katelyn MacMullen & Cynthia Watros - Rosemont - Oct 17, 2026",
+      "count": 1,
+      "ids": [
+        3185261
+      ],
+      "description": "<p style=\"margin-bottom:0px;margin-top:0px;font-style:normal;font-weight:400;letter-spacing:normal;text-align:left;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 );padding:0px;font-size:16px;line-height:1.5rem;color:rgb( 111 , 114 , 135 )\">Coming to Rosemont, IL favorites from General Hospital Cameron Mathison, Katelyn MacMullen & Cynthia Watros. </p><p style=\"margin-bottom:0px;margin-top:0px;font-style:normal;font-weight:400;letter-spacing:normal;text-align:left;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 );padding:10px 0px 0px;font-size:16px;line-height:1.5rem;color:rgb( 111 , 114 , 135 )\">Dinner will include 3 courses.</p><p style=\"margin-bottom:0px;margin-top:0px;font-style:normal;font-weight:400;letter-spacing:normal;text-align:left;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 );padding:10px 0px 0px;font-size:16px;line-height:1.5rem;color:rgb( 111 , 114 , 135 )\">You will get to meet them, get an autograph and pictures with your favorite stars</p><p style=\"margin-bottom:0px;margin-top:0px;font-style:normal;font-weight:400;letter-spacing:normal;text-align:left;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 );padding:10px 0px 0px;font-size:16px;line-height:1.5rem;color:rgb( 111 , 114 , 135 )\">There will be beverages to purchase as well</p><p style=\"margin-bottom:0px;margin-top:0px;font-style:normal;font-weight:400;letter-spacing:normal;text-align:left;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 );padding:10px 0px 0px;font-size:16px;line-height:1.5rem;color:rgb( 111 , 114 , 135 )\">limited to 40 people, this will sell fast</p><p style=\"margin-bottom:0px;margin-top:0px;font-style:normal;font-weight:400;letter-spacing:normal;text-align:left;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 );padding:10px 0px 0px;font-size:16px;line-height:1.5rem;color:rgb( 111 , 114 , 135 )\">$ 259 per person includes tax, gratuity is extra and appreciated!!</p><p style=\"margin-bottom:0px;margin-top:0px;font-style:normal;font-weight:400;letter-spacing:normal;text-align:left;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 );padding:10px 0px 0px;font-size:16px;line-height:1.5rem;color:rgb( 111 , 114 , 135 )\"><br /></p><p style=\"margin-bottom:0px;margin-top:0px;font-style:normal;font-weight:400;letter-spacing:normal;text-align:left;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 );padding:10px 0px 0px;font-size:16px;line-height:1.5rem;color:rgb( 111 , 114 , 135 )\">HARRY CARAY’S ITALIAN STEAKHOUSE ROSEMONT</p><p style=\"margin-bottom:0px;margin-top:0px;font-style:normal;font-weight:400;letter-spacing:normal;text-align:left;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 );padding:10px 0px 0px;font-size:16px;line-height:1.5rem;color:rgb( 111 , 114 , 135 )\">10233 West Higgins Road</p><p style=\"margin-bottom:0px;margin-top:0px;font-style:normal;font-weight:400;letter-spacing:normal;text-align:left;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 );padding:10px 0px 0px;font-size:16px;line-height:1.5rem;color:rgb( 111 , 114 , 135 )\">Rosemont, IL 60018</p><p> </p>",
+      "lineup": [],
+      "url": "https://ci.ovationtix.com/35774/production/1275458?performanceId=11806542",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Description advertises a General Hospital actor meet-and-greet, autograph/photo session, dinner or Q&A without comedy billing.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/3185261"
+      ]
+    },
+    {
+      "index": 1944,
+      "club": "Uncle Vinnie's Comedy Club",
+      "name": "Cameron Mathison, Katelyn MacMullen & Cynthia Watros - Schaumburg - Oct 17, 2026",
+      "count": 1,
+      "ids": [
+        3185262
+      ],
+      "description": "<div style=\"text-decoration:none;color:rgb( 59 , 69 , 74 );font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-align:left;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 )\">Come meet Cameron Mathison, Katelyn MacMullen & Cynthia Watros</div><div style=\"text-decoration:none;color:rgb( 59 , 69 , 74 );font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-align:left;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 )\">10:00 am-1:00PM - Includes a meet/greet, autographs and Question/Answer Session</div><div style=\"text-decoration:none;color:rgb( 59 , 69 , 74 );font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-align:left;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 )\">Ages 6 and older, no video or facebook live, no recording or social media. Picture taking? ABSOLUTELY</div><div style=\"text-decoration:none;color:rgb( 59 , 69 , 74 );font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-align:left;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 )\"><br /></div><div style=\"text-decoration:none;color:rgb( 59 , 69 , 74 );font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;text-align:left;word-spacing:0px;white-space:normal;background-color:rgb( 255 , 255 , 255 )\"><div style=\"text-decoration:none\">Hilton Garden Inn Schaumburg</div><div style=\"text-decoration:none\">1911 E. Woodfield Road</div><div style=\"text-decoration:none\">Schaumburg, IL 60173</div></div><p> </p>",
+      "lineup": [],
+      "url": "https://ci.ovationtix.com/35774/production/1275461?performanceId=11806544",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Description advertises a General Hospital actor meet-and-greet, autograph/photo session, dinner or Q&A without comedy billing.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/3185262"
+      ]
+    },
+    {
+      "index": 2017,
+      "club": "Uptown Theater",
+      "name": "BERTHA: Grateful Drag",
+      "count": 1,
+      "ids": [
+        1670277
+      ],
+      "description": "BERTHA: Grateful Drag has partnered with PLUS1 so that $1 from every ticket sold goes to Rhode Island Pride and their work bringing together the greater LGBTQIA+ community to commemorate their diverse heritage, foster inclusion, educate and create awareness of issues, and celebrate achievements in equality. BERTHA: Grateful Drag are the world's first and only drag-infused Grateful Dead tribute band, born in Tennessee in 2023 as a joyful, defiant response to anti-drag legislation. What began as",
+      "lineup": [],
+      "url": "https://www.uptownpvd.com/events/bertha-grateful-drag",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/1670277"
+      ]
+    },
+    {
+      "index": 2020,
+      "club": "Uptown Theater",
+      "name": "Trick r' Treat",
+      "count": 1,
+      "ids": [
+        6748089
+      ],
+      "description": "October belongs to the horror fans. Every Monday this October, Upstairs @ Uptown becomes a screening room. Big picture, big sound, full bar, and a room built for people who actually want to watch a movie with other people instead of alone on a couch. This is the newly finished room above the Uptown Theater on Broadway. Comfortable, intimate, and just the right amount of unsettling once the lights go down. Four Mondays. Four very different flavors of horror. A grindhouse nightmare, an antholog",
+      "lineup": [
+        "Trick r' Treat"
+      ],
+      "url": "https://www.uptownpvd.com/events/trick-r-treat",
+      "assessment": "screening_not_live_comedy",
+      "reason": "Movie screening rather than a live comedy performance. A comedy film may still be comedy content; this is a format distinction.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/6748089"
+      ]
+    },
+    {
+      "index": 2033,
+      "club": "Very Good Improv",
+      "name": "VGI Improv 401 Fall 2026 - Thurs 6:30pm-9:30pm",
+      "count": 1,
+      "ids": [
+        4466536
+      ],
+      "description": "<div>Our final course offers high-level long-form skills, with a focus on the specific needs of the class. You will get the attention you deserve!<br><br></div><div>All 401 students must have completed VGI's 301 course or an approved equivalent. If you have not been approved for this course, please contact info@verygoodimprov.com before registering.</div><div><br></div><div>Class is 3 hours/week, Thursdays from 6:30-9:30pm <strong>(Sept 17-Nov 12, Skip Oct 29)</strong></div><div>Student Showcase: November 17th</div><div>Instructor: Anna Tobin</div><div><br></div><div>This class will be automatically registered to the name used for this purchase. If the student's name is different from the purchaser's name or if you have questions about registration, please contact us at <strong>info@verygoodimprov.com</strong></div><div><br></div><div>A limited number of full or partial need-based scholarships are available. If you wish to apply for a scholarship, or if you have any questions about the class itself, please email <strong>info@verygoodimprov.com</strong></div>",
+      "lineup": [],
+      "url": "https://www.crowdwork.com/e/vgi-improv-401-fall-2026-thurs-6-30pm-9-30pm",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/4466536"
+      ]
+    },
+    {
+      "index": 2034,
+      "club": "Villain Theater",
+      "name": "Doll LinkUp Drag Show",
+      "count": 1,
+      "ids": [
+        7861644
+      ],
+      "description": "MIAMI’S GIRLIEST DRAG SHOW Every Friday at 9pm",
+      "lineup": [],
+      "url": "https://www.eventbrite.com/e/doll-linkup-drag-show-tickets-1999727763572",
+      "assessment": "needs_more_evidence",
+      "reason": "Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7861644"
+      ]
+    },
+    {
+      "index": 2055,
+      "club": "West Nyack Levity Live",
+      "name": "Gotham Wrestling",
+      "count": 1,
+      "ids": [
+        5555174
+      ],
+      "description": "Gotham Wrestling Performing at West Nyack Levity Live",
+      "lineup": [],
+      "url": "https://www.ticketweb.com/event/gotham-wrestling-west-nyack-levity-live-tickets/15039063?pl=palisadeslevity&REFID=nyackWP",
+      "assessment": "strong_non_comedy_flag",
+      "reason": "Title and description bill Gotham Wrestling without comedy billing.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/5555174"
+      ]
+    },
+    {
+      "index": 2062,
+      "club": "West Side Comedy Club",
+      "name": "Class: Building A Set with William Kean",
+      "count": 1,
+      "ids": [
+        8019443
+      ],
+      "description": "",
+      "lineup": [
+        "William Kean"
+      ],
+      "url": "https://punchup.live/show/4a593f12-2e67-43ce-9a83-eeeacae69b99",
+      "assessment": "class_workshop_or_mixer_review",
+      "reason": "Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/8019443"
+      ]
+    },
+    {
+      "index": 2086,
+      "club": "Whiplash Comedy",
+      "name": "CLOSED FOR PRIVATE EVENT",
+      "count": 2,
+      "ids": [
+        7666049,
+        7666050
+      ],
+      "description": "",
+      "lineup": [],
+      "url": "https://whiplashcomedy.com/shows/389887",
+      "assessment": "promotion_or_unavailable_event",
+      "reason": "Holiday party booking promotion or closed-for-private-event notice; unsuitable as a public show listing regardless of genre.",
+      "show_urls": [
+        "https://www.laugh-track.com/show/7666049",
+        "https://www.laugh-track.com/show/7666050"
+      ]
+    }
+  ],
+  "counterexamples": [
+    {
+      "index": 372,
+      "name": "THIRSTY THURSDAY",
+      "description": "THIRSTY THURSDAY is your midweek fix for stand-up done right — a rotating lineup of rising talent and touring pros who bring the jokes, the timing, and the energy. As the weekend gets closer, expect bold personalities and unexpected punchlines that keep the room loose and laughing. Grab a drink, kick back, and let the comedy carry you into the weekend. Whether you're closing out a long week or just getting started, this is the show built for it — big laughs, memorable moments, and a night out that hits every time. Only at Comix Roadhouse. Comix Roadhouse isn't just where the laughs happen — it's a destination in its own right. The venue earned Connecticut Magazine's 2026 Best of Connecticut statewide win for Best Casino Casual Dining, along with OpenTable's 2026 Diners' Choice Award, cementing its place as one of the region's premier spots to eat, drink, and be entertained. OCT 1 - SAINTS & SINNERS IS BACK — BIGGER AND BETTER THAN EVER. Celebrating ONE YEAR of no-holds-barred Thirsty Thursday Comedy with a lineup packed with the biggest killers of the year. Hosted by comedic genius MOOSE HILL and headlined by the hilarious RYAN BRAUTH. -- This showcase is curated by Connecticut’s own CORY ALBERT, recipient of Kill Tony Madison Square Garden Big Joke Book, bringing together a killer lineup of up-and-coming comics who are anything but saintly. Featuring: MIKE DELISLE, KATE DRESTY, RAJA, DILLON RAKOWSKI, TRAVIS HANCOCK, CHELSEA MAJEWSKI & CORY ALBERT. One year of Thirsty Thursday Comedy. One killer lineup. One hell of a night. OCT 8 - TT: BRIAN BEAUDOIN - BRIAN ​ brings the best up & coming and national touring outlaws in comedy to the Roadhouse for his Most Wanted Comedy Show. It’s a fun rowdy rooting tooting good time featuring the best local upcoming and touring acts!! Joining BRIAN On Stage Will Be: TBA OCT 15: TT: DR. B’S CLEAN COMEDY ​- DR. B brings uplifting, family-friendly laughter to Mohegan Sun with a high-energy showcase built on positivity, connection, and community. Hosted by the charismatic Dr. B himself, the show celebrates humor without the edge—perfect for date nights, groups, and anyone looking for big laughs without going blue. Inspired by the success of Comix Roadhouse’s Thirsty Thursday clean-comedy nights, this special event continues the tradition of fun, feel-good stand-up that everyone can enjoy. Join DR. B’S CLEAN COMEDY for a night of “laughter to redemption” and discover one of the most refreshing comedy experiences around. Joining our DR. B On Stage Will Be RANDY YOUNG, SPENCER MEDBERY, GLEN RISING, LATASHA HUGHES, WE’RE LAUGHS & GERRY WILLIAMS OCT 29 - TT: JOHN BUTERA - Founder of Aragona's Comedy LLC, JOHN BUTERA is a nationally touring comedian from Long Island, NY. He's headlined Catch A Rising Star, Snappers (FL), Governor's (NY) & casinos & clubs around the country. Hosting will be TBA . Joining our Headliner JOHN BUTERA & TBA On Stage Will Be TBA MAKE A FULL NIGHT OF IT AT COMIX ROADHOUSE SHOW INFORMATION Thursday Performances Are Preview Shows With Special Pricing ASSISTIVE LISTENING AVAILABLE — INQUIRE AT FRONT DESK DINNER & A SHOW Arrive Early And Enjoy Dinner Before The Show CHECK OUT THE ROADHOUSE MENU MAKE A ROADHOUSE RESERVATION THURSDAY NIGHT AT THE ROADHOUSE Start The Night Early With Line Dancing And Stay For Comedy And Karaoke LINE DANCING — THURSDAYS @ 6:30 HEADLINER PREVIEW SHOW — THURSDAYS @ 8:00 KARAOKE — THURSDAYS @ 9:15 WEEKEND NIGHTLIFE The Party Continues In The Roadhouse After The Comedy Show LIVE BANDS — FRIDAYS & SATURDAYS @ 9:15 EXPLORE MORE COMEDY HEADLINER SHOWS COMEDY CLUB CALENDAR 21+ | $10 FOOD-BEV MIN A 15.00% SERVICE FEE will be applied to your order.",
+      "assessment": "Explicit comedy/improv evidence; keyword-based exclusion would be wrong or overbroad."
+    },
+    {
+      "index": 1343,
+      "name": "$9 Tito's! Tito's Tuesday at Sheba's Speakeasy Comedy Club!",
+      "description": "$9 Tito's cocktails, top NYC comedians, big laughs, great vibes, and an unforgettable night in Manhattan!",
+      "assessment": "Explicit comedy/improv evidence; keyword-based exclusion would be wrong or overbroad."
+    },
+    {
+      "index": 1801,
+      "name": "Movie Pass",
+      "description": "MoviePass writes, directs, and stars in a TOTALLY new (Oscar-worthy) fully improvised movie each show just for you based on your suggestion!",
+      "assessment": "Explicit comedy/improv evidence; keyword-based exclusion would be wrong or overbroad."
+    },
+    {
+      "index": 2014,
+      "name": "Uptown Comedy Corner Presents: Jon Kondelik 's Adult Bingo & Naughty Games",
+      "description": "Adult Bingo & Naughty Games is COMING! You’re an ADULT. Play Like ONE! Adult Bingo isn’t just a GAME, It’s a Hilarious and Naughty COMEDY",
+      "assessment": "Explicit comedy/improv evidence; keyword-based exclusion would be wrong or overbroad."
+    },
+    {
+      "index": 2024,
+      "name": "V – The Ultimate Variety Show",
+      "description": "You do not become the best variety show in Las Vegas by being like all the others. V The Ultimate Variety Show has consistently been voted the best variety show in Las Vegas because it continues to push the boundaries and be the most innovative variety production on the Strip. Recently celebrating its 11th year on stage, V The Ultimate Variety Show, has something for everyone. From its opening at The Venetian to its current venue at V Theater, inside the Miracle Mile Shops of Planet Hollywood, V The Ultimate Variety Show has wowed audiences with its ever changing cast of incredible performers. Featuring the comedic hosting of world famous juggler Wally Eastwood to the beauty and death defying skills of the Skating Aratas, V has it all. There is no need to go see three different shows to experience the best of Las Vegas. V The Ultimate Variety Show is perfect for audiences of all ages, and it makes an excellent addition to any vacation.",
+      "assessment": "Explicit comedy/improv evidence; keyword-based exclusion would be wrong or overbroad."
+    }
+  ]
+}

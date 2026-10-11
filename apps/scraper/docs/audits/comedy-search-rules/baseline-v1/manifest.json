@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "corpus_version": "comedy-search-2026-10-11-v1",
+  "endpoint": "https://www.laugh-track.com/api/v1/shows/search",
+  "query": {
+    "fromDate": "2026-10-11",
+    "toDate": "2026-10-17",
+    "size": 500,
+    "sort": "date_asc"
+  },
+  "request_context": {
+    "authentication": "anonymous",
+    "location_filter": null,
+    "timezone_header": null
+  },
+  "counts": {
+    "shows": 2886,
+    "venue_title_groups": 2175,
+    "clubs": 702
+  },
+  "pages": [
+    {
+      "file": "raw/page-0.json",
+      "sha256": "6a3d85ace52c52c6517819301e7ee3e3544143c4872d6faf5cd98f1bfa2d247d",
+      "reported_total": 2886,
+      "returned": 500,
+      "saved_at_utc": "2026-10-11T17:04:53.010424+00:00",
+      "page": 0,
+      "params": {
+        "fromDate": "2026-10-11",
+        "toDate": "2026-10-17",
+        "size": 500,
+        "page": 0,
+        "sort": "date_asc"
+      }
+    },
+    {
+      "file": "raw/page-1.json",
+      "sha256": "8bc5e2f92f845b7673bf9be59ce455e3fe51d0c75ee952ce5ee30007cbe7ad4b",
+      "reported_total": 2886,
+      "returned": 500,
+      "saved_at_utc": "2026-10-11T17:04:53.022459+00:00",
+      "page": 1,
+      "params": {
+        "fromDate": "2026-10-11",
+        "toDate": "2026-10-17",
+        "size": 500,
+        "page": 1,
+        "sort": "date_asc"
+      }
+    },
+    {
+      "file": "raw/page-2.json",
+      "sha256": "52e2bbb672beb7ebdbabdd18b4168aa2440ff9e9c4f7cc3607ac5e383fc9c7f1",
+      "reported_total": 2886,
+      "returned": 500,
+      "saved_at_utc": "2026-10-11T17:04:53.592301+00:00",
+      "page": 2,
+      "params": {
+        "fromDate": "2026-10-11",
+        "toDate": "2026-10-17",
+        "size": 500,
+        "page": 2,
+        "sort": "date_asc"
+      }
+    },
+    {
+      "file": "raw/page-3.json",
+      "sha256": "24e7010a78a965be7a932f77795951fd6104eee1b4149b0bf2d6e93375a363c3",
+      "reported_total": 2886,
+      "returned": 500,
+      "saved_at_utc": "2026-10-11T17:04:53.965217+00:00",
+      "page": 3,
+      "params": {
+        "fromDate": "2026-10-11",
+        "toDate": "2026-10-17",
+        "size": 500,
+        "page": 3,
+        "sort": "date_asc"
+      }
+    },
+    {
+      "file": "raw/page-4.json",
+      "sha256": "c9970584b9d3c1a4e5ac6cd25108c42e617ee57a17709e85b65119e3e09327b7",
+      "reported_total": 2886,
+      "returned": 500,
+      "saved_at_utc": "2026-10-11T17:04:53.620483+00:00",
+      "page": 4,
+      "params": {
+        "fromDate": "2026-10-11",
+        "toDate": "2026-10-17",
+        "size": 500,
+        "page": 4,
+        "sort": "date_asc"
+      }
+    },
+    {
+      "file": "raw/page-5.json",
+      "sha256": "94440d3a4406672a05cdcb2e873c48a672dd49e53020f27b73f7847d85b186ef",
+      "reported_total": 2886,
+      "returned": 386,
+      "saved_at_utc": "2026-10-11T17:04:55.050424+00:00",
+      "page": 5,
+      "params": {
+        "fromDate": "2026-10-11",
+        "toDate": "2026-10-17",
+        "size": 500,
+        "page": 5,
+        "sort": "date_asc"
+      }
+    }
+  ],
+  "triage_artifacts": [
+    {
+      "file": "triage/audit.json",
+      "sha256": "b40f30e62ad486ea0e74e35d42e9bc35093afeff92a6c12f6c36cee04411ee5e"
+    },
+    {
+      "file": "triage/build_report.py",
+      "sha256": "171ce1e5bfccf224b1bc94f440585ca8c6c607cbdca0b3c49736630731cf1893"
+    },
+    {
+      "file": "triage/report.txt",
+      "sha256": "dccb35489dd47227ff159ef85f6efa92fa61e381eb1189e32aea0c79dc234f26"
+    },
+    {
+      "file": "triage/groups.json",
+      "sha256": "fa8b4d0c1886aaced4ec078f62068e65d5e3913a55dd590e4a03b884ddc84fe2"
+    },
+    {
+      "file": "triage/shows.json",
+      "sha256": "0f0e29c89e84a8a453954338ffe51182ace6b56c51097f31434203c1ba6e9ce9"
+    },
+    {
+      "file": "triage/titles.txt",
+      "sha256": "36e66d2f7da02b5e7b75f427c07bd56a5c037391183770ce8d1dbe21c7b629cc"
+    }
+  ],
+  "timing_provenance": "saved_at_utc comes from original local file modification times recorded by the original audit, not HTTP response headers or request start/end times. Pages may have completed out of order.",
+  "snapshot_limitations": "Offset pagination is not transactional. Matching totals, unique IDs and ordering checks detect observable inconsistencies, but cannot prove no inventory changed during collection.",
+  "baseline_decision": "observed_publication",
+  "review_artifacts": []
+}
