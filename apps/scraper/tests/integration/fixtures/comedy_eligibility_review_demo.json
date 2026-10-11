@@ -1,0 +1,39 @@
+{
+  "kind": "synthetic demonstration; not a claim about actual Harvelle's events",
+  "venue": "Example mixed-programming room",
+  "source": {
+    "id": 7,
+    "enabled": true,
+    "comedy_policy": "mixed",
+    "comedy_gate_mode": "enforce",
+    "comedy_policy_version": 1
+  },
+  "events": [
+    {
+      "key": "music",
+      "name": "Blue Room Sessions",
+      "description": "An instrumental blues concert with the house quartet.",
+      "performers": ["Example Quartet"],
+      "review_action": "reject",
+      "review_reason": "The supplied event description bills an instrumental blues concert."
+    },
+    {
+      "key": "comedy",
+      "name": "Friday Late Set",
+      "description": "A stand-up comedy show featuring Rowan Example.",
+      "performers": ["R. Example"],
+      "review_action": "approve",
+      "review_reason": "The supplied description explicitly bills stand-up comedy; the blocked alias resolves to a visible canonical comedian."
+    },
+    {
+      "key": "unrelated",
+      "name": "Stand-up comedy showcase",
+      "description": "Another independently billed comedy event at the same venue.",
+      "performers": []
+    }
+  ],
+  "people": [
+    {"id": 101, "name": "R. Example", "visible": false, "parent_id": 102, "block_reason": "alias"},
+    {"id": 102, "name": "Rowan Example", "visible": true}
+  ]
+}
