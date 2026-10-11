@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import asdict
+from datetime import datetime
 import hashlib
 import json
 from pathlib import Path
@@ -76,7 +77,20 @@ def validate_manifest(manifest):
             raise ValueError("Invalid source_id")
         ids.append(target["source_id"])
         SourceComedyPolicy(target.get("policy"), target.get("gate_mode"), target.get("expected_version"))
-        if target["policy"] != "mixed" or target["gate_mode"] not in {"shadow", "enforce"}:
+        if target["policy"] == "comedy_only":
+            evidence = target.get("source_trust_evidence")
+            if target["gate_mode"] != "shadow":
+                raise ValueError("Comedy-only rollout is limited to shadow validation")
+            if not isinstance(evidence, dict) or not all(
+                isinstance(evidence.get(key), str) and evidence[key].strip()
+                for key in ("programming_url", "reviewed_at", "reason")
+            ):
+                raise ValueError("Comedy-only policy requires documented source_trust_evidence")
+            if not evidence["programming_url"].startswith("https://"):
+                raise ValueError("Source programming evidence must have an HTTPS URL")
+            if datetime.fromisoformat(evidence["reviewed_at"].replace("Z", "+00:00")).tzinfo is None:
+                raise ValueError("Source review timestamp must include a timezone")
+        elif target["policy"] != "mixed" or target["gate_mode"] not in {"shadow", "enforce"}:
             raise ValueError("Rollout targets must be mixed/shadow or mixed/enforce")
         fingerprint = target.get("config_fingerprint", "")
         if (
@@ -183,6 +197,7 @@ def run(manifest, command, transaction, *, dry_run=False):
                                 "reason": manifest["reason"],
                                 "manifest_digest": fingerprint,
                                 "evidence": manifest["evidence"],
+                                "source_trust_evidence": desired.get("source_trust_evidence"),
                             },
                         ),
                     )

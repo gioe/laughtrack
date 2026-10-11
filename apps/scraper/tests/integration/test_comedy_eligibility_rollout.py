@@ -239,3 +239,25 @@ def test_captured_blocked_alias_resolves_parent_without_becoming_comedy_proof():
     )
     assert result.decision == "review" and result.blocked_count == 0
     assert "canonical_parent_resolved" in result.reason_codes
+
+
+def test_comedy_only_requires_source_specific_audit_and_remains_shadow():
+    db = Database()
+    plan = manifest(db)
+    target = plan["targets"][0]
+    target["policy"] = "comedy_only"
+    with pytest.raises(ValueError, match="source_trust_evidence"):
+        rollout.run(plan, "apply", db.transaction)
+    target["source_trust_evidence"] = {
+        "programming_url": "https://example.com/calendar",
+        "reviewed_at": "2026-10-11T00:00:00Z",
+        "reason": "Independently reviewed programming",
+    }
+    rollout.run(plan, "apply", db.transaction)
+    row = db.sources[target["source_id"]]
+    assert row["comedy_gate_mode"] == "shadow"
+    assert row["comedy_review_evidence"]["source_trust_evidence"] == target["source_trust_evidence"]
+    target["gate_mode"] = "enforce"
+    plan["evidence"]["go_no_go"] = "go"
+    with pytest.raises(ValueError, match="limited to shadow"):
+        rollout.run(plan, "apply", db.transaction)

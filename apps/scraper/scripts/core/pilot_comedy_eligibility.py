@@ -12,7 +12,7 @@ import argparse
 import asyncio
 from collections import Counter
 from contextlib import contextmanager
-from dataclasses import replace
+from dataclasses import asdict, replace
 from datetime import datetime, timezone
 import json
 import os
@@ -34,9 +34,12 @@ from laughtrack.core.comedy_eligibility_gate import (
     stamp_source,
 )
 from laughtrack.core.entities.club.comedy_policy import SourceComedyPolicy
+from laughtrack.core.comedy_eligibility_review import apply_review, baseline_identity_fingerprint
+from laughtrack.core.comedy_eligibility_review_store import load_review
+from laughtrack.core.comedy_eligibility_store import fingerprint
 from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.api.seatengine.scraper import SeatEngineScraper
-from scripts.core.rollout_comedy_eligibility import _rows, source_fingerprint
+from scripts.core.rollout_comedy_eligibility import _rows, source_fingerprint, validate_manifest
 
 
 def _source(cursor, sid):
@@ -58,14 +61,40 @@ def transform_saved(club, entry):
     filtered = scraper._filter_title_patterns(events)
     if scraper._comedy_filter:
         filtered = asyncio.run(scraper._filter_comedy(filtered))
-    shows = scraper.transformation_pipeline.transform(type("SavedEvents", (), {"event_list": filtered})())
+
+    def identity(event):
+        return {
+            "source_id": club.scraping_source.id,
+            "event_id": (event.get("event") or {}).get("id"),
+            "occurrence_id": event.get("id"),
+        }
+
+    retained = {id(event) for event in filtered}
+    losses = {
+        "upstream_filtered": [identity(event) for event in events if id(event) not in retained],
+        "conversion_lost": [],
+    }
+    shows = []
+    for event in filtered:
+        converted = scraper.transformation_pipeline.transform(type("SavedEvents", (), {"event_list": [event]})())
+        if not converted:
+            losses["conversion_lost"].append(identity(event))
+        shows.extend(converted)
     stamp_source(shows, club.scraping_source)
     for show in shows:
         show.last_scraped_by = "seatengine"
-    return shows, len(filtered)
+    return shows, len(filtered), losses
 
 
-def run(saved, source_ids, transaction, *, stage_shadow=False):
+def run(saved, source_ids, transaction, *, stage_shadow=False, prospective_manifest=None):
+    proposals = {}
+    if prospective_manifest is not None:
+        validate_manifest(prospective_manifest)
+        if stage_shadow:
+            raise ValueError("Prospective policy evaluation cannot stage observations")
+        proposals = {t["source_id"]: t for t in prospective_manifest["targets"]}
+        if set(proposals) != set(source_ids):
+            raise ValueError("Prospective manifest must match selected source IDs")
     if os.getenv("COMEDY_MODEL_ENABLED", "0") == "1" or os.getenv("COMEDY_MODEL_CACHE_ENABLED", "0") == "1":
         raise ValueError("Pilot requires COMEDY_MODEL_ENABLED=0 and COMEDY_MODEL_CACHE_ENABLED=0")
     if not source_ids or len(set(source_ids)) != len(source_ids) or len(source_ids) > 100:
@@ -88,8 +117,15 @@ def run(saved, source_ids, transaction, *, stage_shadow=False):
                     raise ValueError(f"Saved source {sid} ownership or provider account differs")
                 if not isinstance(entry.get("events"), list):
                     raise ValueError("Saved events must be an array")
-                if stage_shadow and (source["comedy_policy"], source["comedy_gate_mode"]) != ("mixed", "shadow"):
-                    raise ValueError(f"Source {sid} must already be mixed/shadow")
+                if stage_shadow and (
+                    source["comedy_policy"] not in {"mixed", "comedy_only"} or source["comedy_gate_mode"] != "shadow"
+                ):
+                    raise ValueError(f"Source {sid} must already be mixed/shadow or comedy_only/shadow")
+                if sid in proposals and (
+                    proposals[sid]["expected_version"] != source["comedy_policy_version"]
+                    or proposals[sid]["config_fingerprint"] != source_fingerprint(source)
+                ):
+                    raise ValueError(f"Source {sid} prospective configuration/version changed")
                 cursor.execute("SELECT * FROM clubs WHERE id=%s", (source["club_id"],))
                 clubs = _rows(cursor)
                 if len(clubs) != 1:
@@ -99,34 +135,85 @@ def run(saved, source_ids, transaction, *, stage_shadow=False):
                 prepared.append((source, club, entry))
     reports = []
     for source, club, entry in prepared:
-        shows, postfilter = transform_saved(club, entry)
+        shows, postfilter, losses = transform_saved(club, entry)
         decisions = []
+        policy = SourceComedyPolicy.from_row(source)
+        if source["id"] in proposals:
+            proposed = proposals[source["id"]]
+            policy = SourceComedyPolicy(
+                proposed["policy"],
+                proposed["gate_mode"],
+                policy.version + 1,
+                reviewed_by=prospective_manifest["actor"],
+                reviewed_at=(proposed.get("source_trust_evidence") or {}).get("reviewed_at"),
+                evidence={"prospective": True, "manifest": prospective_manifest},
+            )
         with transaction() as conn:
             with conn.cursor() as cursor:
-                all_names = sorted(
-                    {normalize_name(name) for show in shows for name in show.eligibility_performer_names}
-                )
-                people, denied = _identity_snapshot(cursor, all_names)
+                identities = {}
                 for show in shows:
+                    names = tuple(
+                        sorted(
+                            {
+                                normalize_name(name)
+                                for name in (show.eligibility_performer_names or [])
+                                if isinstance(name, str) and name.strip()
+                            }
+                        )
+                    )
+                    if names not in identities:
+                        identities[names] = _identity_snapshot(cursor, list(names))
+                    people, denied = identities[names]
                     decision = classify_comedy_eligibility(
                         source_id=source["id"],
                         policy=SourceComedyPolicy(version=source["comedy_policy_version"]),
                         evidence=event_evidence(show),
                         people=people,
                         denied=denied,
-                        performers=[PerformerObservation(n) for n in show.eligibility_performer_names],
+                        performers=[PerformerObservation(n) for n in names],
                     )
-                    if show.eligibility_performer_names and not show.eligibility_raw_performers_preserved:
+                    if names and not show.eligibility_raw_performers_preserved:
                         decision = replace(
                             decision,
                             lineup_status="partial",
                             reason_codes=tuple(sorted((*decision.reason_codes, "raw_lineup_partial"))),
                         )
+                    effective = classify_comedy_eligibility(
+                        source_id=source["id"],
+                        policy=policy,
+                        evidence=event_evidence(show),
+                        people=people,
+                        denied=denied,
+                        performers=[PerformerObservation(n) for n in names],
+                    )
+                    if names and not show.eligibility_raw_performers_preserved:
+                        effective = replace(
+                            effective,
+                            lineup_status="partial",
+                            reason_codes=tuple(sorted((*effective.reason_codes, "raw_lineup_partial"))),
+                        )
+                    review = load_review(
+                        cursor,
+                        source["id"],
+                        event_key(show),
+                        fingerprint(candidate_payload(show)),
+                        baseline_identity_fingerprint(effective, people, denied),
+                        policy.version,
+                    )
+                    effective, human_hold, human_present = apply_review(effective, review)
                     decisions.append(
                         {
                             "event_key": event_key(show),
                             "payload": candidate_payload(show),
                             "baseline": decision.to_dict(),
+                            "effective": effective.to_dict(),
+                            "review": {
+                                "version": review["review_version"],
+                                "stale": review.get("stale", False),
+                                "action_id": (review.get("review") or {}).get("id"),
+                                "human_hold": human_hold,
+                                "present": human_present,
+                            },
                         }
                     )
         stage_result = None
@@ -141,7 +228,7 @@ def run(saved, source_ids, transaction, *, stage_shadow=False):
                         if (
                             not live
                             or not live[0]["enabled"]
-                            or live[0]["comedy_policy"] != "mixed"
+                            or live[0]["comedy_policy"] != source["comedy_policy"]
                             or live[0]["comedy_gate_mode"] != "shadow"
                             or live[0]["comedy_policy_version"] != source["comedy_policy_version"]
                             or source_fingerprint(live[0]) != source_fingerprint(source)
@@ -169,6 +256,15 @@ def run(saved, source_ids, transaction, *, stage_shadow=False):
                 "transformed_occurrences": len(shows),
                 "unique_event_keys": len({d["event_key"] for d in decisions}),
                 "baseline_decisions": dict(Counter(d["baseline"]["decision"] for d in decisions)),
+                "effective_decisions": dict(Counter(d["effective"]["decision"] for d in decisions)),
+                "effective_policy": asdict(policy),
+                "evaluation_kind": "prospective" if prospective_manifest else "configured",
+                "publication_semantics": "Eligibility evaluation only; off mode bypasses screening, shadow does not enforce classifier decisions. No public writer invoked.",
+                "transformation_losses": {
+                    "upstream_filtered": len(entry["events"]) - postfilter,
+                    "conversion_lost": postfilter - len(shows),
+                },
+                "transformation_loss_identifiers": losses,
                 "lineup_coverage": dict(Counter(d["baseline"]["lineup_status"] for d in decisions)),
                 "decisions": decisions,
                 "shadow": stage_result,
@@ -190,6 +286,9 @@ def main(argv=None, *, transaction=None):
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--source-id", type=int, action="append", required=True)
     parser.add_argument("--stage-shadow", action="store_true")
+    parser.add_argument(
+        "--prospective-manifest", type=Path, help="Read-only policy simulation; never fabricates reviews"
+    )
     args = parser.parse_args(argv)
     if transaction is None:
         from dotenv import load_dotenv
@@ -198,7 +297,13 @@ def main(argv=None, *, transaction=None):
         from laughtrack.adapters.db import get_transaction
 
         transaction = get_transaction
-    result = run(json.loads(args.input.read_text()), args.source_id, transaction, stage_shadow=args.stage_shadow)
+    result = run(
+        json.loads(args.input.read_text()),
+        args.source_id,
+        transaction,
+        stage_shadow=args.stage_shadow,
+        prospective_manifest=json.loads(args.prospective_manifest.read_text()) if args.prospective_manifest else None,
+    )
     args.output.write_text(json.dumps(result, indent=2, sort_keys=True, default=str) + "\n")
     print(
         json.dumps(

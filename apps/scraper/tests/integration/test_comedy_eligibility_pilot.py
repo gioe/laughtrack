@@ -61,6 +61,7 @@ def saved():
 
 
 def setup(monkeypatch):
+    monkeypatch.setattr(pilot, "load_review", lambda *args: {"review_version": 0, "review": None, "stale": False})
     monkeypatch.setenv("COMEDY_MODEL_ENABLED", "0")
     monkeypatch.setenv("COMEDY_MODEL_CACHE_ENABLED", "0")
     monkeypatch.setattr(pilot, "_identity_snapshot", lambda cursor, names: ([], []))
@@ -127,3 +128,147 @@ def test_shadow_uses_real_gate_and_never_records_publication(monkeypatch):
     assert len(staged) == 2
     assert result["sources"][0]["shadow"]["public_writes"] == 0
     assert result["sources"][0]["shadow"]["admitted"] == 2
+
+
+def test_trust_keeps_baseline_separate_and_cannot_rescue_blocked_people(monkeypatch):
+    setup(monkeypatch)
+    from laughtrack.core.comedy_eligibility import DeniedName
+
+    db = ReadDatabase()
+    db.source.update(
+        comedy_policy="comedy_only",
+        comedy_reviewed_by="reviewer",
+        comedy_reviewed_at="2026-10-11T00:00:00Z",
+        comedy_review_evidence={"programming": "reviewed"},
+    )
+    raw = saved()
+    for event in raw["sources"][0]["events"]:
+        event["event"]["name"] = "Performer evening"
+    result = pilot.run(raw, [1], db.transaction)["sources"][0]
+    assert result["baseline_decisions"] == {"review": 2}
+    assert result["effective_decisions"] == {"accept": 2}
+    monkeypatch.setattr(
+        pilot, "_identity_snapshot", lambda *args: ([], [DeniedName("An alias", "non_comedian_musician")])
+    )
+    result = pilot.run(raw, [1], db.transaction)["sources"][0]
+    assert result["effective_decisions"] == {"reject": 2}
+
+
+def test_prospective_policy_uses_new_version_and_stale_actual_review_holds(monkeypatch):
+    setup(monkeypatch)
+    db = ReadDatabase()
+    calls = []
+
+    def review(*args):
+        calls.append(args[-1])
+        return {"review_version": 1, "review": None, "stale": True}
+
+    monkeypatch.setattr(pilot, "load_review", review)
+    plan = dict(
+        rollout_id="future",
+        actor="reviewer",
+        reason="review programming",
+        evidence={"artifact": "review.json"},
+        targets=[
+            dict(
+                source_id=1,
+                expected_version=2,
+                config_fingerprint=pilot.source_fingerprint(db.source),
+                policy="comedy_only",
+                gate_mode="shadow",
+                source_trust_evidence={
+                    "programming_url": "https://example.com/calendar",
+                    "reviewed_at": "2026-10-11T00:00:00Z",
+                    "reason": "documented programming",
+                },
+            )
+        ],
+    )
+    result = pilot.run(saved(), [1], db.transaction, prospective_manifest=plan)["sources"][0]
+    assert calls == [3, 3]
+    assert result["evaluation_kind"] == "prospective"
+    assert result["baseline_decisions"] == {"accept": 2}
+    assert result["effective_decisions"] == {"review": 2}
+    assert all(row["review"]["stale"] for row in result["decisions"])
+    with pytest.raises(ValueError, match="cannot stage"):
+        pilot.run(saved(), [1], db.transaction, prospective_manifest=plan, stage_shadow=True)
+
+
+def test_review_identity_scope_stable_when_batch_gets_unrelated_performer(monkeypatch):
+    setup(monkeypatch)
+    from laughtrack.core.comedy_eligibility import CanonicalPerson
+
+    db = ReadDatabase()
+    scopes = []
+
+    def identities(cursor, names):
+        return ([CanonicalPerson(1 if name == "an alias" else 2, name, True) for name in names], [])
+
+    def review(*args):
+        scopes.append(args[1:])
+        return {"review_version": 0, "review": None, "stale": False}
+
+    monkeypatch.setattr(pilot, "_identity_snapshot", identities)
+    monkeypatch.setattr(pilot, "load_review", review)
+    raw = saved()
+    pilot.run(raw, [1], db.transaction)
+    first = scopes[0]
+    other = deepcopy(raw["sources"][0]["events"][0])
+    other["id"] = 99
+    other["event"]["talents"] = [{"name": "Other person"}]
+    raw["sources"][0]["events"].append(other)
+    scopes.clear()
+    result = pilot.run(raw, [1], db.transaction)
+    assert scopes[0] == first
+    assert result["sources"][0]["transformation_losses"] == {"upstream_filtered": 0, "conversion_lost": 0}
+
+
+def test_transformation_losses_keep_dropped_occurrences_in_denominator(monkeypatch):
+    setup(monkeypatch)
+    db = ReadDatabase()
+    raw = saved()
+    lost = deepcopy(raw["sources"][0]["events"][0])
+    lost["id"] = 77
+    lost["inventories"] = [{"price": 999999999999, "active": True}]
+    raw["sources"][0]["events"].append(lost)
+    result = pilot.run(raw, [1], db.transaction)["sources"][0]
+    assert result["provider_occurrences"] == result["post_filter_occurrences"] == 3
+    assert result["transformed_occurrences"] == 2
+    assert result["transformation_losses"] == {"upstream_filtered": 0, "conversion_lost": 1}
+    assert result["transformation_loss_identifiers"] == {
+        "upstream_filtered": [],
+        "conversion_lost": [{"source_id": 1, "event_id": 5, "occurrence_id": 77}],
+    }
+
+
+def test_real_review_application_approves_exact_scope_without_changing_baseline(monkeypatch):
+    setup(monkeypatch)
+    db = ReadDatabase()
+    raw = saved()
+    for event in raw["sources"][0]["events"]:
+        event["event"]["name"] = "Performer evening"
+    monkeypatch.setattr(
+        pilot,
+        "load_review",
+        lambda *args: {"review_version": 1, "stale": False, "review": {"id": 41, "action": "approve"}},
+    )
+    result = pilot.run(raw, [1], db.transaction)["sources"][0]
+    assert result["baseline_decisions"] == {"review": 2}
+    assert result["effective_decisions"] == {"accept": 2}
+    for decision in result["decisions"]:
+        assert decision["review"]["action_id"] == 41
+        assert "human_approve" in decision["effective"]["reason_codes"]
+        assert decision["effective"]["classifier_version"].endswith(":human:41")
+
+
+def test_partial_raw_lineup_reason_matches_gate_for_both_outputs(monkeypatch):
+    setup(monkeypatch)
+    db = ReadDatabase()
+    raw = saved()
+    for event in raw["sources"][0]["events"]:
+        event["event"]["talents"].append({"name": None})
+    result = pilot.run(raw, [1], db.transaction)["sources"][0]
+    for decision in result["decisions"]:
+        for kind in ("baseline", "effective"):
+            assert decision[kind]["lineup_status"] == "partial"
+            assert "raw_lineup_partial" in decision[kind]["reason_codes"]
