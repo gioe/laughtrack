@@ -222,14 +222,32 @@ def _context_subject(title: str) -> str:
     return re.sub(r"^.{0,120}\b(?:presents|presents:)\s*", "", subject, flags=re.I).strip()
 
 
+
+def _offered_positive_matches(pattern: re.Pattern, text: str) -> list[re.Match]:
+    """Exclude a work credited by music/songs, while retaining another offering."""
+    matches = []
+    for match in pattern.finditer(text):
+        # Strong billing separators or an explicitly introduced new performance
+        # end the attribution scope. Ordinary words within a credited work do not.
+        boundaries = [boundary.end() for boundary in re.finditer(
+            r"[+|;/]|\band\s+(?=(?:a\s+|an\s+|live\s+)?(?:stand[ -]?up|comedy (?:show|performance)|musical improv))",
+            text, flags=re.I,
+        ) if boundary.end() <= match.start()]
+        component = text[max(boundaries, default=0):match.start()]
+        if not re.search(r"\b(?:music|songs?|soundtrack|cast|clips?)\s+(?:by|from|of)\b", component, re.I):
+            matches.append(match)
+    return matches
+
+
 def _context_matches(checked: str, provenance: str, detail: str, *, positive_allowed: bool = True) -> list[RuleEvidence]:
     negative_matches = [(reason, list(pattern.finditer(checked))) for reason, pattern in _CONTEXT_NEGATIVE_PATTERNS]
     negatives = [reason for reason, matches in negative_matches if matches]
     positive = (
-        "musical_improv" if _MUSICAL_IMPROV.search(checked) else
-        "comedy_band_camp" if _BAND_CAMP.search(checked) else
-        "mixed_comedy" if _MIXED_COMEDY.search(checked) else
-        "live_comedy" if _LIVE_COMEDY.search(checked) or _COMEDY_PERFORMANCE_LIST.search(checked) else None
+        "musical_improv" if _offered_positive_matches(_MUSICAL_IMPROV, checked) else
+        "comedy_band_camp" if _offered_positive_matches(_BAND_CAMP, checked) else
+        "mixed_comedy" if _offered_positive_matches(_MIXED_COMEDY, checked) else
+        "live_comedy" if (_offered_positive_matches(_LIVE_COMEDY, checked)
+                          or _offered_positive_matches(_COMEDY_PERFORMANCE_LIST, checked)) else None
     )
     if not positive_allowed:
         positive = None
@@ -238,7 +256,7 @@ def _context_matches(checked: str, provenance: str, detail: str, *, positive_all
         # could win after a denial/cancellation was silently discarded.
         return [_context_item("unknown", (negatives or [positive])[0], provenance, detail)] if negatives or positive else []
     items = [_context_item("comedy", positive, provenance, detail)] if positive else []
-    hybrid_spans = [match.span() for match in _MIXED_COMEDY.finditer(checked)] if positive else []
+    hybrid_spans = [match.span() for match in _offered_positive_matches(_MIXED_COMEDY, checked)] if positive else []
     if positive == "live_comedy":
         hybrid_spans.extend(match.span() for match in re.finditer(r"\bcomedic (?:historical )?tour\b", checked, re.I))
     # Only the negative phrase inside an explicit combination is excepted.

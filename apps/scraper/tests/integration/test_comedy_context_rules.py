@@ -128,6 +128,9 @@ def test_evidence_scope_and_boundaries():
     title = "Stand‑up comedy and karaoke"
     assert context_title_evidence(title)[0]["kind"] == "comedy"
     assert context_title_evidence(title)[0]["detail"] == title
+    for title in ["Music from a Comedy Show", "Songs from Stand-up Comedy",
+                  "Karaoke featuring songs from a Comedy Show", "Songs from Karaoke and Comedy"]:
+        assert not any(item["kind"] == "comedy" for item in context_title_evidence(title)), title
     for title in ["Karaokers", "Trivial Pursuits of a Comedian", "Concertina", "Bandana Stories", "Tourmaline", "Bandara", "Classic"]:
         assert context_title_evidence(title) == []
 
@@ -176,6 +179,13 @@ def test_rule_decision_integration(monkeypatch):
         assert "explicit_non_comedy_event" in decision.reason_codes
         assert any(code.startswith("rule_event_format_") for code in decision.reason_codes)
         assert not eligible(decision)
+    for title in ["Music from a Comedy Show", "Songs from Stand-up Comedy"]:
+        assert classify(title).decision == "review", title
+    assert classify("Karaoke featuring songs from a Comedy Show").decision == "reject"
+    for title in ["Karaoke featuring songs from a Comedy Show + Stand-up Comedy Show",
+                  "Karaoke featuring songs from a Comedy Show and Stand-up Comedy Show"]:
+        result = classify(title)
+        assert result.decision == "review" and "conflicting_event_evidence" in result.reason_codes, title
     assert classify().decision == "review"  # No evidence; arbitrary description ignored.
     for payload in ({"classifications": None}, {"classifications": [None]},
                     {"classifications": [{"segment": {"name": "Unknown"}}]}, {}):
