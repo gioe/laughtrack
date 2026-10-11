@@ -111,7 +111,7 @@ def _validated_event_blocks(event: object) -> tuple[list[dict], str] | None:
         return None
     # Instructions invalidate all panels, not just the paragraph containing them.
     text = "\n".join(block["text"] for block in blocks)
-    if re.search(r"\b(?:ignore\b.{0,50}\binstructions|system prompt|return (?:accept|reject))\b", text, re.I):
+    if re.search(r"\b(?:ignore|instructions|system prompt|classify|return (?:accept|reject))\b", normalized_rule_text(text), re.I):
         return None
     return blocks, url
 

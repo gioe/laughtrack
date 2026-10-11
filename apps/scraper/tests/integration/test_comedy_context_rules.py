@@ -21,7 +21,7 @@ def test_negative_event_formats():
         ("Disney Worlds Collide Concert Tour", "music_performance"),
         ("ONCE UPON A PLANO: WALKING TOUR OF DOWNTOWN PLANO", "sightseeing_tour"),
         ("APPARITION EXPEDITION WALKING TOUR - LIMITED EVENT", "sightseeing_tour"),
-        ("R&B Bingo", "games_sports"), ("Trivia Night Benefitting Soroptimist Int.", "games_sports"),
+        ("Trivia Night Benefitting Soroptimist Int.", "games_sports"),
         ("Movie Trivia w/ Greg Welsh!", "games_sports"), ("Football game", "games_sports"),
         ("Super Bowl Watch Party", "games_sports"), ("Boxing match", "games_sports"),
         ("Sports viewing", "games_sports"), ("Professional Wrestling", "games_sports"),
@@ -157,7 +157,7 @@ def test_rule_decision_integration(monkeypatch):
         return classify_comedy_eligibility(source_id=7, policy=kwargs.pop("policy", SourceComedyPolicy()),
                                            evidence=event_evidence(show), **kwargs)
 
-    assert CLASSIFIER_VERSION == "comedy-eligibility-v3-rules-v3"
+    assert CLASSIFIER_VERSION == "comedy-eligibility-v3-rules-v4"
     positives = ["R&B Karaoke and Comedy Hosted by Monifah and Jamie Roberts",
                  "Fri Oct 16th Bingo + Comedy = Bingomedy! 8pm",
                  "The Comedy Studio's Tour of Harvard Square: A Comedic Historical Tour and Comedy Show",
@@ -172,7 +172,7 @@ def test_rule_decision_integration(monkeypatch):
         replay = classify_comedy_eligibility(source_id=7, policy=SourceComedyPolicy(),
                                              evidence=[EventEvidence(**item) for item in saved["evidence"]])
         assert replay.to_dict() == saved
-    for title in ["Free Karaoke", "Rock concert", "Ghost Tour", "R&B Bingo", "Professional Wrestling",
+    for title in ["Free Karaoke", "Rock concert", "Ghost Tour", "Professional Wrestling",
                   "Walking Tour at Comedy Club", "Karaoke at Comedy Night Lounge"]:
         decision = classify(title)
         assert decision.decision == "reject", title
@@ -293,3 +293,92 @@ def test_rule_decision_integration(monkeypatch):
             else:
                 assert state.staged[0]["decision"].decision == expected
                 assert state.staged[0]["decision"].classifier_version == CLASSIFIER_VERSION
+
+
+def test_reviewed_live_titles_and_unresolved_bingo():
+    """Exposed TASK-4166 losses are development regressions, not a holdout."""
+    from laughtrack.core.comedy_eligibility import classify_comedy_eligibility
+    from laughtrack.core.comedy_eligibility_gate import event_evidence
+    from laughtrack.core.entities.club.comedy_policy import SourceComedyPolicy
+
+    def classify(title):
+        return classify_comedy_eligibility(source_id=7, policy=SourceComedyPolicy(),
+            evidence=event_evidence(SimpleNamespace(name=title, eligibility_evidence=[])))
+
+    titles = [
+        "Laughter at the Bit: Stand-up Comedy Open Mic",
+        "Live at Sunset Strip: Comedy Showcase",
+        "Stand up comedy on the historic “Comedy Row” in Greenwich Village.",
+        "Don’t Be Yourself! - Weekly Character Comedy Open Mic",
+        "Live at the Barbershop NYC: Hottest Stand Up Comedy Show in NYC! BYOB!",
+        "Laughs at the Library Comedy Show",
+        "THE UPSTAIRS COMEDY SHOWCASE",
+        "Live at the Barbershop Houston: Stand Up Comedy in a Real Barbershop · BYOB",
+        "Sunset Strip After Dark Comedy Showcase",
+        '\"Make \'Em Laugh\" Comedy Night',
+    ]
+    for title in titles:
+        result = classify(title)
+        assert result.decision == "accept", (title, result)
+        assert result.audience_format != "ambiguous"
+    for title in ["Uptown Comedy Corner Presents: Jon Kondelik 's Adult Bingo & Naughty Games",
+                  "SUMMER ORLANDO'S DRAG BINGO", "R&B Bingo"]:
+        assert classify(title).decision == "review", title
+
+
+def test_title_repairs_preserve_context_and_identity_guards():
+    from laughtrack.core.comedy_eligibility import CanonicalPerson, PerformerObservation, classify_comedy_eligibility
+    from laughtrack.core.comedy_eligibility_gate import capture_event_inputs, event_evidence
+    from laughtrack.core.entities.club.comedy_policy import SourceComedyPolicy
+    from tests.integration.test_comedy_event_evidence import event
+
+    def classify(title, text=None, **kwargs):
+        show = SimpleNamespace(name=title, eligibility_evidence=[])
+        if text is not None:
+            capture_event_inputs(show, event(text))
+        return classify_comedy_eligibility(source_id=7, policy=SourceComedyPolicy(),
+                                          evidence=event_evidence(show), **kwargs)
+
+    for title in [
+        "Cancelled: Laughter at the Bit: Comedy Show",
+        "No Comedy Show at the Library: Karaoke",
+        "After the Comedy Show: Karaoke",
+        '"Comedy Show"', '“Stand-up Comedy Show”', '"Movie Screening"', '"Comedy Class"',
+        'No "Make Em Laugh" Comedy Night',
+        'Previously: "Make Em Laugh" Comedy Night',
+        'Don’t Offer Comedy! - Weekly Comedy Show',
+        'Don’t Do Karaoke! - Weekly Comedy Show',
+        'This event is called "Comedy Show"',
+        'Songs from "Comedy Show"',
+        'Comedy Show in another room',
+        'Comedy Show after this event',
+        'Comedy Night and upstairs karaoke',
+        'Comedy Show at the Library: no comedy tonight',
+    ]:
+        assert classify(title).decision == "review", title
+    for title in [
+        "Karaoke at Comedy Night Lounge: Free Entry",
+        "Karaoke at Comedy Show",
+        "Walking Tour at Comedy Club",
+        "Free Karaoke", "BULL RIDES", "Jacques' Karaoke", "Music Open Mic", "Foamflower EP Release",
+        "Bingo / Football game", "Bingo / Rock Concert",
+    ]:
+        assert classify(title).decision == "reject", title
+    for title in ["Bingo + Comedy", "Comedy and Bingo"]:
+        assert classify(title).decision == "accept", title
+    assert classify("Bingo", "This show features comedy performances.").decision == "review"
+    assert classify("Bingo", "This event is a rock concert.").decision == "review"
+    # Nothing in the title repair upgrades identity-only biographies or raw
+    # public descriptions; collected current-offering evidence remains required.
+    for text in ['This show features a comedian known for "Make Em Laugh" Comedy Night.',
+                 'This show features comedy performances at our other venue.',
+                 'This show features comedy performances after this event.',
+                 'This show features "Comedy Show".',
+                 'This show does not feature comedy performances.']:
+        assert classify("Saturday", text).decision == "review", text
+    title = '"Make Em Laugh" Comedy Night'
+    blocked = CanonicalPerson(3, "Blocked", False, block_reason="not a comic")
+    assert classify(title, people=[blocked], performers=[PerformerObservation("Blocked")]).decision == "review"
+    parent = CanonicalPerson(1, "Root", True)
+    alias = CanonicalPerson(2, "Alias", False, parent_id=1, block_reason="duplicate")
+    assert classify(title, people=[parent, alias], performers=[PerformerObservation("Alias")]).decision == "accept"

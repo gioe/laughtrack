@@ -135,14 +135,14 @@ def description_rule_evidence(text: str, url: str) -> list[RuleEvidence]:
 
 # Families are versioned independently: extending event formats must not make
 # already-recorded v1 availability/activity evidence invalid on replay.
-CONTEXT_RULE_VERSION = "comedy-context-rules-v1"
+CONTEXT_RULE_VERSION = "comedy-context-rules-v2"
 RULE_REASONS.update({
     "event_format": frozenset({"music_performance", "karaoke", "sightseeing_tour", "games_sports"}),
     "comedy_format": frozenset({"live_comedy", "mixed_comedy", "musical_improv", "comedy_band_camp"}),
 })
 RULE_VERSIONS = {family: RULE_VERSION for family in ("non_public", "unrelated_activity")}
 RULE_VERSIONS.update({family: CONTEXT_RULE_VERSION for family in ("event_format", "comedy_format")})
-AUDIENCE_RULE_VERSION = "comedy-audience-formats-v1"
+AUDIENCE_RULE_VERSION = "comedy-audience-formats-v2"
 RULE_REASONS.update({
     "audience_format": frozenset({"live_performance", "screening", "instruction", "mixer", "ambiguous"}),
     "audience_content": frozenset({"comedy_instruction", "comedy_screening", "comedy_performance"}),
@@ -223,10 +223,57 @@ def _context_item(kind: str, reason: str, provenance: str, detail: str) -> RuleE
 
 
 def _context_subject(title: str) -> str:
-    # A venue's branding after the offering cannot supply performance evidence.
-    subject = re.split(r"\s+(?:at|@)\s+", title, maxsplit=1, flags=re.I)[0]
-    return re.sub(r"^.{0,120}\b(?:presents|presents:)\s*", "", subject, flags=re.I).strip()
+    """Separate event billing from a venue suffix without discarding a subtitle.
 
+    Only title names receive these exceptions. Description statements still use
+    the strict context guard because timing, quotations and negation there are
+    claims about the offering, rather than a separately billed event name.
+    """
+    subject = re.sub(r"^.{0,120}\b(?:presents|presents:)\s*", "", title, flags=re.I).strip()
+    location = re.split(r"\s+(?:at|@)\s+", subject, maxsplit=1, flags=re.I)
+    if len(location) == 2:
+        prefix, suffix = location
+        # A colon or spaced dash starts a separately billed subtitle. Preserve
+        # the prefix too: a cancellation or negative offering must still count.
+        subtitle = re.split(r"\s*:\s*|\s+-\s+", suffix, maxsplit=1)
+        if len(subtitle) == 2:
+            subject = prefix + " : " + subtitle[1]
+        elif (re.search(r"\bcomedy (?:show|showcase|open mic)[.!]?$", suffix, re.I)
+              and not unsafe_context(prefix)
+              and not any(pattern.search(prefix) for _, pattern in _CONTEXT_NEGATIVE_PATTERNS)):
+            # An explicit final show-format noun is billing, unlike a venue
+            # name such as Comedy Night Lounge or Comedy Club.
+            subject = prefix + " : " + suffix
+        else:
+            subject = prefix
+    # A quoted proper name without an offering inside it cannot establish or
+    # negate genre. Quoted "Comedy Show" and quoted activities remain guarded.
+    def unquote_name(match):
+        name = match.group(1)
+        if (not _LIVE_COMEDY.search(name)
+                and not any(pattern.search(name) for _, pattern in _CONTEXT_NEGATIVE_PATTERNS)
+                and not unsafe_context(name)
+                and not _BIOGRAPHY.search(name)
+                and not any(pattern.search(name) for pattern in (
+                    _AUDIENCE_LIVE, _AUDIENCE_SCREEN, _AUDIENCE_CLASS,
+                    _AUDIENCE_WORKSHOP, _AUDIENCE_MIXER, _AUDIENCE_VARIETY))):
+            return name
+        return match.group(0)
+
+    subject = re.sub(r'["“]([^"“”\n]{1,100})["”]', unquote_name, subject)
+    # Imperative names followed by a punctuation-delimited affirmative subtitle
+    # do not negate that subtitle. Preserve names mentioning the offering itself.
+    parts = re.split(r"!\s*-\s*", subject, maxsplit=1)
+    if (len(parts) == 2 and re.fullmatch(r"don't\s+\w+(?:\s+\w+){1,5}", parts[0], re.I)
+            and not _COMEDY_REFERENCE.search(parts[0])
+            and not any(pattern.search(parts[0]) for _, pattern in _CONTEXT_NEGATIVE_PATTERNS)
+            and _LIVE_COMEDY.search(parts[1])):
+        subject = parts[1]
+    # Spatial adjectives and the idiom "after dark" within a show name differ
+    # from a performance promised after this event or in another room.
+    subject = re.sub(r"^(the\s+)?(?:upstairs|downstairs)(?=\s+comedy (?:show|showcase|night))", "", subject, flags=re.I)
+    subject = re.sub(r"\bafter dark(?=\s+comedy (?:show|showcase|night))", "", subject, flags=re.I)
+    return subject.strip()
 
 
 def _offered_positive_matches(pattern: re.Pattern, text: str) -> list[re.Match]:
@@ -270,7 +317,13 @@ def _context_matches(checked: str, provenance: str, detail: str, *, positive_all
     for reason, matches in negative_matches:
         if any(not any(start <= match.start() and match.end() <= end for start, end in hybrid_spans)
                for match in matches):
-            items.append(_context_item("event_format", reason, provenance, detail))
+            # Bingo can include a comedic performance. Without same-event
+            # evidence it is a review candidate, not proof of absent comedy.
+            # Independent concert/sports/etc. billing remains an exclusion.
+            bingo_only = (reason == "games_sports" and not positive
+                          and negatives == ["games_sports"]
+                          and all(match.group(0).lower() == "bingo" for match in matches))
+            items.append(_context_item("unknown" if bingo_only else "event_format", reason, provenance, detail))
     return items
 
 

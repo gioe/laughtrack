@@ -101,7 +101,7 @@ def test_pre_ingestion_contract(monkeypatch):
     show = SimpleNamespace(name="BULL RIDES", eligibility_evidence=[])
     decision = classify_comedy_eligibility(source_id=7, policy=trusted, evidence=event_evidence(show))
     assert decision.decision == "reject" and "rule_unrelated_activity_bull_rides" in decision.reason_codes
-    assert decision.classifier_version == CLASSIFIER_VERSION == "comedy-eligibility-v3-rules-v3"
+    assert decision.classifier_version == CLASSIFIER_VERSION == "comedy-eligibility-v3-rules-v4"
     saved = decision.to_dict()
     replay = classify_comedy_eligibility(source_id=7, policy=trusted,
                                          evidence=[EventEvidence(**item) for item in saved["evidence"]])
