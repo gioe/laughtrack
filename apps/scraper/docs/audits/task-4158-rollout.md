@@ -232,7 +232,7 @@ the guarded rollback restored sources 192, 527 and 595 to `unreviewed/off`,
 policy version 3. Read-only verification at 2026-10-11T15:00:17.376784+00:00 confirmed
 all three fetch-configuration fingerprints were unchanged. Exact scoped ledger
 hashes matched the pre-rollback snapshot: 350 candidates, 350 decisions,
-350 observations, one human review and zero publication links. The rejection
+350 observations, one operator review and zero publication links. The rejection
 and staged evidence remain available; rollback did not erase review history.
 
 [The rollback verification](task-4158-rollback.json) records source states,

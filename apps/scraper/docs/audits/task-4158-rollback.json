@@ -105,6 +105,6 @@
   "limitations": [
     "Exact hashes cover only the three-source eligibility candidate, decision, observation, review and publication ledgers.",
     "Source config fingerprints exclude policy audit fields and rollout annotation by the rollout helper contract.",
-    "Rollback restores policy; it does not delete historical public inventory or human review evidence."
+    "Rollback restores policy; it does not delete historical public inventory or operator review evidence."
   ]
 }
