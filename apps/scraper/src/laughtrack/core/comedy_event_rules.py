@@ -30,7 +30,7 @@ _UNSAFE = re.compile(
     r"cancelled|canceled|postponed|previously|formerly|used to|last year|example|"
     r"hypothetical|pretend|imagine|called|named|titled|quotes?|rather than|"
     r"before|after|nearby|elsewhere|tomorrow|next week|next month|other room|another room|"
-    r"upstairs|downstairs|also available|available for|contact us|inquire|enquire|"
+    r"upstairs|downstairs|other venue|another venue|also available|available for|contact us|inquire|enquire|"
     r"ignore|instructions|system prompt|classify|return accept|return reject)\b|[\"“”]",
     re.I,
 )
@@ -130,4 +130,143 @@ def description_rule_evidence(text: str, url: str) -> list[RuleEvidence]:
                 item = _item(family, reason, "event_description", f"{url}\n{sentence.strip()}")
                 if item not in result:
                     result.append(item)
+    return result
+
+
+# Families are versioned independently: extending event formats must not make
+# already-recorded v1 availability/activity evidence invalid on replay.
+CONTEXT_RULE_VERSION = "comedy-context-rules-v1"
+RULE_REASONS.update({
+    "event_format": frozenset({"music_performance", "karaoke", "sightseeing_tour", "games_sports"}),
+    "comedy_format": frozenset({"live_comedy", "mixed_comedy", "musical_improv", "comedy_band_camp"}),
+})
+RULE_VERSIONS = {family: RULE_VERSION for family in ("non_public", "unrelated_activity")}
+RULE_VERSIONS.update({family: CONTEXT_RULE_VERSION for family in ("event_format", "comedy_format")})
+
+
+def normalized_rule_text(text: str) -> str:
+    """Normalize matching only; evidence retains the original Unicode text."""
+    import unicodedata
+
+    return " ".join(unicodedata.normalize("NFKC", text).translate(str.maketrans({
+        "’": "'", "‘": "'", "‐": "-", "‑": "-", "‒": "-", "–": "-", "—": "-", "−": "-",
+    })).split())
+
+
+_CONTEXT_UNSAFE = re.compile(
+    r"\b(?:no|not|never|without|isn't|aren't|wasn't|weren't|doesn't|don't|won't|can't|cannot|"
+    r"cancelled|canceled|cancellation|postponed|previously|formerly|was|were|used to|last year|last week|"
+    r"example|hypothetical|pretend|imagine|called|named|titled|quotes?|rather than|"
+    r"before|after|nearby|elsewhere|tomorrow|next week|next month|other room|another room|"
+    r"upstairs|downstairs|other venue|another venue|also available|available for|contact us|inquire|enquire|"
+    r"hosted|headlined|performed|appeared|recorded|released|toured|won|awarded|"
+    r"netflix|youtube|comedy central|biography|ignore|instructions|system prompt|classify|"
+    r"return accept|return reject)\b|\bin (?:19|20)\d{2}\b|[\"“”]", re.I,
+)
+
+
+def unsafe_context(text: str) -> bool:
+    checked = normalized_rule_text(text)
+    # Admission policies do not negate an offering.
+    checked = re.sub(r"\b(?:no refunds|not refundable|no exchanges|no tickets or reservations needed)\b", "", checked, flags=re.I)
+    checked = re.sub(r"\bhosted by\b", "", checked, flags=re.I)
+    return bool(_CONTEXT_UNSAFE.search(checked))
+
+
+_CONTEXT_NEGATIVE_PATTERNS = (
+    ("karaoke", re.compile(r"\bkaraoke\b", re.I)),
+    ("sightseeing_tour", re.compile(r"\b(?:walking|sightseeing|historical|history|ghost) tour\b", re.I)),
+    ("games_sports", re.compile(
+        r"\b(?:bingo|trivia|(?:boxing|wrestling) match|(?:basketball|football|baseball|hockey) game|"
+        r"(?:sports|football|basketball|baseball|hockey|super bowl|nfl|nba|ufc) (?:watch party|viewing)|"
+        r"(?:pro|professional) wrestling|wrestling (?:show|event))\b|^wrestling[.!]?$", re.I)),
+    ("music_performance", re.compile(
+        r"\b(?:live music|live (?:jazz|blues|funk|rock)|(?:jazz|rock|blues|orchestra|music) concert|"
+        r"concert|tribute bands?|(?:ep|album) release|music(?:al)? open mic|dj set|live band)\b", re.I)),
+)
+_LIVE_COMEDY = re.compile(
+    r"\b(?:stand[ -]?up (?:comedy|show|acts|performance|night)|comedy (?:show|showcase|night|open mic|performance)|"
+    r"(?:sketch|improv) comedy)\b", re.I,
+)
+_MIXED_COMEDY = re.compile(
+    r"\b(?:karaoke|bingo|trivia|live music)\s*(?:and|&|\+)\s*(?:live )?(?:comedy|stand[ -]?up)\b"
+    r"|\b(?:comedy|stand[ -]?up)\s*(?:and|&|\+)\s*(?:karaoke|bingo|trivia|live music)\b", re.I,
+)
+_MUSICAL_IMPROV = re.compile(r"\b(?:music|musical) improv(?:isation)? (?:show|jam|performances?)\b", re.I)
+_BAND_CAMP = re.compile(r"\bcomedy band camp\b", re.I)
+_CURRENT_OFFERING = re.compile(
+    r"^(?:this|the|our) (?:show|event|session|night|evening|performance) "
+    r"(?:is |offers |features |includes |combines |presents )|^join us tonight for ", re.I,
+)
+_BIOGRAPHY = re.compile(r"\b(?:is|was) (?:an? )?(?:[\w-]+ ){0,3}(?:comedian|actor|writer|musician)\b", re.I)
+
+
+def _context_item(kind: str, reason: str, provenance: str, detail: str) -> RuleEvidence:
+    family = "comedy_format" if kind == "comedy" else "event_format"
+    return {"kind": kind, "provenance": provenance, "detail": detail,
+            "rule_family": family, "rule_version": CONTEXT_RULE_VERSION, "rule_reason": reason}
+
+
+def _context_subject(title: str) -> str:
+    # A venue's branding after the offering cannot supply performance evidence.
+    subject = re.split(r"\s+(?:at|@)\s+", title, maxsplit=1, flags=re.I)[0]
+    return re.sub(r"^.{0,120}\b(?:presents|presents:)\s*", "", subject, flags=re.I).strip()
+
+
+def _context_matches(checked: str, provenance: str, detail: str) -> list[RuleEvidence]:
+    negative_matches = [(reason, list(pattern.finditer(checked))) for reason, pattern in _CONTEXT_NEGATIVE_PATTERNS]
+    negatives = [reason for reason, matches in negative_matches if matches]
+    positive = (
+        "musical_improv" if _MUSICAL_IMPROV.search(checked) else
+        "comedy_band_camp" if _BAND_CAMP.search(checked) else
+        "mixed_comedy" if _MIXED_COMEDY.search(checked) else
+        "live_comedy" if _LIVE_COMEDY.search(checked) else None
+    )
+    if unsafe_context(checked) or _BIOGRAPHY.search(checked):
+        # Keep explicit uncertainty: otherwise a conflicting category or title
+        # could win after a denial/cancellation was silently discarded.
+        return [_context_item("unknown", (negatives or [positive])[0], provenance, detail)] if negatives or positive else []
+    items = [_context_item("comedy", positive, provenance, detail)] if positive else []
+    hybrid_spans = [match.span() for match in _MIXED_COMEDY.finditer(checked)] if positive else []
+    if positive == "live_comedy":
+        hybrid_spans.extend(match.span() for match in re.finditer(r"\bcomedic (?:historical )?tour\b", checked, re.I))
+    # Only the negative phrase inside an explicit combination is excepted.
+    # Another format (even another occurrence of the same format) still conflicts.
+    for reason, matches in negative_matches:
+        if any(not any(start <= match.start() and match.end() <= end for start, end in hybrid_spans)
+               for match in matches):
+            items.append(_context_item("event_format", reason, provenance, detail))
+    return items
+
+
+def context_title_evidence(title: object) -> list[RuleEvidence]:
+    """Current title offerings, with explicit mixed-format comedy exceptions."""
+    if not isinstance(title, str) or not 1 <= len(title) <= 300:
+        return []
+    checked = _context_subject(normalized_rule_text(title))
+    # Bare artist names and words such as band, tour, music, or sports do not
+    # match any format. Quotes, histories, and incidental timing stay uncertain.
+    return _context_matches(checked, "event_billing", title)
+
+
+def context_description_evidence(text: str, url: str) -> list[RuleEvidence]:
+    """Only explicit current-offering sentences in a validated event panel."""
+    if not isinstance(text, str) or not 1 <= len(text) <= 16000:
+        return []
+    if re.search(r"\b(?:ignore|instructions|system prompt|classify|return (?:accept|reject))\b", text, re.I):
+        return []
+    result = []
+    for sentence in re.split(r"(?<=[.!?;])\s+|[\r\n]+", text):
+        checked = normalized_rule_text(sentence.strip().strip("*"))
+        if not checked or len(checked) > 600:
+            continue
+        # Denials of this event's formats must survive even without the usual
+        # affirmative verb, preventing contradictory titles from auto-rejecting.
+        current = _CURRENT_OFFERING.match(checked)
+        denial = re.match(r"^this (?:event|show|session)\b", checked) and unsafe_context(checked)
+        if not current and not denial:
+            continue
+        for item in _context_matches(checked, "event_description", f"{url}\n{sentence.strip()}"):
+            if item not in result:
+                result.append(item)
     return result
