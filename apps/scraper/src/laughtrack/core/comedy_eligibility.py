@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any, Iterable, cast
 if TYPE_CHECKING:
     from laughtrack.core.entities.club.comedy_policy import SourceComedyPolicy
 
-CLASSIFIER_VERSION = "comedy-eligibility-v2-rules-v1"
+CLASSIFIER_VERSION = "comedy-eligibility-v2-rules-v2"
 _LABEL_KINDS = frozenset({"troupe", "show_label"})
 _KINDS = _LABEL_KINDS | {"person"}
 _NON_COMEDY_BLOCK_REASONS = frozenset({"non_comedian_musician", "musician", "non_comedy_sports"})
@@ -43,18 +43,18 @@ class EventEvidence:
 
     @property
     def valid(self) -> bool:
-        from laughtrack.core.comedy_event_rules import RULE_REASONS, RULE_VERSION
+        from laughtrack.core.comedy_event_rules import RULE_REASONS, RULE_VERSIONS
 
         if self.provenance not in _PROVENANCE or not self.detail.strip():
             return False
         metadata = (self.rule_family, self.rule_version, self.rule_reason)
-        if self.kind in {"comedy", "music", "sports"}:
-            return all(value is None for value in metadata)
+        if all(value is None for value in metadata):
+            return self.kind in {"comedy", "music", "sports"}
         return bool(
-            self.kind in RULE_REASONS
-            and self.rule_family == self.kind
-            and self.rule_version == RULE_VERSION
-            and self.rule_reason in RULE_REASONS[self.kind]
+            self.rule_family in RULE_REASONS
+            and self.kind == ("comedy" if self.rule_family == "comedy_format" else self.rule_family)
+            and self.rule_version == RULE_VERSIONS[self.rule_family]
+            and self.rule_reason in RULE_REASONS[self.rule_family]
             and self.provenance in {"event_billing", "event_description"}
         )
 
@@ -352,7 +352,7 @@ def classify_comedy_eligibility(
     if conflict:
         reasons.add("identity_conflict")
     positive = any(e.kind == "comedy" for e in valid)
-    negative = any(e.kind in {"music", "sports", "non_public", "unrelated_activity"} for e in valid)
+    negative = any(e.kind in {"music", "sports", "non_public", "unrelated_activity", "event_format"} for e in valid)
     if positive:
         reasons.add("affirmative_event_comedy")
     if any(e.kind in {"music", "sports"} for e in valid):
@@ -360,7 +360,12 @@ def classify_comedy_eligibility(
     for item in valid:
         if item.rule_family:
             reasons.add(f"rule_{item.rule_family}_{item.rule_reason}")
-            reasons.add("explicit_non_public_event" if item.kind == "non_public" else "explicit_unrelated_activity")
+            if item.kind == "non_public":
+                reasons.add("explicit_non_public_event")
+            elif item.kind == "unrelated_activity":
+                reasons.add("explicit_unrelated_activity")
+            elif item.kind == "event_format":
+                reasons.add("explicit_non_comedy_event")
 
     if any(not e.valid for e in supplied):
         decision, confidence = "review", 0.3

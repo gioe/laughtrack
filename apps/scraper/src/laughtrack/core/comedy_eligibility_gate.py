@@ -31,11 +31,6 @@ from laughtrack.core.comedy_eligibility_review_store import load_review
 from laughtrack.core.entities.club.comedy_policy import SourceComedyPolicy
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
-_COMEDY_BILLING = re.compile(
-    r"\b(?:stand[ -]?up comedy|comedy (?:show|showcase|night|open mic)|(?:sketch|improv) comedy)\b", re.I
-)
-_MUSIC_BILLING = re.compile(r"\b(?:live music|dj set|(?:jazz|rock|blues|orchestra) concert|karaoke night)\b", re.I)
-_SPORTS_BILLING = re.compile(r"\b(?:boxing match|basketball game|football game|wrestling match)\b", re.I)
 
 
 def stamp_source(shows, source):
@@ -50,11 +45,24 @@ def stamp_source(shows, source):
 def capture_event_inputs(show, event):
     """Preserve raw evidence without making malformed metadata drop legacy events."""
     from laughtrack.core.comedy_event_evidence import description_evidence, validated_event_description
-    from laughtrack.core.comedy_event_rules import description_rule_evidence
+    from laughtrack.core.comedy_event_rules import description_rule_evidence, context_description_evidence
 
     items = description_evidence(event)
     detail = validated_event_description(event)
     if detail is not None:
+        context_items = context_description_evidence(*detail)
+        # Replace only duplicate semantic evidence from the exact same sentence.
+        # A bounded explicit hybrid may supersede that sentence's music signal;
+        # other sentences and independently captured categories are untouched.
+        def duplicate_legacy(item):
+            same = [candidate for candidate in context_items if candidate["detail"] == item["detail"]]
+            if item["kind"] == "music":
+                return any(candidate["kind"] == "comedy" or candidate["rule_reason"] in
+                           {"music_performance", "karaoke"} for candidate in same)
+            return any(candidate["kind"] == item["kind"] for candidate in same)
+
+        items = [item for item in items if not duplicate_legacy(item)]
+        items.extend(context_items)
         items.extend(description_rule_evidence(*detail))
     for item in items:
         if item not in show.eligibility_evidence:
@@ -115,17 +123,13 @@ def capture_event_inputs(show, event):
 
 
 def event_evidence(show):
-    from laughtrack.core.comedy_event_evidence import unsafe_billing
-    from laughtrack.core.comedy_event_rules import title_rule_evidence
+    from laughtrack.core.comedy_event_rules import title_rule_evidence, context_title_evidence
 
     evidence = [EventEvidence(**e) for e in (show.eligibility_evidence or [])]
     evidence.extend(EventEvidence(**e) for e in title_rule_evidence(show.name))
-    # Only qualified event billing; no venue names, biographies, tags or show_type.
-    for kind, pattern in (("comedy", _COMEDY_BILLING), ("music", _MUSIC_BILLING), ("sports", _SPORTS_BILLING)):
-        if pattern.search(show.name or ""):
-            # Keep uncertainty explicit so trusted-source fallback cannot accept
-            # a cancelled/negated comedy title after its positive signal is removed.
-            evidence.append(EventEvidence("unknown" if unsafe_billing(show.name) else kind, "event_billing", show.name))
+    # Shared bounded matching also owns legacy title genres, so no unguarded
+    # substring matcher can bypass negation, venue suffixes, or mixed formats.
+    evidence.extend(EventEvidence(**e) for e in context_title_evidence(show.name))
     return evidence
 
 

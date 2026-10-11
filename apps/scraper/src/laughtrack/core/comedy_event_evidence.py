@@ -4,6 +4,8 @@ from __future__ import annotations
 import re
 from urllib.parse import urlsplit
 
+from laughtrack.core.comedy_event_rules import description_comedy_is_offered, normalized_rule_text, unsafe_context
+
 DETAIL_SELECTOR = "#event-detail #descr .custom-content"
 # Genre lists are deliberately bounded to performance formats: a reference to
 # comedians as people (or music written by them) is not comedy billing.
@@ -42,7 +44,7 @@ _BIO = re.compile(r"\b(?:is|was)\s+(?:an?\s+)?(?:[\w-]+\s+){0,3}(?:comedian|acto
 _CURRENT_NEGATIVE = re.compile(
     r"\b(?:no|without)\s+(?:live\s+)?(?:comedy|stand[ -]?up)\b"
     r"|\bnot\s+(?:a\s+)?(?:comedy|stand[ -]?up)\b"
-    r"|\b(?:does|will)\s+not\s+(?:feature|include|offer|present)\b[^.!?]{0,35}\b(?:comedy|stand[ -]?up)\b"
+    r"|\b(?:does not|will not|doesn't|won't)\s+(?:feature|include|offer|present)\b[^.!?]{0,35}\b(?:comedy|stand[ -]?up)\b"
     r"|\b(?:this|the|tonight'?s)\s+(?:show|event|performance)\s+(?:(?:has been|is|was)\s+)?"
     r"(?:cancelled|canceled|postponed)\b"
     r"|\b(?:comedy|stand[ -]?up)\b[^.!?]{0,70}\b(?:cancelled|canceled|postponed)\b"
@@ -52,8 +54,8 @@ _CURRENT_NEGATIVE = re.compile(
 
 def unsafe_billing(text: str) -> bool:
     # Ticket boilerplate is not negation of the performance itself.
-    checked = re.sub(r"\b(?:no refunds|not refundable|no exchanges)\b", "", text, flags=re.I)
-    return bool(_NEGATION.search(checked) or _UNTRUSTED.search(checked) or re.search(r"\bwas\b", checked, re.I))
+    checked = re.sub(r"\b(?:no refunds|not refundable|no exchanges)\b", "", normalized_rule_text(text), flags=re.I)
+    return bool(unsafe_context(checked) or _NEGATION.search(checked) or _UNTRUSTED.search(checked))
 
 
 def validated_event_description(event: object) -> tuple[str, str] | None:
@@ -101,13 +103,14 @@ def description_evidence(event: object) -> list[dict]:
         sentence = sentence.strip()
         if not sentence or len(sentence) > 600:
             continue
-        if _CURRENT_NEGATIVE.search(sentence) and not _UNTRUSTED.search(sentence):
+        checked = normalized_rule_text(sentence)
+        if _CURRENT_NEGATIVE.search(checked) and not _UNTRUSTED.search(checked):
             evidence.append({"kind": "unknown", "provenance": "event_description", "detail": f"{url}\n{sentence}"})
             continue
-        if unsafe_billing(sentence) or _BIO.search(sentence):
+        if unsafe_billing(checked) or _BIO.search(checked):
             continue
         for kind, pattern in (("comedy", _CURRENT_COMEDY), ("music", _CURRENT_MUSIC)):
-            if pattern.search(sentence):
+            if pattern.search(checked) and (kind != "comedy" or description_comedy_is_offered(checked)):
                 item = {"kind": kind, "provenance": "event_description", "detail": f"{url}\n{sentence}"}
                 if item not in evidence:
                     evidence.append(item)

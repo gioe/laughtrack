@@ -159,7 +159,7 @@ _CONTEXT_UNSAFE = re.compile(
     r"example|hypothetical|pretend|imagine|called|named|titled|quotes?|rather than|"
     r"before|after|nearby|elsewhere|tomorrow|next week|next month|other room|another room|"
     r"upstairs|downstairs|other venue|another venue|also available|available for|contact us|inquire|enquire|"
-    r"hosted|headlined|performed|appeared|recorded|released|toured|won|awarded|"
+    r"hosted|headlined|performed|appeared|starred|known for|recorded|released|toured|won|awarded|"
     r"netflix|youtube|comedy central|biography|ignore|instructions|system prompt|classify|"
     r"return accept|return reject)\b|\bin (?:19|20)\d{2}\b|[\"“”]", re.I,
 )
@@ -185,8 +185,17 @@ _CONTEXT_NEGATIVE_PATTERNS = (
         r"concert|tribute bands?|(?:ep|album) release|music(?:al)? open mic|dj set|live band)\b", re.I)),
 )
 _LIVE_COMEDY = re.compile(
-    r"\b(?:stand[ -]?up (?:comedy|show|acts|performance|night)|comedy (?:show|showcase|night|open mic|performance)|"
+    r"\b(?:stand[ -]?up (?:comedy|show|acts|performances?|night)|comedy (?:show|showcase|night|open mic|performances?)|"
     r"(?:sketch|improv) comedy)\b", re.I,
+)
+# Match only an explicit performance-format list, never a free-standing mention
+# of comedy. Kept aligned with the older genre extractor's supported formats.
+_PERFORMANCE_COMEDY = r"(?:comedy|stand[ -]?up(?: comedy)?)"
+_PERFORMANCE_FORMAT = rf"(?:{_PERFORMANCE_COMEDY}|burlesque|cabaret|theatrical|dance|live music)"
+_PERFORMANCE_SEPARATOR = r"(?:\s*,\s*(?:and\s+)?|\s+and\s+|\s*&\s*)"
+_COMEDY_PERFORMANCE_LIST = re.compile(
+    rf"\b(?:{_PERFORMANCE_FORMAT}{_PERFORMANCE_SEPARATOR}){{0,4}}{_PERFORMANCE_COMEDY}"
+    rf"(?:{_PERFORMANCE_SEPARATOR}{_PERFORMANCE_FORMAT}){{0,4}}\s+performances?\b", re.I,
 )
 _MIXED_COMEDY = re.compile(
     r"\b(?:karaoke|bingo|trivia|live music)\s*(?:and|&|\+)\s*(?:live )?(?:comedy|stand[ -]?up)\b"
@@ -202,7 +211,7 @@ _BIOGRAPHY = re.compile(r"\b(?:is|was) (?:an? )?(?:[\w-]+ ){0,3}(?:comedian|acto
 
 
 def _context_item(kind: str, reason: str, provenance: str, detail: str) -> RuleEvidence:
-    family = "comedy_format" if kind == "comedy" else "event_format"
+    family = "comedy_format" if reason in RULE_REASONS["comedy_format"] else "event_format"
     return {"kind": kind, "provenance": provenance, "detail": detail,
             "rule_family": family, "rule_version": CONTEXT_RULE_VERSION, "rule_reason": reason}
 
@@ -213,15 +222,17 @@ def _context_subject(title: str) -> str:
     return re.sub(r"^.{0,120}\b(?:presents|presents:)\s*", "", subject, flags=re.I).strip()
 
 
-def _context_matches(checked: str, provenance: str, detail: str) -> list[RuleEvidence]:
+def _context_matches(checked: str, provenance: str, detail: str, *, positive_allowed: bool = True) -> list[RuleEvidence]:
     negative_matches = [(reason, list(pattern.finditer(checked))) for reason, pattern in _CONTEXT_NEGATIVE_PATTERNS]
     negatives = [reason for reason, matches in negative_matches if matches]
     positive = (
         "musical_improv" if _MUSICAL_IMPROV.search(checked) else
         "comedy_band_camp" if _BAND_CAMP.search(checked) else
         "mixed_comedy" if _MIXED_COMEDY.search(checked) else
-        "live_comedy" if _LIVE_COMEDY.search(checked) else None
+        "live_comedy" if _LIVE_COMEDY.search(checked) or _COMEDY_PERFORMANCE_LIST.search(checked) else None
     )
+    if not positive_allowed:
+        positive = None
     if unsafe_context(checked) or _BIOGRAPHY.search(checked):
         # Keep explicit uncertainty: otherwise a conflicting category or title
         # could win after a denial/cancellation was silently discarded.
@@ -249,6 +260,27 @@ def context_title_evidence(title: object) -> list[RuleEvidence]:
     return _context_matches(checked, "event_billing", title)
 
 
+
+def description_comedy_is_offered(text: str) -> bool:
+    """A comedy phrase must head an offered component, not an artist's credit."""
+    checked = normalized_rule_text(text)
+    current = _CURRENT_OFFERING.match(checked)
+    if current is None:
+        # Existing genre grammar also supports explicit invitations and new-hour
+        # billing. Attribution to another work never makes that work this event.
+        return not re.search(r"\b(?:songs?|music) (?:by|from)|\bcast of|\bstarred in|\bknown for", checked, re.I)
+    offering = checked[current.end():]
+    # Explicit conjunctions can introduce additional promised performances.
+    # Each component must itself begin with the performance format, so "Elvis,
+    # who starred in a comedy show" and "songs from a comedy show" do not qualify.
+    components = [offering, *re.split(r"\s+(?:and|with|alongside)\s+|\s*[,&+]\s*", offering, flags=re.I)]
+    for component in components:
+        component = re.sub(r"^(?:(?:a|an|live|free|r&b)\s+){0,3}", "", component, flags=re.I)
+        if any(pattern.match(component) for pattern in (_LIVE_COMEDY, _COMEDY_PERFORMANCE_LIST, _MIXED_COMEDY, _MUSICAL_IMPROV, _BAND_CAMP)):
+            return True
+    return False
+
+
 def context_description_evidence(text: str, url: str) -> list[RuleEvidence]:
     """Only explicit current-offering sentences in a validated event panel."""
     if not isinstance(text, str) or not 1 <= len(text) <= 16000:
@@ -263,10 +295,11 @@ def context_description_evidence(text: str, url: str) -> list[RuleEvidence]:
         # Denials of this event's formats must survive even without the usual
         # affirmative verb, preventing contradictory titles from auto-rejecting.
         current = _CURRENT_OFFERING.match(checked)
-        denial = re.match(r"^this (?:event|show|session)\b", checked) and unsafe_context(checked)
+        denial = re.match(r"^this (?:event|show|session)\b", checked, re.I) and unsafe_context(checked)
         if not current and not denial:
             continue
-        for item in _context_matches(checked, "event_description", f"{url}\n{sentence.strip()}"):
+        for item in _context_matches(checked, "event_description", f"{url}\n{sentence.strip()}",
+                                     positive_allowed=description_comedy_is_offered(checked)):
             if item not in result:
                 result.append(item)
     return result
