@@ -319,7 +319,10 @@ def comparison_metrics(corpus, replayed):
     if any(set(rows) != ids for rows in decisions.values()):
         raise ValueError("Revision row identities differ")
     before, after = decisions["baseline"], decisions["candidate"]
-    stages = list(decisions)
+    # JSON is saved with sorted keys; object order cannot define chronology.
+    if set(decisions) - set(REVISIONS):
+        raise ValueError("Unknown revision stage; chronological order is not defined")
+    stages = [name for name in REVISIONS if name in decisions]
     incremental = {f"{left}->{right}": transitions(decisions[left], decisions[right])
                    for left, right in zip(stages, stages[1:])}
     by_id = {row["public_show_id"]: row for row in records}

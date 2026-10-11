@@ -180,6 +180,16 @@ def test_comparison_metrics(versioned):
     assert empty["unsupported_shows"] == 3
 
 
+def test_metrics_preserve_revision_chronology_after_json_round_trip(versioned):
+    corpus, replayed = versioned
+    restored = json.loads(json.dumps(replayed, sort_keys=True))
+    original = comparison.comparison_metrics(corpus, replayed)
+    assert comparison.comparison_metrics(corpus, restored) == original
+    assert list(original["sequential_incremental_transitions"]) == [
+        "baseline->after_4163", "after_4163->after_4164", "after_4164->candidate",
+    ]
+
+
 def test_read_only_evidence_report(versioned):
     corpus, replayed = versioned
     changed = comparison.changed_outcomes(corpus, replayed)
