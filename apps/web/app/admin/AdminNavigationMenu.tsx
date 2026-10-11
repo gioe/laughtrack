@@ -25,6 +25,12 @@ type AdminNavItem = {
 
 const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     {
+        label: "Event Review",
+        href: "/admin/event-reviews",
+        description: "Comedy evidence and decisions",
+        icon: LayoutList,
+    },
+    {
         label: "Users",
         href: "/admin/users",
         description: "Accounts and favorites",
