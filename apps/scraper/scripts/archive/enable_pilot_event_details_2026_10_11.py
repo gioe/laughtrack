@@ -54,6 +54,8 @@ def rows(cursor):
 def run(transaction, apply=False):
     with transaction() as conn:
         with conn.cursor() as cur:
+            cur.execute("SELECT transaction_timestamp()", ())
+            transaction_time = cur.fetchall()[0][0]
             cur.execute("SELECT * FROM scraping_sources WHERE id=ANY(%s) ORDER BY id FOR UPDATE", (sorted(EXPECTED),))
             before = rows(cur)
             problems = []
@@ -92,6 +94,7 @@ def run(transaction, apply=False):
                 raise ValueError("Refusing entire activation: " + "; ".join(problems))
             print("BEFORE\n" + json.dumps(before, default=str, sort_keys=True, indent=2))
             changed = 0
+            changed_ids = set()
             if apply:
                 for row in before:
                     metadata = row.get("metadata") or {}
@@ -113,11 +116,17 @@ def run(transaction, apply=False):
                     if cur.rowcount != 1 or result != [(row["id"],)]:
                         raise ValueError(f"Source {row['id']}: CAS/update rowcount mismatch")
                     changed += 1
+                    changed_ids.add(row["id"])
             cur.execute("SELECT * FROM scraping_sources WHERE id=ANY(%s) ORDER BY id", (sorted(EXPECTED),))
             after = rows(cur)
             expected = deepcopy(before)
             if apply:
                 for row in expected:
+                    if row["id"] not in changed_ids:
+                        continue
+                    # The existing BEFORE UPDATE trigger assigns NOW(), which
+                    # equals this transaction's timestamp (not wall-clock time).
+                    row["updated_at"] = transaction_time
                     row["metadata"] = {
                         **(row.get("metadata") or {}),
                         "seatengine_event_details": True,

@@ -2,6 +2,7 @@
 
 from contextlib import contextmanager
 from copy import deepcopy
+from datetime import datetime, timezone
 import json
 
 import pytest
@@ -22,6 +23,7 @@ class Database:
                 comedy_gate_mode="off",
                 comedy_policy_version=3,
                 source_target_id=None,
+                updated_at=datetime(2026, 10, 10, tzinfo=timezone.utc),
                 metadata={"keep": "unrelated", "task_4158_rollout": {"history": "preserved"}},
             )
             for sid, (club, venue, _) in activation.EXPECTED.items()
@@ -30,6 +32,8 @@ class Database:
         self.rowcount = 0
         self.writes = 0
         self.fail_id = None
+        self.transaction_time = datetime(2026, 10, 11, tzinfo=timezone.utc)
+        self.illegal_mutation = False
 
     @contextmanager
     def transaction(self):
@@ -45,7 +49,9 @@ class Database:
         yield self
 
     def execute(self, sql, params):
-        if sql.startswith("SELECT"):
+        if sql == "SELECT transaction_timestamp()":
+            self.result = [(self.transaction_time,)]
+        elif sql.startswith("SELECT"):
             self.description = [(key,) for key in self.data[0]]
             self.result = [tuple(row.values()) for row in self.data]
         elif sql.startswith("UPDATE"):
@@ -55,6 +61,9 @@ class Database:
             row = next(row for row in self.data if row["id"] == sid)
             assert row["metadata"] == json.loads(old)
             row["metadata"] = json.loads(metadata)
+            row["updated_at"] = self.transaction_time
+            if self.illegal_mutation:
+                row["enabled"] = False
             self.result = [(sid,)]
             self.rowcount = 1
             self.writes += 1
@@ -85,9 +94,21 @@ def test_dry_run_activation_retry_preserve_gate_and_unrelated_fields(db):
         expected = deepcopy(original)
         expected["metadata"].update(seatengine_event_details=True)
         expected["metadata"][activation.ANNOTATION_KEY] = activation.ANNOTATION
+        expected["updated_at"] = db.transaction_time
         assert current == expected
+    after_first = deepcopy(db.data)
+    db.transaction_time = datetime(2026, 10, 12, tzinfo=timezone.utc)
     assert activation.run(db.transaction, apply=True)["changed_rows"] == 0
+    assert db.data == after_first  # Idempotent rows retain their exact timestamp.
     assert db.writes == 3
+
+
+def test_unrelated_trigger_mutation_rolls_back_despite_valid_timestamp(db):
+    before = deepcopy(db.data)
+    db.illegal_mutation = True
+    with pytest.raises(ValueError, match="Post-state mismatch"):
+        activation.run(db.transaction, apply=True)
+    assert db.data == before
 
 
 @pytest.mark.parametrize("change", ["version", "mode", "config", "disabled", "audit"])
