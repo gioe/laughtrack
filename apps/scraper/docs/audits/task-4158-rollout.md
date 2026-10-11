@@ -261,5 +261,43 @@ every remaining confirmed-comedy hold with reason counts. Unknown labels remain
 unknown. The original no-go remains: this rerun does not justify enforcement
 or establish performance on fresh independent events.
 
-The enrichment implementation is not deployed. All three pilot sources remain
-`unreviewed/off`; enforcement acceptance criterion 13550 remains open.
+At this evaluation checkpoint, the enrichment implementation was not deployed,
+all three pilot sources remained `unreviewed/off`, and enforcement acceptance
+criterion 13550 was still open.
+
+### Approved scope split and collection-only activation
+
+The user subsequently approved shipping the completed pilot and optional evidence
+collector separately from enforcement. TASK-4160 now owns adjudicating missed
+genuine-comedy events and identity exceptions, reviewing source trust (including
+Goodnights), freezing fresh independent labels, and validating shadow results
+before bounded enforcement and new-source screening. Original criterion 13550 was
+**moved/deferred, not passed**; its enforcement requirement is tracked in
+TASK-4160 criterion 13561. Inventory cleanup TASK-4159 also depends on TASK-4160.
+Neither the scope split nor the collector changes the original no-go result.
+
+After the collector lands on the default branch, the approved activation is limited
+to `metadata.seatengine_event_details=true` on sources 192, 527 and 595. Their
+ingestion policies must remain `unreviewed/off`, version 3. The guarded archive
+script checks the entire cohort's identities, frozen fetch configuration and
+policy versions before writing, records a task-specific metadata annotation, and
+verifies every resulting source field. It preserves all event and review history.
+
+Run from `apps/scraper` in the updated checkout, substituting the actual absolute
+repository root and external artifact paths:
+
+```bash
+PYTHONPATH=src:. .venv/bin/python scripts/archive/enable_pilot_event_details_2026_10_11.py \
+  --repo-root /absolute/repository --dry-run --output /private/tmp/task4158-details-plan.json
+PYTHONPATH=src:. .venv/bin/python scripts/archive/enable_pilot_event_details_2026_10_11.py \
+  --repo-root /absolute/repository --apply --output /private/tmp/task4158-details-applied.json
+```
+
+These commands document the planned operation; they do not assert that activation
+has occurred. Record the actual post-merge output and independent read-only
+verification after applying it. The scheduled scraper workflow uses fresh
+`actions/checkout` checkouts of the default branch and runs daily at 21:00 UTC;
+an existing run on older code will not acquire the collector through a metadata
+change. Collection supplies event descriptions without enabling the eligibility
+gate or requiring OpenAI. Fresh outcome validation and any enforcement activation
+remain TASK-4160 work.
