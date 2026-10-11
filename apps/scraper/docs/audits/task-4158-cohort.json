@@ -1,0 +1,331 @@
+{
+  "reviewed_at": "2026-10-11T14:43:51.625224+00:00",
+  "task": 4158,
+  "scope": "Three-source provider pilot plus five bounded high-risk venue/source refreshes; not a refresh of all 70 baseline candidates.",
+  "directory_membership_changed": false,
+  "interpretation": "Contamination signals do not establish that comedy never occurs at a venue. Valid unblocked canonical parents rescue blocked aliases; missing lineups remain unknown.",
+  "policy_apply_evidence": {
+    "manifest": "task-4158-shadow-manifest.json",
+    "rollout_id": "task-4158-2026-10-11-shadow",
+    "verified_result": "All three sources changed from unreviewed/off version1 to mixed/shadow version2; no enforcement enabled by this operation.",
+    "log_sha256": "f095492bb3c3f46aa542a95488dc5dcf1085f63dcf5a75dae159d5eac56111ee"
+  },
+  "pilot_sources": [
+    {
+      "club_id": 475,
+      "name": "Harvelle's Santa Monica",
+      "source_id": 527,
+      "scraper_key": "seatengine",
+      "provider_venue_id": "450",
+      "enabled": true,
+      "role": "mixed-use candidate",
+      "before": {
+        "policy": "unreviewed",
+        "gate_mode": "off",
+        "version": 1
+      },
+      "applied_shadow_state": {
+        "policy": "mixed",
+        "gate_mode": "shadow",
+        "version": 2
+      },
+      "config_fingerprint": "dd64d7f0a11320d9924cf44802367efb612d4aa7b62a70a5de871febc94fb410",
+      "fetched_at": "2026-10-11T12:51:59.489136+00:00",
+      "provider_occurrences": 50,
+      "provider_event_groups": 50,
+      "selected_blind_event_groups": 50,
+      "example_event_url": "https://santamonica.harvelles.com/shows/381853",
+      "provider_description_count": 0
+    },
+    {
+      "club_id": 476,
+      "name": "Harvelle's Long Beach",
+      "source_id": 595,
+      "scraper_key": "seatengine",
+      "provider_venue_id": "451",
+      "enabled": true,
+      "role": "mixed-use candidate",
+      "before": {
+        "policy": "unreviewed",
+        "gate_mode": "off",
+        "version": 1
+      },
+      "applied_shadow_state": {
+        "policy": "mixed",
+        "gate_mode": "shadow",
+        "version": 2
+      },
+      "config_fingerprint": "94f0ce1fe4efe6cf6bd507442aa1137c0f3db713a5ef37a178c2a0bc5f499454",
+      "fetched_at": "2026-10-11T12:52:05.722575+00:00",
+      "provider_occurrences": 84,
+      "provider_event_groups": 37,
+      "selected_blind_event_groups": 37,
+      "example_event_url": "https://longbeach.harvelles.com/shows/361572",
+      "provider_description_count": 0
+    },
+    {
+      "club_id": 61,
+      "name": "Goodnights Comedy Club",
+      "source_id": 192,
+      "scraper_key": "seatengine",
+      "provider_venue_id": "53",
+      "enabled": true,
+      "role": "comedy control",
+      "before": {
+        "policy": "unreviewed",
+        "gate_mode": "off",
+        "version": 1
+      },
+      "applied_shadow_state": {
+        "policy": "mixed",
+        "gate_mode": "shadow",
+        "version": 2
+      },
+      "config_fingerprint": "79a4305232b6333170da1ae93480d6681d9c495a22ed96173b8f1d33fbbc75de",
+      "fetched_at": "2026-10-11T12:52:51.300952+00:00",
+      "provider_occurrences": 216,
+      "provider_event_groups": 86,
+      "selected_blind_event_groups": 60,
+      "example_event_url": "http://www.goodnightscomedy.com/shows/383674",
+      "provider_description_count": 0
+    }
+  ],
+  "report_only_candidates": [
+    {
+      "club_id": 4486,
+      "name": "New World Stages - Stage 4",
+      "disposition": "report only; no activation or policy changes",
+      "refreshed_upcoming_non_cancelled_shows": 208,
+      "current_sources": [
+        {
+          "source_id": 3576,
+          "scraper_key": "ticketmaster_comedy",
+          "enabled": false,
+          "policy": "unreviewed",
+          "gate_mode": "off",
+          "version": 1
+        },
+        {
+          "source_id": 7753,
+          "scraper_key": "live_nation",
+          "enabled": true,
+          "policy": "unreviewed",
+          "gate_mode": "off",
+          "version": 1
+        }
+      ],
+      "parent_aware_baseline_as_of": "2026-10-10T00:00:00+00:00",
+      "parent_aware_baseline": {
+        "all_history": {
+          "shows": 343,
+          "shows_with_lineups": 42,
+          "missing_lineups": 301,
+          "appearances": 42,
+          "blocked_appearances": 42,
+          "blocked_only_shows": 42,
+          "majority_blocked_shows": 42
+        },
+        "upcoming": {
+          "shows": 208,
+          "shows_with_lineups": 2,
+          "missing_lineups": 206,
+          "appearances": 2,
+          "blocked_appearances": 2,
+          "blocked_only_shows": 2,
+          "majority_blocked_shows": 2
+        }
+      },
+      "attribution_warning": "Venue-level retained shows are not proof of feed ownership. Disabled historical Ticketmaster sources coexist with Live Nation routing; no source-specific blocked ratio is inferred."
+    },
+    {
+      "club_id": 4489,
+      "name": "Hamburger Mary's - Las Vegas",
+      "disposition": "report only; no activation or policy changes",
+      "refreshed_upcoming_non_cancelled_shows": 42,
+      "current_sources": [
+        {
+          "source_id": 3579,
+          "scraper_key": "ticketmaster_comedy",
+          "enabled": false,
+          "policy": "unreviewed",
+          "gate_mode": "off",
+          "version": 1
+        }
+      ],
+      "parent_aware_baseline_as_of": "2026-10-10T00:00:00+00:00",
+      "parent_aware_baseline": {
+        "all_history": {
+          "shows": 129,
+          "shows_with_lineups": 129,
+          "missing_lineups": 0,
+          "appearances": 129,
+          "blocked_appearances": 129,
+          "blocked_only_shows": 129,
+          "majority_blocked_shows": 129
+        },
+        "upcoming": {
+          "shows": 44,
+          "shows_with_lineups": 44,
+          "missing_lineups": 0,
+          "appearances": 44,
+          "blocked_appearances": 44,
+          "blocked_only_shows": 44,
+          "majority_blocked_shows": 44
+        }
+      },
+      "attribution_warning": "Venue-level retained shows are not proof of feed ownership. Disabled historical Ticketmaster sources coexist with Live Nation routing; no source-specific blocked ratio is inferred."
+    },
+    {
+      "club_id": 4510,
+      "name": "The Hook at Caesars Atlantic City",
+      "disposition": "report only; no activation or policy changes",
+      "refreshed_upcoming_non_cancelled_shows": 63,
+      "current_sources": [
+        {
+          "source_id": 3600,
+          "scraper_key": "ticketmaster_comedy",
+          "enabled": false,
+          "policy": "unreviewed",
+          "gate_mode": "off",
+          "version": 1
+        },
+        {
+          "source_id": 7733,
+          "scraper_key": "live_nation",
+          "enabled": true,
+          "policy": "unreviewed",
+          "gate_mode": "off",
+          "version": 1
+        }
+      ],
+      "parent_aware_baseline_as_of": "2026-10-10T00:00:00+00:00",
+      "parent_aware_baseline": {
+        "all_history": {
+          "shows": 184,
+          "shows_with_lineups": 115,
+          "missing_lineups": 69,
+          "appearances": 115,
+          "blocked_appearances": 115,
+          "blocked_only_shows": 115,
+          "majority_blocked_shows": 115
+        },
+        "upcoming": {
+          "shows": 66,
+          "shows_with_lineups": 66,
+          "missing_lineups": 0,
+          "appearances": 66,
+          "blocked_appearances": 66,
+          "blocked_only_shows": 66,
+          "majority_blocked_shows": 66
+        }
+      },
+      "attribution_warning": "Venue-level retained shows are not proof of feed ownership. Disabled historical Ticketmaster sources coexist with Live Nation routing; no source-specific blocked ratio is inferred."
+    },
+    {
+      "club_id": 4552,
+      "name": "The Empire Strips Back Theater",
+      "disposition": "report only; no activation or policy changes",
+      "refreshed_upcoming_non_cancelled_shows": 400,
+      "current_sources": [
+        {
+          "source_id": 3642,
+          "scraper_key": "ticketmaster_comedy",
+          "enabled": false,
+          "policy": "unreviewed",
+          "gate_mode": "off",
+          "version": 1
+        },
+        {
+          "source_id": 7741,
+          "scraper_key": "live_nation",
+          "enabled": true,
+          "policy": "unreviewed",
+          "gate_mode": "off",
+          "version": 1
+        }
+      ],
+      "parent_aware_baseline_as_of": "2026-10-10T00:00:00+00:00",
+      "parent_aware_baseline": {
+        "all_history": {
+          "shows": 554,
+          "shows_with_lineups": 132,
+          "missing_lineups": 422,
+          "appearances": 132,
+          "blocked_appearances": 132,
+          "blocked_only_shows": 132,
+          "majority_blocked_shows": 132
+        },
+        "upcoming": {
+          "shows": 403,
+          "shows_with_lineups": 0,
+          "missing_lineups": 403,
+          "appearances": 0,
+          "blocked_appearances": 0,
+          "blocked_only_shows": 0,
+          "majority_blocked_shows": 0
+        }
+      },
+      "attribution_warning": "Venue-level retained shows are not proof of feed ownership. Disabled historical Ticketmaster sources coexist with Live Nation routing; no source-specific blocked ratio is inferred."
+    },
+    {
+      "club_id": 4803,
+      "name": "Lincoln Center - Mitzi E. Newhouse Theater",
+      "disposition": "report only; no activation or policy changes",
+      "refreshed_upcoming_non_cancelled_shows": 0,
+      "current_sources": [
+        {
+          "source_id": 3893,
+          "scraper_key": "ticketmaster_comedy",
+          "enabled": false,
+          "policy": "unreviewed",
+          "gate_mode": "off",
+          "version": 1
+        },
+        {
+          "source_id": 7760,
+          "scraper_key": "live_nation",
+          "enabled": true,
+          "policy": "unreviewed",
+          "gate_mode": "off",
+          "version": 1
+        }
+      ],
+      "parent_aware_baseline_as_of": "2026-10-10T00:00:00+00:00",
+      "parent_aware_baseline": {
+        "all_history": {
+          "shows": 61,
+          "shows_with_lineups": 57,
+          "missing_lineups": 4,
+          "appearances": 57,
+          "blocked_appearances": 57,
+          "blocked_only_shows": 57,
+          "majority_blocked_shows": 57
+        },
+        "upcoming": {
+          "shows": 0,
+          "shows_with_lineups": 0,
+          "missing_lineups": 0,
+          "appearances": 0,
+          "blocked_appearances": 0,
+          "blocked_only_shows": 0,
+          "majority_blocked_shows": 0
+        }
+      },
+      "attribution_warning": "Venue-level retained shows are not proof of feed ownership. Disabled historical Ticketmaster sources coexist with Live Nation routing; no source-specific blocked ratio is inferred."
+    }
+  ],
+  "refresh_denominator": "Current upcoming counts: shows.date >= database NOW() and NOT is_cancelled, grouped by venue; parent-aware lineup denominators are separately dated October10 baseline, not recomputed October11.",
+  "artifacts": {
+    "raw_provider_sha256": "237c6372890bb473328491eae97a3b50f63110accc7bd4cc3bdf4c83152dbedc",
+    "blind_public_pages_sha256": "0daa4a8d67086a6e88c7e9d97d9718246de2577905a35d2c535275b77ff0e476",
+    "public_pages": 147,
+    "page_fetch_errors": 0,
+    "baseline": "task-4151-comedy-eligibility-baseline.json",
+    "provider_payload_retention": "Private temporary raw artifacts; no credentials or full source configuration committed."
+  },
+  "limitations": [
+    "Calendar and show-detail APIs returned no event descriptions; public occurrence pages supplied independent blind gold evidence. Public page descriptions were not retroactively injected into classifier input.",
+    "Aggregate source routing and last-writer attribution require separate validation before expanding the pilot. Disabled sources remain disabled.",
+    "Shadow state is an initial applied checkpoint; final rollout disposition belongs to task-4158-rollout.md."
+  ]
+}

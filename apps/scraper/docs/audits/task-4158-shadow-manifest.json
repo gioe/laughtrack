@@ -1,0 +1,32 @@
+{
+  "rollout_id": "task-4158-2026-10-11-shadow",
+  "actor": "codex-task-4158",
+  "reason": "Bounded shadow pilot of three explicitly reviewed sources; venue membership unchanged",
+  "evidence": {
+    "artifact": "docs/audits/task-4158-rollout.md",
+    "phase": "shadow pilot"
+  },
+  "targets": [
+    {
+      "source_id": 192,
+      "policy": "mixed",
+      "gate_mode": "shadow",
+      "expected_version": 1,
+      "config_fingerprint": "79a4305232b6333170da1ae93480d6681d9c495a22ed96173b8f1d33fbbc75de"
+    },
+    {
+      "source_id": 527,
+      "policy": "mixed",
+      "gate_mode": "shadow",
+      "expected_version": 1,
+      "config_fingerprint": "dd64d7f0a11320d9924cf44802367efb612d4aa7b62a70a5de871febc94fb410"
+    },
+    {
+      "source_id": 595,
+      "policy": "mixed",
+      "gate_mode": "shadow",
+      "expected_version": 1,
+      "config_fingerprint": "94f0ce1fe4efe6cf6bd507442aa1137c0f3db713a5ef37a178c2a0bc5f499454"
+    }
+  ]
+}

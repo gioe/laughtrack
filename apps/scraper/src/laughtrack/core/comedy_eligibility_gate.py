@@ -49,6 +49,20 @@ def stamp_source(shows, source):
 
 def capture_event_inputs(show, event):
     """Preserve raw evidence without making malformed metadata drop legacy events."""
+    # SeatEngine transformers may remove title-shaped or reviewed label talents.
+    # The pipeline supplies the original event, so eligibility still sees them.
+    nested = event.get("event") if isinstance(event, dict) else None
+    if isinstance(nested, dict) and "talents" in nested:
+        talents = nested["talents"]
+        names = [
+            talent.get("name") if isinstance(talent, dict) else None
+            for talent in talents
+        ] if isinstance(talents, list) else []
+        show.eligibility_performer_names = [name for name in names if isinstance(name, str) and name.strip()]
+        show.eligibility_raw_performers_preserved = (
+            isinstance(talents, list)
+            and all(isinstance(name, str) and name.strip() for name in names)
+        )
     raw = event.get("performers") if isinstance(event, dict) else getattr(event, "performers", None)
     if isinstance(raw, (list, tuple)):
         names = [
