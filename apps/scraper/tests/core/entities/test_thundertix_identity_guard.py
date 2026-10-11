@@ -87,12 +87,14 @@ def test_collision_blocks_stale_cleanup():
     processor._reconcile_stale_future_shows.assert_not_called()
 
 
-def test_direct_batch_rejects_before_dedup_or_database_write():
+def test_screened_batch_rejects_before_dedup_or_database_write():
     handler = ShowHandler.__new__(ShowHandler)
     handler._classify_missing_show_types = MagicMock()
     handler._suppress_room_matching_club_name = MagicMock()
     handler.execute_batch_operation = MagicMock()
-    result = handler._process_single_batch([_show(1, producer="thundertix"), _show(1, hour=21, producer="thundertix")])
+    # EligibilityGate is separately covered by integration tests. This unit test
+    # owns the persistence identity guard and must not open a live DB connection.
+    result = handler._process_screened_batch([_show(1, producer="thundertix"), _show(1, hour=21, producer="thundertix")])
     assert result.validation_errors == 2
     handler.execute_batch_operation.assert_not_called()
 
