@@ -49,9 +49,14 @@ def stamp_source(shows, source):
 
 def capture_event_inputs(show, event):
     """Preserve raw evidence without making malformed metadata drop legacy events."""
-    from laughtrack.core.comedy_event_evidence import description_evidence
+    from laughtrack.core.comedy_event_evidence import description_evidence, validated_event_description
+    from laughtrack.core.comedy_event_rules import description_rule_evidence
 
-    for item in description_evidence(event):
+    items = description_evidence(event)
+    detail = validated_event_description(event)
+    if detail is not None:
+        items.extend(description_rule_evidence(*detail))
+    for item in items:
         if item not in show.eligibility_evidence:
             show.eligibility_evidence.append(item)
     # SeatEngine transformers may remove title-shaped or reviewed label talents.
@@ -111,8 +116,10 @@ def capture_event_inputs(show, event):
 
 def event_evidence(show):
     from laughtrack.core.comedy_event_evidence import unsafe_billing
+    from laughtrack.core.comedy_event_rules import title_rule_evidence
 
     evidence = [EventEvidence(**e) for e in (show.eligibility_evidence or [])]
+    evidence.extend(EventEvidence(**e) for e in title_rule_evidence(show.name))
     # Only qualified event billing; no venue names, biographies, tags or show_type.
     for kind, pattern in (("comedy", _COMEDY_BILLING), ("music", _MUSIC_BILLING), ("sports", _SPORTS_BILLING)):
         if pattern.search(show.name or ""):

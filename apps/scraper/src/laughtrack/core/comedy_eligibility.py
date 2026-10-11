@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any, Iterable, cast
 if TYPE_CHECKING:
     from laughtrack.core.entities.club.comedy_policy import SourceComedyPolicy
 
-CLASSIFIER_VERSION = "comedy-eligibility-v2"
+CLASSIFIER_VERSION = "comedy-eligibility-v2-rules-v1"
 _LABEL_KINDS = frozenset({"troupe", "show_label"})
 _KINDS = _LABEL_KINDS | {"person"}
 _NON_COMEDY_BLOCK_REASONS = frozenset({"non_comedian_musician", "musician", "non_comedy_sports"})
@@ -31,18 +31,31 @@ class EventEvidence:
     kind: str
     provenance: str
     detail: str
+    rule_family: str | None = None
+    rule_version: str | None = None
+    rule_reason: str | None = None
 
     def __post_init__(self) -> None:
         if not all(isinstance(value, str) for value in (self.kind, self.provenance, self.detail)):
             raise ValueError("Event evidence fields must be strings")
+        if not all(value is None or isinstance(value, str) for value in (self.rule_family, self.rule_version, self.rule_reason)):
+            raise ValueError("Rule metadata must be strings when supplied")
 
     @property
     def valid(self) -> bool:
-        return (
-            self.kind in {"comedy", "music", "sports"}
-            and self.provenance in _PROVENANCE
-            and isinstance(self.detail, str)
-            and bool(self.detail.strip())
+        from laughtrack.core.comedy_event_rules import RULE_REASONS, RULE_VERSION
+
+        if self.provenance not in _PROVENANCE or not self.detail.strip():
+            return False
+        metadata = (self.rule_family, self.rule_version, self.rule_reason)
+        if self.kind in {"comedy", "music", "sports"}:
+            return all(value is None for value in metadata)
+        return bool(
+            self.kind in RULE_REASONS
+            and self.rule_family == self.kind
+            and self.rule_version == RULE_VERSION
+            and self.rule_reason in RULE_REASONS[self.kind]
+            and self.provenance in {"event_billing", "event_description"}
         )
 
 
@@ -123,7 +136,14 @@ class ComedyEligibilityDecision:
         """JSON-safe stable contract suitable for staging and replay."""
         import json
 
-        return cast(dict[str, Any], json.loads(json.dumps(asdict(self), sort_keys=True)))
+        payload = asdict(self)
+        # Keep legacy three-field evidence byte shape stable. Optional rule
+        # fields remain round-trippable through EventEvidence(**saved_item).
+        for item in payload["evidence"]:
+            for key in ("rule_family", "rule_version", "rule_reason"):
+                if item[key] is None:
+                    del item[key]
+        return cast(dict[str, Any], json.loads(json.dumps(payload, sort_keys=True)))
 
 
 def _reviewed_trust(policy: SourceComedyPolicy) -> bool:
@@ -306,7 +326,9 @@ def classify_comedy_eligibility(
     if source_id is not None and (type(source_id) is not int or source_id <= 0):
         raise ValueError("Source ID must be a positive integer")
     observed = tuple(performers or ())
-    supplied = tuple(sorted(set(evidence), key=lambda e: (e.kind, e.provenance, e.detail)))
+    supplied = tuple(sorted(set(evidence), key=lambda e: (
+        e.kind, e.provenance, e.detail, e.rule_family or "", e.rule_version or "", e.rule_reason or "",
+    )))
     valid = tuple(e for e in supplied if e.valid)
     resolved = _resolve_performers(observed, people, denied)
     reasons: set[str] = set()
@@ -330,11 +352,15 @@ def classify_comedy_eligibility(
     if conflict:
         reasons.add("identity_conflict")
     positive = any(e.kind == "comedy" for e in valid)
-    negative = any(e.kind in {"music", "sports"} for e in valid)
+    negative = any(e.kind in {"music", "sports", "non_public", "unrelated_activity"} for e in valid)
     if positive:
         reasons.add("affirmative_event_comedy")
-    if negative:
+    if any(e.kind in {"music", "sports"} for e in valid):
         reasons.add("explicit_non_comedy_event")
+    for item in valid:
+        if item.rule_family:
+            reasons.add(f"rule_{item.rule_family}_{item.rule_reason}")
+            reasons.add("explicit_non_public_event" if item.kind == "non_public" else "explicit_unrelated_activity")
 
     if any(not e.valid for e in supplied):
         decision, confidence = "review", 0.3

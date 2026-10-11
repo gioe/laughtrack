@@ -56,39 +56,47 @@ def unsafe_billing(text: str) -> bool:
     return bool(_NEGATION.search(checked) or _UNTRUSTED.search(checked) or re.search(r"\bwas\b", checked, re.I))
 
 
-def description_evidence(event: object) -> list[dict]:
-    """Only consume a bounded, explicitly collected, same-event detail marker.
+def validated_event_description(event: object) -> tuple[str, str] | None:
+    """Return text and citation URL only for the collected same-event marker.
 
-    Sentence text and the validated source URL are retained for later review.
-    The marker is produced by the SeatEngine adapter after checking page identity;
-    arbitrary Show.description and performer biography tabs are not inputs here.
+    Arbitrary Show.description and biography panels are never inputs here.
+    Shared by genre extraction and the separately versioned offering rules.
     """
     if not isinstance(event, dict) or not isinstance(event.get("event"), dict):
-        return []
+        return None
     marker = event.get("_comedy_event_detail")
     if not isinstance(marker, dict) or marker.get("status") != "collected" or marker.get("selector") != DETAIL_SELECTOR:
-        return []
+        return None
     event_id = str(event["event"].get("id", ""))
     show_id = str(marker.get("show_id", ""))
     if not event_id.isdigit() or str(marker.get("event_id")) != event_id or not show_id.isdigit():
-        return []
+        return None
     text, url = marker.get("text"), marker.get("url")
     if (not isinstance(text, str) or not 1 <= len(text) <= 16000 or not isinstance(url, str)
             or len(url) > 2048 or any(c.isspace() for c in url)):
-        return []
+        return None
     try:
         parts = urlsplit(url)
         _ = parts.port  # Reject malformed ports rather than retaining a misleading citation URL.
         if (parts.scheme not in {"http", "https"} or not parts.hostname or parts.username or parts.password
                 or parts.query or parts.fragment or parts.path.rstrip("/") != f"/shows/{show_id}"):
-            return []
+            return None
     except ValueError:
-        return []
-    evidence = []
+        return None
     # Instructions invalidate the whole description; sentence splitting is not
     # an invitation to follow a later instruction after ignoring the first one.
     if re.search(r"\b(?:ignore\b.{0,50}\binstructions|system prompt|return (?:accept|reject))\b", text, re.I):
+        return None
+    return text, url
+
+
+def description_evidence(event: object) -> list[dict]:
+    """Extract current performance statements and retain exact source citations."""
+    detail = validated_event_description(event)
+    if detail is None:
         return []
+    text, url = detail
+    evidence = []
     for sentence in re.split(r"(?<=[.!?;])\s+|[\r\n]+", text):
         sentence = sentence.strip()
         if not sentence or len(sentence) > 600:

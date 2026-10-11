@@ -29,7 +29,8 @@ _UNSAFE = re.compile(
     r"\b(?:no|not|never|without|isn['’]t|aren['’]t|doesn['’]t|don['’]t|won['’]t|"
     r"cancelled|canceled|postponed|previously|formerly|used to|last year|example|"
     r"hypothetical|pretend|imagine|called|named|titled|quotes?|rather than|"
-    r"before|after|nearby|also available|available for|contact us|inquire|enquire|"
+    r"before|after|nearby|elsewhere|tomorrow|next week|next month|other room|another room|"
+    r"upstairs|downstairs|also available|available for|contact us|inquire|enquire|"
     r"ignore|instructions|system prompt|classify|return accept|return reject)\b|[\"“”]",
     re.I,
 )
@@ -37,7 +38,8 @@ _COMEDY_REFERENCE = re.compile(r"\b(?:comedy|comedian|comedians|stand[ -]?up|imp
 _BOOKING = re.compile(r"book (?:your|a|an) (?:(?:holiday|private|corporate|birthday) )?(?:party|event)[.!]?", re.I)
 _CLOSURE = re.compile(r"(?:we(?:'re| are) )?closed (?:for|due to) (?:a )?private (?:event|party)[.!]?", re.I)
 _BULL_TITLE = re.compile(r"(?:(?:mechanical|comix) )?bull rides?[.!]?", re.I)
-_PAINT_TITLE = re.compile(r"paint\s*(?:&|and|n['’]?)\s*sip(?: at [\w '&’.-]{1,100})?[.!]?", re.I)
+_PAINT = r"paint(?:\s*&\s*|\s+(?:and|n['’]?)\s+|-and-)sip"
+_PAINT_TITLE = re.compile(rf"{_PAINT}(?: at [\w '&’.-]{{1,100}})?[.!]?", re.I)
 _SEWING_TITLE = re.compile(r"(?:[\w'-]+ ){0,4}(?:monthly )?sewing circle[.!]?", re.I)
 _DESCRIPTION_RULES = (
     ("non_public", "private_event_closure", re.compile(
@@ -48,9 +50,25 @@ _DESCRIPTION_RULES = (
         r"(?:ride (?:the|our) (?:(?:mechanical|comix) )?bull tonight\b|"
         r"this (?:event|session) (?:offers|features|is for) (?:mechanical )?bull rides?\b)", re.I)),
     ("unrelated_activity", "paint_and_sip", re.compile(
-        r"(?:this (?:event|session) is (?:a )?|join us (?:tonight )?for (?:a )?)paint\s*(?:&|and)\s*sip\b", re.I)),
+        rf"(?:this (?:event|session) is (?:a )?|join us tonight for (?:a )?){_PAINT}\b", re.I)),
     ("unrelated_activity", "sewing_circle", re.compile(
-        r"(?:this (?:event|session) is (?:a )?|join us (?:tonight )?for (?:a )?)(?:monthly )?sewing circle\b", re.I)),
+        r"(?:this (?:event|session) is (?:a )?|join us tonight for (?:a )?)(?:monthly )?sewing circle\b", re.I)),
+)
+_DENIAL_SUBJECT = r"this (?:event|session|listing)\b"
+_DENIAL = r"(?:not|no|never|without|isn['’]t|aren['’]t|doesn['’]t|don['’]t|won['’]t)"
+_DENIAL_RULES = tuple(
+    (family, reason, re.compile(
+        rf"^{_DENIAL_SUBJECT}[^.!?]{{0,60}}\b{_DENIAL}\b[^.!?]{{0,60}}\b(?:{offering})\b"
+        rf"|^{_DENIAL_SUBJECT}[^.!?]{{0,60}}\b(?:{offering})\b[^.!?]{{0,40}}\b(?:cancelled|canceled|postponed)\b",
+        re.I,
+    ))
+    for family, reason, offering in (
+        ("non_public", "private_event_closure", r"closed (?:for|due to) (?:a )?private (?:event|party)"),
+        ("non_public", "booking_promotion", r"(?:party|event) bookings?"),
+        ("unrelated_activity", "bull_rides", r"(?:mechanical )?bull rides?"),
+        ("unrelated_activity", "paint_and_sip", _PAINT),
+        ("unrelated_activity", "sewing_circle", r"sewing circle"),
+    )
 )
 
 
@@ -92,8 +110,20 @@ def description_rule_evidence(text: str, url: str) -> list[RuleEvidence]:
     result = []
     for sentence in re.split(r"(?<=[.!?;])\s+|[\r\n]+", text):
         checked = sentence.strip().strip("*").strip()
+        if not checked or len(checked) > 600:
+            continue
+        denials = [(family, reason) for family, reason, pattern in _DENIAL_RULES if pattern.search(checked)]
+        if denials:
+            for family, reason in denials:
+                item = _item(family, reason, "event_description", f"{url}\n{sentence.strip()}")
+                # Explicit current denial is uncertainty, not an offering. Keep
+                # it so a contradictory title cannot silently win classification.
+                item["kind"] = "unknown"
+                if item not in result:
+                    result.append(item)
+            continue
         guard_text = re.sub(r"\bbefore clos(?:e|ing)\b", "", checked, flags=re.I)
-        if not checked or len(checked) > 600 or _UNSAFE.search(guard_text) or _COMEDY_REFERENCE.search(checked):
+        if _UNSAFE.search(guard_text) or _COMEDY_REFERENCE.search(checked):
             continue
         for family, reason, pattern in _DESCRIPTION_RULES:
             if pattern.match(checked):
