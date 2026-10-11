@@ -1,0 +1,2016 @@
+{
+  "reviewed_at": "2026-10-11T16:17:54.090258+00:00",
+  "reviewer": "Codex operator evidence review; not human adjudication",
+  "scope": "All23 confirmed-comedy miss groups (43 held occurrences) from frozen TASK4158 development comparison; not fresh independent labels.",
+  "summary": {
+    "groups": 23,
+    "held_occurrences": 43,
+    "structural_groups": 6,
+    "missing_event_evidence_groups": 17,
+    "identified_blocked_actual_person_groups": 0,
+    "recommendations_applied": 0
+  },
+  "source_policy_snapshot": [
+    {
+      "source_id": 192,
+      "policy": "unreviewed",
+      "gate_mode": "off",
+      "version": 3,
+      "enabled": true,
+      "detail_collection": true
+    },
+    {
+      "source_id": 527,
+      "policy": "unreviewed",
+      "gate_mode": "off",
+      "version": 3,
+      "enabled": true,
+      "detail_collection": true
+    },
+    {
+      "source_id": 595,
+      "policy": "unreviewed",
+      "gate_mode": "off",
+      "version": 3,
+      "enabled": true,
+      "detail_collection": true
+    }
+  ],
+  "adjudications": [
+    {
+      "source_id": 595,
+      "event_id": 132785,
+      "title": "Beetlejuice Afterlife Cabaret",
+      "occurrence_ids": [
+        372045,
+        372046
+      ],
+      "held_occurrences": 2,
+      "frozen_gold_label": "comedy",
+      "adjudication_class": "structural_show_or_format_label",
+      "identified_blocked_actual_person": false,
+      "recommendation": "event_scoped_approve_after_current_snapshot_validation",
+      "applied": false,
+      "reason": "Current cabaret description explicitly includes comedy alongside burlesque and theatre; the blocked name is the cabaret title.",
+      "evidence": {
+        "url": "https://longbeach.harvelles.com/shows/372045",
+        "page_fetched_at": "2026-10-11T14:32:53.452807+00:00",
+        "field": "description",
+        "excerpt": "features dazzling burlesque, comedy, and theatrical performances from the strange residents of the Netherworld. Expect appearances from your favorite delightfully",
+        "context_required": false
+      },
+      "identity_action": "Preserve existing deny/visibility/parent state. Do not approve a person or entire series through this event decision.",
+      "observed_development_occurrences": [
+        {
+          "occurrence_id": 372045,
+          "event_key": "fallback:7ac8dd89ba2407f13bf7871bb5d75e064a8bb6c4bb1657deba35da74a660e613",
+          "baseline_decision": "reject",
+          "reason_codes": [
+            "blocked_only_lineup"
+          ],
+          "performers": [
+            {
+              "block_reasons": [
+                "manual_removal"
+              ],
+              "canonical_id": null,
+              "diagnostics": [],
+              "identity_key": "name:beetlejuice afterlife cabaret",
+              "names": [
+                "beetlejuice afterlife cabaret"
+              ],
+              "state": "blocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        },
+        {
+          "occurrence_id": 372046,
+          "event_key": "fallback:b82fc348a2b460671710d97d8eb72a0caa32788b3bca202a282f50d89d1f0894",
+          "baseline_decision": "reject",
+          "reason_codes": [
+            "blocked_only_lineup"
+          ],
+          "performers": [
+            {
+              "block_reasons": [
+                "manual_removal"
+              ],
+              "canonical_id": null,
+              "diagnostics": [],
+              "identity_key": "name:beetlejuice afterlife cabaret",
+              "names": [
+                "beetlejuice afterlife cabaret"
+              ],
+              "state": "blocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        }
+      ],
+      "review_scope_requirements": [
+        "Stage or refresh exact occurrence under current source policy version; old version2 observations cannot authorize version3 review.",
+        "Bind exact candidate generation, latest review version, payload fingerprint, baseline identity fingerprint and policy version.",
+        "Record actor, explicit event-specific reason, evidence URL and idempotency key through ReviewStore preview/apply; changed identity/payload/policy must revalidate.",
+        "Approval is consumed through normal gate on a later scrape; no direct public writes or blanket venue/source approval."
+      ]
+    },
+    {
+      "source_id": 595,
+      "event_id": 121017,
+      "title": "UNDRGRND Comedy",
+      "occurrence_ids": [
+        384259
+      ],
+      "held_occurrences": 1,
+      "frozen_gold_label": "comedy",
+      "adjudication_class": "structural_show_or_format_label",
+      "identified_blocked_actual_person": false,
+      "recommendation": "event_scoped_approve_after_current_snapshot_validation",
+      "applied": false,
+      "reason": "Current event describes a monthly comedy show with local comics and touring headliners; the blocked database row names the series, not an identified person.",
+      "evidence": {
+        "url": "https://longbeach.harvelles.com/shows/384259",
+        "page_fetched_at": "2026-10-11T14:32:53.682457+00:00",
+        "field": "description",
+        "excerpt": "UNDRGRND Comedy is a monthly comedy show bringing big laughs and good energy to Long Beach. Featuring a mix of",
+        "context_required": false
+      },
+      "identity_action": "Preserve existing deny/visibility/parent state. Do not approve a person or entire series through this event decision.",
+      "observed_development_occurrences": [
+        {
+          "occurrence_id": 384259,
+          "event_key": "fallback:ef54a953090c739440e626f60011b9d74148c74f7311d50a5469c3e5d9f6470d",
+          "baseline_decision": "reject",
+          "reason_codes": [
+            "blocked_only_lineup"
+          ],
+          "performers": [
+            {
+              "block_reasons": [
+                "not a comic"
+              ],
+              "canonical_id": 448776,
+              "diagnostics": [],
+              "identity_key": "person:448776",
+              "names": [
+                "undrgrnd comedy"
+              ],
+              "state": "blocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        }
+      ],
+      "review_scope_requirements": [
+        "Stage or refresh exact occurrence under current source policy version; old version2 observations cannot authorize version3 review.",
+        "Bind exact candidate generation, latest review version, payload fingerprint, baseline identity fingerprint and policy version.",
+        "Record actor, explicit event-specific reason, evidence URL and idempotency key through ReviewStore preview/apply; changed identity/payload/policy must revalidate.",
+        "Approval is consumed through normal gate on a later scrape; no direct public writes or blanket venue/source approval."
+      ]
+    },
+    {
+      "source_id": 595,
+      "event_id": 127684,
+      "title": "Sex & Candy Burlesque",
+      "occurrence_ids": [
+        373347,
+        373348
+      ],
+      "held_occurrences": 2,
+      "frozen_gold_label": "comedy",
+      "adjudication_class": "missing_event_evidence",
+      "identified_blocked_actual_person": false,
+      "recommendation": "event_scoped_approve_after_current_snapshot_validation",
+      "applied": false,
+      "reason": "Current Halloween performance description explicitly lists comedy; a mixed-format burlesque event remains comedy under the user definition.",
+      "evidence": {
+        "url": "https://longbeach.harvelles.com/shows/373347",
+        "page_fetched_at": "2026-10-11T14:32:53.732460+00:00",
+        "field": "description",
+        "excerpt": "a Halloween burlesque party packed with jaw-dropping performances, comedy, audience interaction, larger-than-life multimedia, and plenty of tricks, treats, and strips.",
+        "context_required": false
+      },
+      "identity_action": "Preserve existing deny/visibility/parent state. Do not approve a person or entire series through this event decision.",
+      "observed_development_occurrences": [
+        {
+          "occurrence_id": 373347,
+          "event_key": "fallback:75a15b50f78377f2b27b8cf5194750bfce234e482db4ec3309f3d74c070915a6",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "insufficient_event_evidence",
+            "unverified_performer"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": null,
+              "diagnostics": [
+                "unverified_performer"
+              ],
+              "identity_key": "name:sex & candy burlesque",
+              "names": [
+                "sex & candy burlesque"
+              ],
+              "state": "unknown",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        },
+        {
+          "occurrence_id": 373348,
+          "event_key": "fallback:954e9d518a6c05bae682b34784dd963287b68b5b94cd38b14535b9c90afdc429",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "insufficient_event_evidence",
+            "unverified_performer"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": null,
+              "diagnostics": [
+                "unverified_performer"
+              ],
+              "identity_key": "name:sex & candy burlesque",
+              "names": [
+                "sex & candy burlesque"
+              ],
+              "state": "unknown",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        }
+      ],
+      "review_scope_requirements": [
+        "Stage or refresh exact occurrence under current source policy version; old version2 observations cannot authorize version3 review.",
+        "Bind exact candidate generation, latest review version, payload fingerprint, baseline identity fingerprint and policy version.",
+        "Record actor, explicit event-specific reason, evidence URL and idempotency key through ReviewStore preview/apply; changed identity/payload/policy must revalidate.",
+        "Approval is consumed through normal gate on a later scrape; no direct public writes or blanket venue/source approval."
+      ]
+    },
+    {
+      "source_id": 595,
+      "event_id": 145197,
+      "title": "Hey, Rube!  Open Mic and Variety Clown Night",
+      "occurrence_ids": [
+        390752
+      ],
+      "held_occurrences": 1,
+      "frozen_gold_label": "comedy",
+      "adjudication_class": "missing_event_evidence",
+      "identified_blocked_actual_person": false,
+      "recommendation": "event_scoped_approve_after_current_snapshot_validation",
+      "applied": false,
+      "reason": "Current open-mic description invites short clown bits; contextual operator adjudication supports comic performance rather than a general open-mic assumption.",
+      "evidence": {
+        "url": "https://longbeach.harvelles.com/shows/390752",
+        "page_fetched_at": "2026-10-11T14:32:53.969585+00:00",
+        "field": "description",
+        "excerpt": "try out your best clown bits alongside a variety of local performers. Doors open at 7:00 so you can sign",
+        "context_required": true
+      },
+      "identity_action": "Preserve existing deny/visibility/parent state. Do not approve a person or entire series through this event decision.",
+      "observed_development_occurrences": [
+        {
+          "occurrence_id": 390752,
+          "event_key": "fallback:012808ee7a054f2e10fa4232c83dc405731924654a21adc3f1039eebc398f256",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "insufficient_event_evidence",
+            "unverified_performer"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": null,
+              "diagnostics": [
+                "unverified_performer"
+              ],
+              "identity_key": "name:hey rube! open mic and variety night",
+              "names": [
+                "hey rube! open mic and variety night"
+              ],
+              "state": "unknown",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        }
+      ],
+      "review_scope_requirements": [
+        "Stage or refresh exact occurrence under current source policy version; old version2 observations cannot authorize version3 review.",
+        "Bind exact candidate generation, latest review version, payload fingerprint, baseline identity fingerprint and policy version.",
+        "Record actor, explicit event-specific reason, evidence URL and idempotency key through ReviewStore preview/apply; changed identity/payload/policy must revalidate.",
+        "Approval is consumed through normal gate on a later scrape; no direct public writes or blanket venue/source approval."
+      ]
+    },
+    {
+      "source_id": 595,
+      "event_id": 142166,
+      "title": "FOOS GOT LOVE TOUR",
+      "occurrence_ids": [
+        383745
+      ],
+      "held_occurrences": 1,
+      "frozen_gold_label": "comedy",
+      "adjudication_class": "missing_event_evidence",
+      "identified_blocked_actual_person": false,
+      "recommendation": "event_scoped_approve_after_current_snapshot_validation",
+      "applied": false,
+      "reason": "Event-specific program text in the biography tab says the performance starts with stand-up by Eric Ochoa; current collector deliberately excludes this tab.",
+      "evidence": {
+        "url": "https://longbeach.harvelles.com/shows/383745",
+        "page_fetched_at": "2026-10-11T14:32:54.466896+00:00",
+        "field": "bio",
+        "excerpt": "We start with hilarious stand-up from Eric Ochoa (yep, that SUPEReeeGO/Cholo Adventures guy) and his funny ass homies! Then lights",
+        "context_required": true
+      },
+      "identity_action": "Preserve existing deny/visibility/parent state. Do not approve a person or entire series through this event decision.",
+      "observed_development_occurrences": [
+        {
+          "occurrence_id": 383745,
+          "event_key": "fallback:71e77de57010270cbd8e48dc2d0733e520d46119970b5a6d2495c490923e9126",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 254538,
+              "diagnostics": [
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:254538",
+              "names": [
+                "eric ochoa"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        }
+      ],
+      "review_scope_requirements": [
+        "Stage or refresh exact occurrence under current source policy version; old version2 observations cannot authorize version3 review.",
+        "Bind exact candidate generation, latest review version, payload fingerprint, baseline identity fingerprint and policy version.",
+        "Record actor, explicit event-specific reason, evidence URL and idempotency key through ReviewStore preview/apply; changed identity/payload/policy must revalidate.",
+        "Approval is consumed through normal gate on a later scrape; no direct public writes or blanket venue/source approval."
+      ]
+    },
+    {
+      "source_id": 595,
+      "event_id": 143792,
+      "title": "TACOS and COMEDY",
+      "occurrence_ids": [
+        387624
+      ],
+      "held_occurrences": 1,
+      "frozen_gold_label": "comedy",
+      "adjudication_class": "missing_event_evidence",
+      "identified_blocked_actual_person": false,
+      "recommendation": "event_scoped_approve_after_current_snapshot_validation",
+      "applied": false,
+      "reason": "Event-specific program text in the biography tab bills an evening of stand-up; current collector excludes this tab.",
+      "evidence": {
+        "url": "https://longbeach.harvelles.com/shows/387624",
+        "page_fetched_at": "2026-10-11T14:32:54.547200+00:00",
+        "field": "bio",
+        "excerpt": "an evening of stand up, and maybe some tacos",
+        "context_required": true
+      },
+      "identity_action": "Preserve existing deny/visibility/parent state. Do not approve a person or entire series through this event decision.",
+      "observed_development_occurrences": [
+        {
+          "occurrence_id": 387624,
+          "event_key": "fallback:d85fcfa125f3b8b06ad70db97a168cbc7e9a4b99451de9fbfdaae5f1a8c7eb33",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 886804,
+              "diagnostics": [
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:886804",
+              "names": [
+                "tacos and comedy"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        }
+      ],
+      "review_scope_requirements": [
+        "Stage or refresh exact occurrence under current source policy version; old version2 observations cannot authorize version3 review.",
+        "Bind exact candidate generation, latest review version, payload fingerprint, baseline identity fingerprint and policy version.",
+        "Record actor, explicit event-specific reason, evidence URL and idempotency key through ReviewStore preview/apply; changed identity/payload/policy must revalidate.",
+        "Approval is consumed through normal gate on a later scrape; no direct public writes or blanket venue/source approval."
+      ]
+    },
+    {
+      "source_id": 595,
+      "event_id": 145211,
+      "title": "Don't Dream It, Tease It!  Tim Curry Burlesque Tribute",
+      "occurrence_ids": [
+        390780,
+        390781
+      ],
+      "held_occurrences": 2,
+      "frozen_gold_label": "comedy",
+      "adjudication_class": "missing_event_evidence",
+      "identified_blocked_actual_person": false,
+      "recommendation": "event_scoped_approve_after_current_snapshot_validation",
+      "applied": false,
+      "reason": "Current tribute description explicitly promises comedy performances alongside dance and burlesque.",
+      "evidence": {
+        "url": "https://longbeach.harvelles.com/shows/390780",
+        "page_fetched_at": "2026-10-11T14:32:54.669740+00:00",
+        "field": "description",
+        "excerpt": "burlesque, dance, comedy, theatrical performances, and plenty of decadent surprises. Expect bold costumes, campy humor, seductive storytelling, and a loving",
+        "context_required": false
+      },
+      "identity_action": "Preserve existing deny/visibility/parent state. Do not approve a person or entire series through this event decision.",
+      "observed_development_occurrences": [
+        {
+          "occurrence_id": 390780,
+          "event_key": "fallback:bd058d5c8b365b212179036bb03eb4730ba147084f751897390155ae70f4198c",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "insufficient_event_evidence",
+            "unverified_performer"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": null,
+              "diagnostics": [
+                "unverified_performer"
+              ],
+              "identity_key": "name:don't dream it, tease it! tim curry burlesque",
+              "names": [
+                "don't dream it, tease it! tim curry burlesque"
+              ],
+              "state": "unknown",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        },
+        {
+          "occurrence_id": 390781,
+          "event_key": "fallback:d9e2aabe4ae6c7ce75ab0987c6b8e5a8ea75551d1eadc3c5a5c5aa0b56e3dd61",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "insufficient_event_evidence",
+            "unverified_performer"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": null,
+              "diagnostics": [
+                "unverified_performer"
+              ],
+              "identity_key": "name:don't dream it, tease it! tim curry burlesque",
+              "names": [
+                "don't dream it, tease it! tim curry burlesque"
+              ],
+              "state": "unknown",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        }
+      ],
+      "review_scope_requirements": [
+        "Stage or refresh exact occurrence under current source policy version; old version2 observations cannot authorize version3 review.",
+        "Bind exact candidate generation, latest review version, payload fingerprint, baseline identity fingerprint and policy version.",
+        "Record actor, explicit event-specific reason, evidence URL and idempotency key through ReviewStore preview/apply; changed identity/payload/policy must revalidate.",
+        "Approval is consumed through normal gate on a later scrape; no direct public writes or blanket venue/source approval."
+      ]
+    },
+    {
+      "source_id": 595,
+      "event_id": 126130,
+      "title": "Jiggles and Giggles Comedy Cabaret",
+      "occurrence_ids": [
+        373345,
+        373346
+      ],
+      "held_occurrences": 2,
+      "frozen_gold_label": "comedy",
+      "adjudication_class": "structural_show_or_format_label",
+      "identified_blocked_actual_person": false,
+      "recommendation": "event_scoped_approve_after_current_snapshot_validation",
+      "applied": false,
+      "reason": "Current return engagement promises comedians alongside burlesque; existing blocked performer string names the cabaret series.",
+      "evidence": {
+        "url": "https://longbeach.harvelles.com/shows/373345",
+        "page_fetched_at": "2026-10-11T14:32:54.815776+00:00",
+        "field": "description",
+        "excerpt": "alongside some of the sharpest comedians in the business. It\u2019s the perfect blend of tease and comedy that made our",
+        "context_required": false
+      },
+      "identity_action": "Preserve existing deny/visibility/parent state. Do not approve a person or entire series through this event decision.",
+      "observed_development_occurrences": [
+        {
+          "occurrence_id": 373345,
+          "event_key": "fallback:52b84f7fb8d08a078656fea41ee33ba8efd08be802c813e63f20295563a8bef8",
+          "baseline_decision": "reject",
+          "reason_codes": [
+            "blocked_only_lineup"
+          ],
+          "performers": [
+            {
+              "block_reasons": [
+                "manual_removal"
+              ],
+              "canonical_id": null,
+              "diagnostics": [],
+              "identity_key": "name:jiggles & giggles comedy cabaret",
+              "names": [
+                "jiggles & giggles comedy cabaret"
+              ],
+              "state": "blocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        },
+        {
+          "occurrence_id": 373346,
+          "event_key": "fallback:f0f967b36cae4a4c2c5c6a3f72c43a9cd97ec0654aa9d615324a781b455c25fb",
+          "baseline_decision": "reject",
+          "reason_codes": [
+            "blocked_only_lineup"
+          ],
+          "performers": [
+            {
+              "block_reasons": [
+                "manual_removal"
+              ],
+              "canonical_id": null,
+              "diagnostics": [],
+              "identity_key": "name:jiggles & giggles comedy cabaret",
+              "names": [
+                "jiggles & giggles comedy cabaret"
+              ],
+              "state": "blocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        }
+      ],
+      "review_scope_requirements": [
+        "Stage or refresh exact occurrence under current source policy version; old version2 observations cannot authorize version3 review.",
+        "Bind exact candidate generation, latest review version, payload fingerprint, baseline identity fingerprint and policy version.",
+        "Record actor, explicit event-specific reason, evidence URL and idempotency key through ReviewStore preview/apply; changed identity/payload/policy must revalidate.",
+        "Approval is consumed through normal gate on a later scrape; no direct public writes or blanket venue/source approval."
+      ]
+    },
+    {
+      "source_id": 595,
+      "event_id": 122678,
+      "title": "Potter Parodies Presents: Holiday at Hogwarts",
+      "occurrence_ids": [
+        385055,
+        385056
+      ],
+      "held_occurrences": 2,
+      "frozen_gold_label": "comedy",
+      "adjudication_class": "structural_show_or_format_label",
+      "identified_blocked_actual_person": false,
+      "recommendation": "event_scoped_approve_after_current_snapshot_validation",
+      "applied": false,
+      "reason": "Current named parody program explicitly includes comedy; existing blocked entity is a show title.",
+      "evidence": {
+        "url": "https://longbeach.harvelles.com/shows/385055",
+        "page_fetched_at": "2026-10-11T14:32:55.401930+00:00",
+        "field": "description",
+        "excerpt": "a night filled with magic, comedy, burlesque, and some very familiar witches, wizards, and magical creatures like you\u2019ve definitely never",
+        "context_required": false
+      },
+      "identity_action": "Preserve existing deny/visibility/parent state. Do not approve a person or entire series through this event decision.",
+      "observed_development_occurrences": [
+        {
+          "occurrence_id": 385055,
+          "event_key": "fallback:4752d8dcfbcd35cbd8173ea37697dcd0d9e28dbf6aa4c2783b36e45d03e88018",
+          "baseline_decision": "reject",
+          "reason_codes": [
+            "blocked_only_lineup"
+          ],
+          "performers": [
+            {
+              "block_reasons": [
+                "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast."
+              ],
+              "canonical_id": 1999454,
+              "diagnostics": [],
+              "identity_key": "person:1999454",
+              "names": [
+                "potter parodies: holiday at hogwarts"
+              ],
+              "state": "blocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        },
+        {
+          "occurrence_id": 385056,
+          "event_key": "fallback:3e25772e671ec3e1657074ee30a009d073089c689d465b2f5e7c2e9c10bcd75e",
+          "baseline_decision": "reject",
+          "reason_codes": [
+            "blocked_only_lineup"
+          ],
+          "performers": [
+            {
+              "block_reasons": [
+                "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast."
+              ],
+              "canonical_id": 1999454,
+              "diagnostics": [],
+              "identity_key": "person:1999454",
+              "names": [
+                "potter parodies: holiday at hogwarts"
+              ],
+              "state": "blocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        }
+      ],
+      "review_scope_requirements": [
+        "Stage or refresh exact occurrence under current source policy version; old version2 observations cannot authorize version3 review.",
+        "Bind exact candidate generation, latest review version, payload fingerprint, baseline identity fingerprint and policy version.",
+        "Record actor, explicit event-specific reason, evidence URL and idempotency key through ReviewStore preview/apply; changed identity/payload/policy must revalidate.",
+        "Approval is consumed through normal gate on a later scrape; no direct public writes or blanket venue/source approval."
+      ]
+    },
+    {
+      "source_id": 595,
+      "event_id": 145235,
+      "title": "Pok\u00e9Tease Burlesque",
+      "occurrence_ids": [
+        390853
+      ],
+      "held_occurrences": 1,
+      "frozen_gold_label": "comedy",
+      "adjudication_class": "missing_event_evidence",
+      "identified_blocked_actual_person": false,
+      "recommendation": "event_scoped_approve_after_current_snapshot_validation",
+      "applied": false,
+      "reason": "Current themed burlesque performance explicitly includes comedy in the event program.",
+      "evidence": {
+        "url": "https://longbeach.harvelles.com/shows/390853",
+        "page_fetched_at": "2026-10-11T14:32:55.391939+00:00",
+        "field": "description",
+        "excerpt": "a hilarious, high-energy night of burlesque, comedy, cosplay, and nostalgia. And what better way to kick off the weekend? Pok\u00e9Tease",
+        "context_required": false
+      },
+      "identity_action": "Preserve existing deny/visibility/parent state. Do not approve a person or entire series through this event decision.",
+      "observed_development_occurrences": [
+        {
+          "occurrence_id": 390853,
+          "event_key": "fallback:f1cd4e971fa19c6b34f79e79cee4cecfd8f159e28115bf051965e49c2748dc7f",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "insufficient_event_evidence",
+            "unverified_performer"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": null,
+              "diagnostics": [
+                "unverified_performer"
+              ],
+              "identity_key": "name:pok\u00e9tease burlesque",
+              "names": [
+                "pok\u00e9tease burlesque"
+              ],
+              "state": "unknown",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        }
+      ],
+      "review_scope_requirements": [
+        "Stage or refresh exact occurrence under current source policy version; old version2 observations cannot authorize version3 review.",
+        "Bind exact candidate generation, latest review version, payload fingerprint, baseline identity fingerprint and policy version.",
+        "Record actor, explicit event-specific reason, evidence URL and idempotency key through ReviewStore preview/apply; changed identity/payload/policy must revalidate.",
+        "Approval is consumed through normal gate on a later scrape; no direct public writes or blanket venue/source approval."
+      ]
+    },
+    {
+      "source_id": 192,
+      "event_id": 142688,
+      "title": "Room 861 at Goodnights: Eva Evans - Oak City Comedy Festival",
+      "occurrence_ids": [
+        385042
+      ],
+      "held_occurrences": 1,
+      "frozen_gold_label": "comedy",
+      "adjudication_class": "missing_event_evidence",
+      "identified_blocked_actual_person": false,
+      "recommendation": "event_scoped_approve_after_current_snapshot_validation",
+      "applied": false,
+      "reason": "Closing invitation explicitly bills a headlining night of stand-up, separated from earlier performer biography.",
+      "evidence": {
+        "url": "http://www.goodnightscomedy.com/shows/385042",
+        "page_fetched_at": "2026-10-11T14:32:55.906622+00:00",
+        "field": "description",
+        "excerpt": "a headlining night of stand-up you won\u2019t want to miss. Management reserves the right to prevent customers from entering the",
+        "context_required": false
+      },
+      "identity_action": "Preserve existing deny/visibility/parent state. Do not approve a person or entire series through this event decision.",
+      "observed_development_occurrences": [
+        {
+          "occurrence_id": 385042,
+          "event_key": "fallback:8bcb1c00aecddf4566689780a2788da6f57a8819bc4686e98255a55ff43c2d21",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "insufficient_event_evidence",
+            "unverified_performer"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": null,
+              "diagnostics": [
+                "unverified_performer"
+              ],
+              "identity_key": "name:oak city comedy festival",
+              "names": [
+                "oak city comedy festival"
+              ],
+              "state": "unknown",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        }
+      ],
+      "review_scope_requirements": [
+        "Stage or refresh exact occurrence under current source policy version; old version2 observations cannot authorize version3 review.",
+        "Bind exact candidate generation, latest review version, payload fingerprint, baseline identity fingerprint and policy version.",
+        "Record actor, explicit event-specific reason, evidence URL and idempotency key through ReviewStore preview/apply; changed identity/payload/policy must revalidate.",
+        "Approval is consumed through normal gate on a later scrape; no direct public writes or blanket venue/source approval."
+      ]
+    },
+    {
+      "source_id": 192,
+      "event_id": 136700,
+      "title": "Special Event: Mario Adrion",
+      "occurrence_ids": [
+        371123,
+        371124,
+        371126,
+        371127,
+        371125
+      ],
+      "held_occurrences": 5,
+      "frozen_gold_label": "comedy",
+      "adjudication_class": "missing_event_evidence",
+      "identified_blocked_actual_person": false,
+      "recommendation": "event_scoped_approve_after_current_snapshot_validation",
+      "applied": false,
+      "reason": "Event page connects the named performer to the Superior Comedy Tour; this requires contextual operator review of tour billing, not automatic acceptance from performer biography.",
+      "evidence": {
+        "url": "http://www.goodnightscomedy.com/shows/371123",
+        "page_fetched_at": "2026-10-11T14:32:56.064166+00:00",
+        "field": "description",
+        "excerpt": "The Superior Comedy Tour,\u201d in clubs and theaters across the globe. Based out of Los Angeles, Mario is one of",
+        "context_required": true
+      },
+      "identity_action": "Preserve existing deny/visibility/parent state. Do not approve a person or entire series through this event decision.",
+      "observed_development_occurrences": [
+        {
+          "occurrence_id": 371123,
+          "event_key": "fallback:03efc3bd2c6ecd6fa7a0874be584c1223a99eea7edf65035df859724e3ba19bd",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 14839,
+              "diagnostics": [
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:14839",
+              "names": [
+                "mario adrion"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        },
+        {
+          "occurrence_id": 371124,
+          "event_key": "fallback:2d76aa356c6111ecba65ae7dbe5b2f160a0df90330a83e734b955e136ccb1578",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 14839,
+              "diagnostics": [
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:14839",
+              "names": [
+                "mario adrion"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        },
+        {
+          "occurrence_id": 371126,
+          "event_key": "fallback:9fbb38ae83f620ad6d8517ac3c4785edaf5350e7535b631106033123fdb2a01c",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 14839,
+              "diagnostics": [
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:14839",
+              "names": [
+                "mario adrion"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        },
+        {
+          "occurrence_id": 371127,
+          "event_key": "fallback:3a9f15e9a6f40cb396e90507b1cb70040f64be01f58010e39c1ac6d4f20a86bd",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 14839,
+              "diagnostics": [
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:14839",
+              "names": [
+                "mario adrion"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        },
+        {
+          "occurrence_id": 371125,
+          "event_key": "fallback:16655921ac52f2dd821b80a43da592cc0bbbbf9d1c56818be9b88284f3f00a3a",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 14839,
+              "diagnostics": [
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:14839",
+              "names": [
+                "mario adrion"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        }
+      ],
+      "review_scope_requirements": [
+        "Stage or refresh exact occurrence under current source policy version; old version2 observations cannot authorize version3 review.",
+        "Bind exact candidate generation, latest review version, payload fingerprint, baseline identity fingerprint and policy version.",
+        "Record actor, explicit event-specific reason, evidence URL and idempotency key through ReviewStore preview/apply; changed identity/payload/policy must revalidate.",
+        "Approval is consumed through normal gate on a later scrape; no direct public writes or blanket venue/source approval."
+      ]
+    },
+    {
+      "source_id": 192,
+      "event_id": 142685,
+      "title": "Open Mic at Goodnights",
+      "occurrence_ids": [
+        385084
+      ],
+      "held_occurrences": 1,
+      "frozen_gold_label": "comedy",
+      "adjudication_class": "structural_show_or_format_label",
+      "identified_blocked_actual_person": false,
+      "recommendation": "event_scoped_approve_after_current_snapshot_validation",
+      "applied": false,
+      "reason": "Current event invites audiences to see 15+ local comedians; blocked open mic night is a format label.",
+      "evidence": {
+        "url": "http://www.goodnightscomedy.com/shows/385084",
+        "page_fetched_at": "2026-10-11T14:32:56.358239+00:00",
+        "field": "description",
+        "excerpt": "See 15+ of the best local comedians Raleigh has to offer! When there is a show in the Main Showroom,",
+        "context_required": false
+      },
+      "identity_action": "Preserve existing deny/visibility/parent state. Do not approve a person or entire series through this event decision.",
+      "observed_development_occurrences": [
+        {
+          "occurrence_id": 385084,
+          "event_key": "fallback:7d68d03735d88eaba4dfb161cba6792af2e6a7afbf6ed10d9b3f7d533accf1c4",
+          "baseline_decision": "reject",
+          "reason_codes": [
+            "blocked_only_lineup"
+          ],
+          "performers": [
+            {
+              "block_reasons": [
+                "manual_removal"
+              ],
+              "canonical_id": null,
+              "diagnostics": [],
+              "identity_key": "name:open mic night",
+              "names": [
+                "open mic night"
+              ],
+              "state": "blocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        }
+      ],
+      "review_scope_requirements": [
+        "Stage or refresh exact occurrence under current source policy version; old version2 observations cannot authorize version3 review.",
+        "Bind exact candidate generation, latest review version, payload fingerprint, baseline identity fingerprint and policy version.",
+        "Record actor, explicit event-specific reason, evidence URL and idempotency key through ReviewStore preview/apply; changed identity/payload/policy must revalidate.",
+        "Approval is consumed through normal gate on a later scrape; no direct public writes or blanket venue/source approval."
+      ]
+    },
+    {
+      "source_id": 192,
+      "event_id": 136478,
+      "title": "Special Event: That One Mailman",
+      "occurrence_ids": [
+        370538
+      ],
+      "held_occurrences": 1,
+      "frozen_gold_label": "comedy",
+      "adjudication_class": "missing_event_evidence",
+      "identified_blocked_actual_person": false,
+      "recommendation": "event_scoped_approve_after_current_snapshot_validation",
+      "applied": false,
+      "reason": "Current live tour promises humorous storytelling and audience engagement; canonical parent resolution only repairs identity, while the event description supports this recommendation.",
+      "evidence": {
+        "url": "http://www.goodnightscomedy.com/shows/370538",
+        "page_fetched_at": "2026-10-11T14:32:56.394903+00:00",
+        "field": "description",
+        "excerpt": "now going on tour with Gary Owen and doing the same to a live audience. He will tell you, \u201cThis",
+        "context_required": true
+      },
+      "identity_action": "Preserve existing deny/visibility/parent state. Do not approve a person or entire series through this event decision.",
+      "observed_development_occurrences": [
+        {
+          "occurrence_id": 370538,
+          "event_key": "fallback:99674290ed2c054dca7b02f516608ab961fecdc68e77865a5a1eee977a625918",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "canonical_parent_resolved",
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 325467,
+              "diagnostics": [
+                "canonical_parent_resolved",
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:325467",
+              "names": [
+                "that one mailman"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        }
+      ],
+      "review_scope_requirements": [
+        "Stage or refresh exact occurrence under current source policy version; old version2 observations cannot authorize version3 review.",
+        "Bind exact candidate generation, latest review version, payload fingerprint, baseline identity fingerprint and policy version.",
+        "Record actor, explicit event-specific reason, evidence URL and idempotency key through ReviewStore preview/apply; changed identity/payload/policy must revalidate.",
+        "Approval is consumed through normal gate on a later scrape; no direct public writes or blanket venue/source approval."
+      ]
+    },
+    {
+      "source_id": 192,
+      "event_id": 142689,
+      "title": "Room 861 at Goodnights: Hunter Luke Edwards",
+      "occurrence_ids": [
+        385043
+      ],
+      "held_occurrences": 1,
+      "frozen_gold_label": "comedy",
+      "adjudication_class": "missing_event_evidence",
+      "identified_blocked_actual_person": false,
+      "recommendation": "event_scoped_approve_after_current_snapshot_validation",
+      "applied": false,
+      "reason": "Event-page audience promise describes punchlines and laughter; interpretation depends on surrounding current performance context, not historic credits alone.",
+      "evidence": {
+        "url": "http://www.goodnightscomedy.com/shows/385043",
+        "page_fetched_at": "2026-10-11T14:32:57.386034+00:00",
+        "field": "description",
+        "excerpt": "hard-hitting punchlines that just don\u2019t stop will have you laughing from start to finish! When not performing on stage, you",
+        "context_required": true
+      },
+      "identity_action": "Preserve existing deny/visibility/parent state. Do not approve a person or entire series through this event decision.",
+      "observed_development_occurrences": [
+        {
+          "occurrence_id": 385043,
+          "event_key": "fallback:fe7d7fd15dd045c63b88115558444238137378ca2d2daec74e6e2f36c9ba808b",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 1991457,
+              "diagnostics": [
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:1991457",
+              "names": [
+                "hunter luke edwards"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        }
+      ],
+      "review_scope_requirements": [
+        "Stage or refresh exact occurrence under current source policy version; old version2 observations cannot authorize version3 review.",
+        "Bind exact candidate generation, latest review version, payload fingerprint, baseline identity fingerprint and policy version.",
+        "Record actor, explicit event-specific reason, evidence URL and idempotency key through ReviewStore preview/apply; changed identity/payload/policy must revalidate.",
+        "Approval is consumed through normal gate on a later scrape; no direct public writes or blanket venue/source approval."
+      ]
+    },
+    {
+      "source_id": 192,
+      "event_id": 142029,
+      "title": "Special Event: Wes Barker",
+      "occurrence_ids": [
+        383446
+      ],
+      "held_occurrences": 1,
+      "frozen_gold_label": "comedy",
+      "adjudication_class": "missing_event_evidence",
+      "identified_blocked_actual_person": false,
+      "recommendation": "event_scoped_approve_after_current_snapshot_validation",
+      "applied": false,
+      "reason": "Current audience promise describes comedy magic and humorous stories; magic does not negate the comedy component.",
+      "evidence": {
+        "url": "http://www.goodnightscomedy.com/shows/383446",
+        "page_fetched_at": "2026-10-11T14:32:57.962160+00:00",
+        "field": "description",
+        "excerpt": "He will have you laughing at hilarious true stories one moment and be blowing your mind the next. Watching Wes",
+        "context_required": true
+      },
+      "identity_action": "Preserve existing deny/visibility/parent state. Do not approve a person or entire series through this event decision.",
+      "observed_development_occurrences": [
+        {
+          "occurrence_id": 383446,
+          "event_key": "fallback:87df81fb860997bbc84c3832c2edec9a14917c13689c95c05a249bee2aec9be0",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 264863,
+              "diagnostics": [
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:264863",
+              "names": [
+                "wes barker"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        }
+      ],
+      "review_scope_requirements": [
+        "Stage or refresh exact occurrence under current source policy version; old version2 observations cannot authorize version3 review.",
+        "Bind exact candidate generation, latest review version, payload fingerprint, baseline identity fingerprint and policy version.",
+        "Record actor, explicit event-specific reason, evidence URL and idempotency key through ReviewStore preview/apply; changed identity/payload/policy must revalidate.",
+        "Approval is consumed through normal gate on a later scrape; no direct public writes or blanket venue/source approval."
+      ]
+    },
+    {
+      "source_id": 192,
+      "event_id": 137239,
+      "title": "Room 861 at Goodnights: Hassan Phills",
+      "occurrence_ids": [
+        372472,
+        372473,
+        372474,
+        372475,
+        372476
+      ],
+      "held_occurrences": 5,
+      "frozen_gold_label": "comedy",
+      "adjudication_class": "missing_event_evidence",
+      "identified_blocked_actual_person": false,
+      "recommendation": "event_scoped_approve_after_current_snapshot_validation",
+      "applied": false,
+      "reason": "Event page connects the current act to interactive stand-up; the latest-act sentence is contextual evidence and insufficient as an isolated generic storytelling keyword.",
+      "evidence": {
+        "url": "http://www.goodnightscomedy.com/shows/372472",
+        "page_fetched_at": "2026-10-11T14:32:58.199202+00:00",
+        "field": "description",
+        "excerpt": "His latest act combines exceptional storytelling with spontaneous crowd interaction, creating a unique, intimate experience that makes every performance unmissable.",
+        "context_required": true
+      },
+      "identity_action": "Preserve existing deny/visibility/parent state. Do not approve a person or entire series through this event decision.",
+      "observed_development_occurrences": [
+        {
+          "occurrence_id": 372472,
+          "event_key": "fallback:96ac3e5f417c6a93deba925633241d2223fb02c6cd04b536961d68c5d13cbabc",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 153822,
+              "diagnostics": [
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:153822",
+              "names": [
+                "hassan phills"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        },
+        {
+          "occurrence_id": 372473,
+          "event_key": "fallback:e8d7406eaa6c8d50b44ff41a93a04e365532cd0285d7a617aa187822c3851694",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 153822,
+              "diagnostics": [
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:153822",
+              "names": [
+                "hassan phills"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        },
+        {
+          "occurrence_id": 372474,
+          "event_key": "fallback:3d103a5f7f21666d7c33e3377067682c58e43e3feea27fcdeee30adc0b16ada2",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 153822,
+              "diagnostics": [
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:153822",
+              "names": [
+                "hassan phills"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        },
+        {
+          "occurrence_id": 372475,
+          "event_key": "fallback:0b5f04e5f360f5ca51b7c59a6f5969359c6acbbc9fa88a8da798534b9b20b1c0",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 153822,
+              "diagnostics": [
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:153822",
+              "names": [
+                "hassan phills"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        },
+        {
+          "occurrence_id": 372476,
+          "event_key": "fallback:829fc536708f64d5d193d77bf7c37bcace1f065fdbda697ee13be018313fa171",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 153822,
+              "diagnostics": [
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:153822",
+              "names": [
+                "hassan phills"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        }
+      ],
+      "review_scope_requirements": [
+        "Stage or refresh exact occurrence under current source policy version; old version2 observations cannot authorize version3 review.",
+        "Bind exact candidate generation, latest review version, payload fingerprint, baseline identity fingerprint and policy version.",
+        "Record actor, explicit event-specific reason, evidence URL and idempotency key through ReviewStore preview/apply; changed identity/payload/policy must revalidate.",
+        "Approval is consumed through normal gate on a later scrape; no direct public writes or blanket venue/source approval."
+      ]
+    },
+    {
+      "source_id": 192,
+      "event_id": 143903,
+      "title": "Special Event: Sarper Guven",
+      "occurrence_ids": [
+        387873
+      ],
+      "held_occurrences": 1,
+      "frozen_gold_label": "comedy",
+      "adjudication_class": "missing_event_evidence",
+      "identified_blocked_actual_person": false,
+      "recommendation": "event_scoped_approve_after_current_snapshot_validation",
+      "applied": false,
+      "reason": "Current 90-minute program explicitly promises original jokes and observations; valid parent resolution is separate from this performance evidence.",
+      "evidence": {
+        "url": "http://www.goodnightscomedy.com/shows/387873",
+        "page_fetched_at": "2026-10-11T14:32:58.512837+00:00",
+        "field": "description",
+        "excerpt": "Totally new jokes. If you miss it, you\u2019ll cry for years Couple's Package includes: - 2 premium seats - $90",
+        "context_required": true
+      },
+      "identity_action": "Preserve existing deny/visibility/parent state. Do not approve a person or entire series through this event decision.",
+      "observed_development_occurrences": [
+        {
+          "occurrence_id": 387873,
+          "event_key": "fallback:19ba3da5422ad8a4e6071e287ac3dfae9ab79cde13d7076d8f5f8f5cfa5d8528",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "canonical_parent_resolved",
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 234845,
+              "diagnostics": [
+                "canonical_parent_resolved",
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:234845",
+              "names": [
+                "sarper guven"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        }
+      ],
+      "review_scope_requirements": [
+        "Stage or refresh exact occurrence under current source policy version; old version2 observations cannot authorize version3 review.",
+        "Bind exact candidate generation, latest review version, payload fingerprint, baseline identity fingerprint and policy version.",
+        "Record actor, explicit event-specific reason, evidence URL and idempotency key through ReviewStore preview/apply; changed identity/payload/policy must revalidate.",
+        "Approval is consumed through normal gate on a later scrape; no direct public writes or blanket venue/source approval."
+      ]
+    },
+    {
+      "source_id": 192,
+      "event_id": 143900,
+      "title": "Goodnights Presents: Ladies Laugh Lounge: Holiday Edition",
+      "occurrence_ids": [
+        387870
+      ],
+      "held_occurrences": 1,
+      "frozen_gold_label": "comedy",
+      "adjudication_class": "structural_show_or_format_label",
+      "identified_blocked_actual_person": false,
+      "recommendation": "event_scoped_approve_after_current_snapshot_validation",
+      "applied": false,
+      "reason": "Named holiday event promises female comedians and a night of comedy; blocked Ladies Laugh Lounge is the series label, not the named headliner Kiki Wynns.",
+      "evidence": {
+        "url": "http://www.goodnightscomedy.com/shows/387870",
+        "page_fetched_at": "2026-10-11T14:32:58.769883+00:00",
+        "field": "description",
+        "excerpt": "a night of comedy, cocktails, holiday cheer, and a room full of people ready to LAUGH. Whether you go full",
+        "context_required": false
+      },
+      "identity_action": "Preserve existing deny/visibility/parent state. Do not approve a person or entire series through this event decision.",
+      "observed_development_occurrences": [
+        {
+          "occurrence_id": 387870,
+          "event_key": "fallback:34330f5238e649fba2fa72152912d833a02f3e7627447d7959a6a5e752025b69",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "affirmative_event_comedy",
+            "blocked_only_lineup",
+            "comedy_block_conflict"
+          ],
+          "performers": [
+            {
+              "block_reasons": [
+                "manual_removal"
+              ],
+              "canonical_id": null,
+              "diagnostics": [],
+              "identity_key": "name:ladies laugh lounge",
+              "names": [
+                "ladies laugh lounge"
+              ],
+              "state": "blocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        }
+      ],
+      "review_scope_requirements": [
+        "Stage or refresh exact occurrence under current source policy version; old version2 observations cannot authorize version3 review.",
+        "Bind exact candidate generation, latest review version, payload fingerprint, baseline identity fingerprint and policy version.",
+        "Record actor, explicit event-specific reason, evidence URL and idempotency key through ReviewStore preview/apply; changed identity/payload/policy must revalidate.",
+        "Approval is consumed through normal gate on a later scrape; no direct public writes or blanket venue/source approval."
+      ]
+    },
+    {
+      "source_id": 192,
+      "event_id": 133918,
+      "title": "Special Event: Ashley Gavin",
+      "occurrence_ids": [
+        364772,
+        364773,
+        364774,
+        364775,
+        364771
+      ],
+      "held_occurrences": 5,
+      "frozen_gold_label": "comedy",
+      "adjudication_class": "missing_event_evidence",
+      "identified_blocked_actual_person": false,
+      "recommendation": "event_scoped_approve_after_current_snapshot_validation",
+      "applied": false,
+      "reason": "Current-show sentence promises written material in an event page describing comedy/crowd work; recommendation relies on full event context rather than celebrity credits.",
+      "evidence": {
+        "url": "http://www.goodnightscomedy.com/shows/364772",
+        "page_fetched_at": "2026-10-11T14:32:59.517862+00:00",
+        "field": "description",
+        "excerpt": "this show will feature primarily written material\u2014with her signature edge intact. Couple's Package includes: - 2 premium seats - $90",
+        "context_required": true
+      },
+      "identity_action": "Preserve existing deny/visibility/parent state. Do not approve a person or entire series through this event decision.",
+      "observed_development_occurrences": [
+        {
+          "occurrence_id": 364772,
+          "event_key": "fallback:571809a9f97bcea0ee728fa035a2b7305a73cb4101969fdd3332162715c8453e",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 163482,
+              "diagnostics": [
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:163482",
+              "names": [
+                "ashley gavin"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        },
+        {
+          "occurrence_id": 364773,
+          "event_key": "fallback:317756602a84de046f2b38de34045029208d41ab416152b7bef6704355ecf619",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 163482,
+              "diagnostics": [
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:163482",
+              "names": [
+                "ashley gavin"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        },
+        {
+          "occurrence_id": 364774,
+          "event_key": "fallback:664c899acdfe3a78302baf0fbc75e9f8df8de5687fc8bfa63e24dd62a009b629",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 163482,
+              "diagnostics": [
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:163482",
+              "names": [
+                "ashley gavin"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        },
+        {
+          "occurrence_id": 364775,
+          "event_key": "fallback:161e5033c3da87bb2135459059510a27555c432762d17b0e2f1a2e9deb070185",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 163482,
+              "diagnostics": [
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:163482",
+              "names": [
+                "ashley gavin"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        },
+        {
+          "occurrence_id": 364771,
+          "event_key": "fallback:58ae16c67ccf149547c1c0ac2fbdb0a9a54621fc3490380d0aa47e52a94df49e",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 163482,
+              "diagnostics": [
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:163482",
+              "names": [
+                "ashley gavin"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        }
+      ],
+      "review_scope_requirements": [
+        "Stage or refresh exact occurrence under current source policy version; old version2 observations cannot authorize version3 review.",
+        "Bind exact candidate generation, latest review version, payload fingerprint, baseline identity fingerprint and policy version.",
+        "Record actor, explicit event-specific reason, evidence URL and idempotency key through ReviewStore preview/apply; changed identity/payload/policy must revalidate.",
+        "Approval is consumed through normal gate on a later scrape; no direct public writes or blanket venue/source approval."
+      ]
+    },
+    {
+      "source_id": 192,
+      "event_id": 143713,
+      "title": "Special Event: Steve Wrigley",
+      "occurrence_ids": [
+        387405
+      ],
+      "held_occurrences": 1,
+      "frozen_gold_label": "comedy",
+      "adjudication_class": "missing_event_evidence",
+      "identified_blocked_actual_person": false,
+      "recommendation": "event_scoped_approve_after_current_snapshot_validation",
+      "applied": false,
+      "reason": "Opening sentence explicitly bills a new hour of stand-up; the nonbreaking hyphen and non-template wording were not recognized.",
+      "evidence": {
+        "url": "http://www.goodnightscomedy.com/shows/387405",
+        "page_fetched_at": "2026-10-11T14:32:59.758624+00:00",
+        "field": "description",
+        "excerpt": "Steve Wrigley returns with a brand\u2011new hour of gloriously nerdy stand\u2011up. Originally from New Zealand, Steve has built a devoted",
+        "context_required": false
+      },
+      "identity_action": "Preserve existing deny/visibility/parent state. Do not approve a person or entire series through this event decision.",
+      "observed_development_occurrences": [
+        {
+          "occurrence_id": 387405,
+          "event_key": "fallback:2992b7c4b06e4b0d4ccc5c95123a04697d7f7be072c7cb91c88ab841b98ea044",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 1141762,
+              "diagnostics": [
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:1141762",
+              "names": [
+                "steve wrigley"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        }
+      ],
+      "review_scope_requirements": [
+        "Stage or refresh exact occurrence under current source policy version; old version2 observations cannot authorize version3 review.",
+        "Bind exact candidate generation, latest review version, payload fingerprint, baseline identity fingerprint and policy version.",
+        "Record actor, explicit event-specific reason, evidence URL and idempotency key through ReviewStore preview/apply; changed identity/payload/policy must revalidate.",
+        "Approval is consumed through normal gate on a later scrape; no direct public writes or blanket venue/source approval."
+      ]
+    },
+    {
+      "source_id": 192,
+      "event_id": 144549,
+      "title": "Room 861 at Goodnights: SAANIYA ABBAS: HELLARIOUS",
+      "occurrence_ids": [
+        389372,
+        389373,
+        389374,
+        389375
+      ],
+      "held_occurrences": 4,
+      "frozen_gold_label": "comedy",
+      "adjudication_class": "missing_event_evidence",
+      "identified_blocked_actual_person": false,
+      "recommendation": "event_scoped_approve_after_current_snapshot_validation",
+      "applied": false,
+      "reason": "Current HELLARIOUS run, punchline-led description and show-specific reviews jointly support the recommendation; quotations are contextual evidence, not generic review-keyword permission.",
+      "evidence": {
+        "url": "http://www.goodnightscomedy.com/shows/389372",
+        "page_fetched_at": "2026-10-11T14:33:00.348258+00:00",
+        "field": "description",
+        "excerpt": "a brilliant hour of comedy\" - Broadway Baby \u2605\u2605\u2605\u2605 Management reserves the right to prevent customers from entering the facility",
+        "context_required": true
+      },
+      "identity_action": "Preserve existing deny/visibility/parent state. Do not approve a person or entire series through this event decision.",
+      "observed_development_occurrences": [
+        {
+          "occurrence_id": 389372,
+          "event_key": "fallback:4412a47ec7d1b762a715510aa638bc69de12b61f6cc355dbada8e6039de94bdf",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 248734,
+              "diagnostics": [
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:248734",
+              "names": [
+                "saaniya abbas"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        },
+        {
+          "occurrence_id": 389373,
+          "event_key": "fallback:dd4e0145dbdfdcdf2e338feb72301b35b5edee69042db13944e3e26aaed5b265",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 248734,
+              "diagnostics": [
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:248734",
+              "names": [
+                "saaniya abbas"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        },
+        {
+          "occurrence_id": 389374,
+          "event_key": "fallback:164a83bfa67b0a3a910804b0cf4159b183532f79057927a6b941e2bb051f1849",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 248734,
+              "diagnostics": [
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:248734",
+              "names": [
+                "saaniya abbas"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        },
+        {
+          "occurrence_id": 389375,
+          "event_key": "fallback:9e2201c48370f0824fb2b4e11a3013ccadb25e782289dac1928d74776a199a51",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 248734,
+              "diagnostics": [
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:248734",
+              "names": [
+                "saaniya abbas"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        }
+      ],
+      "review_scope_requirements": [
+        "Stage or refresh exact occurrence under current source policy version; old version2 observations cannot authorize version3 review.",
+        "Bind exact candidate generation, latest review version, payload fingerprint, baseline identity fingerprint and policy version.",
+        "Record actor, explicit event-specific reason, evidence URL and idempotency key through ReviewStore preview/apply; changed identity/payload/policy must revalidate.",
+        "Approval is consumed through normal gate on a later scrape; no direct public writes or blanket venue/source approval."
+      ]
+    },
+    {
+      "source_id": 192,
+      "event_id": 144561,
+      "title": "Special Event: Kunal Kamra (THIS SHOW IS COMPLETELY IN HINDI WITH NO TRANSLATION)",
+      "occurrence_ids": [
+        389395
+      ],
+      "held_occurrences": 1,
+      "frozen_gold_label": "comedy",
+      "adjudication_class": "missing_event_evidence",
+      "identified_blocked_actual_person": false,
+      "recommendation": "event_scoped_approve_after_current_snapshot_validation",
+      "applied": false,
+      "reason": "Current tour paragraph explicitly brings political comedy to US audiences; language-of-performance warning is not negation of comedy.",
+      "evidence": {
+        "url": "http://www.goodnightscomedy.com/shows/389395",
+        "page_fetched_at": "2026-10-11T14:33:00.541925+00:00",
+        "field": "description",
+        "excerpt": "Now Kamra brings that same sharp, unfiltered political comedy to the United States for a multi-city tour \u2014 a rare",
+        "context_required": false
+      },
+      "identity_action": "Preserve existing deny/visibility/parent state. Do not approve a person or entire series through this event decision.",
+      "observed_development_occurrences": [
+        {
+          "occurrence_id": 389395,
+          "event_key": "fallback:5cf75007fcdb89c943d2662a6bc47ba8b3bbc12facc7439d11fc60c96f22fb51",
+          "baseline_decision": "review",
+          "reason_codes": [
+            "database_membership_not_comedy_evidence",
+            "insufficient_event_evidence"
+          ],
+          "performers": [
+            {
+              "block_reasons": [],
+              "canonical_id": 2356438,
+              "diagnostics": [
+                "database_membership_not_comedy_evidence"
+              ],
+              "identity_key": "person:2356438",
+              "names": [
+                "kunal kamra"
+              ],
+              "state": "unblocked",
+              "structural_evidence": [],
+              "structural_exception": false
+            }
+          ]
+        }
+      ],
+      "review_scope_requirements": [
+        "Stage or refresh exact occurrence under current source policy version; old version2 observations cannot authorize version3 review.",
+        "Bind exact candidate generation, latest review version, payload fingerprint, baseline identity fingerprint and policy version.",
+        "Record actor, explicit event-specific reason, evidence URL and idempotency key through ReviewStore preview/apply; changed identity/payload/policy must revalidate.",
+        "Approval is consumed through normal gate on a later scrape; no direct public writes or blanket venue/source approval."
+      ]
+    }
+  ],
+  "current_readonly_identity_snapshot": {
+    "people": [
+      {
+        "id": 14839,
+        "name": "Mario Adrion",
+        "visible": true,
+        "parent_id": null,
+        "block_reason": null,
+        "entity_kind": "person"
+      },
+      {
+        "id": 153822,
+        "name": "Hassan Phills",
+        "visible": true,
+        "parent_id": null,
+        "block_reason": null,
+        "entity_kind": "person"
+      },
+      {
+        "id": 163482,
+        "name": "Ashley Gavin",
+        "visible": true,
+        "parent_id": null,
+        "block_reason": null,
+        "entity_kind": "person"
+      },
+      {
+        "id": 223759,
+        "name": "That One Mailman",
+        "visible": true,
+        "parent_id": 325467,
+        "block_reason": null,
+        "entity_kind": "person"
+      },
+      {
+        "id": 234845,
+        "name": "Sarper G\u00fcven",
+        "visible": true,
+        "parent_id": null,
+        "block_reason": null,
+        "entity_kind": "person"
+      },
+      {
+        "id": 248734,
+        "name": "Saaniya Abbas",
+        "visible": true,
+        "parent_id": null,
+        "block_reason": null,
+        "entity_kind": "person"
+      },
+      {
+        "id": 248944,
+        "name": "Sarper Guven",
+        "visible": true,
+        "parent_id": 234845,
+        "block_reason": null,
+        "entity_kind": "person"
+      },
+      {
+        "id": 254538,
+        "name": "Eric Ochoa",
+        "visible": true,
+        "parent_id": null,
+        "block_reason": null,
+        "entity_kind": "person"
+      },
+      {
+        "id": 264863,
+        "name": "Wes Barker",
+        "visible": true,
+        "parent_id": null,
+        "block_reason": null,
+        "entity_kind": "person"
+      },
+      {
+        "id": 325467,
+        "name": "Sean Fogelson",
+        "visible": true,
+        "parent_id": null,
+        "block_reason": null,
+        "entity_kind": "person"
+      },
+      {
+        "id": 448776,
+        "name": "UNDRGRND Comedy",
+        "visible": false,
+        "parent_id": null,
+        "block_reason": "not a comic",
+        "entity_kind": "person"
+      },
+      {
+        "id": 886804,
+        "name": "Tacos and Comedy",
+        "visible": true,
+        "parent_id": null,
+        "block_reason": null,
+        "entity_kind": "person"
+      },
+      {
+        "id": 1141762,
+        "name": "Steve Wrigley",
+        "visible": true,
+        "parent_id": null,
+        "block_reason": null,
+        "entity_kind": "person"
+      },
+      {
+        "id": 1991457,
+        "name": "Hunter Luke Edwards",
+        "visible": true,
+        "parent_id": null,
+        "block_reason": null,
+        "entity_kind": "person"
+      },
+      {
+        "id": 1999454,
+        "name": "Potter Parodies: Holiday at Hogwarts",
+        "visible": false,
+        "parent_id": null,
+        "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+        "entity_kind": "person"
+      },
+      {
+        "id": 2356438,
+        "name": "Kunal Kamra",
+        "visible": true,
+        "parent_id": null,
+        "block_reason": null,
+        "entity_kind": "person"
+      }
+    ],
+    "denied_names": [
+      {
+        "name": "Beetlejuice Afterlife Cabaret",
+        "reason": "manual_removal",
+        "entity_kind": "person"
+      },
+      {
+        "name": "Jiggles & Giggles Comedy Cabaret",
+        "reason": "manual_removal",
+        "entity_kind": "person"
+      },
+      {
+        "name": "Ladies Laugh Lounge",
+        "reason": "manual_removal",
+        "entity_kind": "person"
+      },
+      {
+        "name": "Open Mic Night",
+        "reason": "manual_removal",
+        "entity_kind": "person"
+      }
+    ]
+  },
+  "identity_limitations": "No identified blocked actual person in these observed lineups; unknown/unverified identities remain unknown. Structural interpretation is event-specific, not a global identity repair or automatic exception.",
+  "freshness": {
+    "fetched_at": "2026-10-11T16:15:01.933932+00:00",
+    "occurrences": 350,
+    "native_event_groups": 173,
+    "new_native_groups_since_prior_exposure": 0,
+    "unlabelled_but_previously_classified_goodnights_groups": 26,
+    "raw_sha256": "11f691555303ab396acb4b10d3aaeaec2d912fbd5f592007bf650de1d1919089"
+  },
+  "inputs": {
+    "frozen_gold_sha256": "cc86177c3446a3ac95e573ad629798feecb7dd04a5a2b103e8eda10f01199a76",
+    "development_comparison_sha256": "ea262bf556aa75c2d2c0eead63e250bbefa139bffb62380f7026a451cb3359af",
+    "private_pages_sha256": "0daa4a8d67086a6e88c7e9d97d9718246de2577905a35d2c535275b77ff0e476"
+  },
+  "database_mutations": 0,
+  "model_calls": 0
+}
