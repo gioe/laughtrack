@@ -1,0 +1,526 @@
+{
+  "generated_at": "2026-10-11T15:13:40.845979+00:00",
+  "validation_type": "Known-label development validation; not new independent validation or evidence of generalization.",
+  "gold_labels_unchanged": true,
+  "classifier_version": "comedy-eligibility-v2",
+  "source_policy_snapshot": {
+    "source_ids": [
+      192,
+      527,
+      595
+    ],
+    "policy": "unreviewed",
+    "gate_mode": "off",
+    "version": 3
+  },
+  "stage_shadow": false,
+  "model_requests": 0,
+  "model_cost": 0,
+  "database_writes": 0,
+  "inputs_sha256": {
+    "frozen_gold": "cc86177c3446a3ac95e573ad629798feecb7dd04a5a2b103e8eda10f01199a76",
+    "original_classified": "19550b4128a8e56cfbb75f5be69ceac7376bf8d1b6ef29e97d51a18cebaf5438",
+    "enriched_classified": "9377f59bf72d2ebb08fc37e9cc920df1f857d90f58eb7fc0822965577e3a8a49",
+    "original_comparison": "9393ebf26c2354fa0abf260e7d2669270cb5d1e75d2901ec5dbfe5825a194d99"
+  },
+  "sources": [
+    {
+      "source_id": 527,
+      "reviewed_event_groups": 50,
+      "reviewed_occurrences": 50,
+      "before": {
+        "gold_outcomes": {
+          "comedy": {
+            "groups": 0,
+            "groups_any_accepted": 0,
+            "groups_any_held": 0,
+            "occurrences": 0,
+            "accepted_occurrences": 0,
+            "held_occurrences": 0,
+            "decisions": {}
+          },
+          "non_comedy": {
+            "groups": 42,
+            "groups_any_accepted": 0,
+            "groups_any_held": 42,
+            "occurrences": 42,
+            "accepted_occurrences": 0,
+            "held_occurrences": 42,
+            "decisions": {
+              "reject": 38,
+              "review": 4
+            }
+          },
+          "unknown": {
+            "groups": 8,
+            "groups_any_accepted": 0,
+            "groups_any_held": 8,
+            "occurrences": 8,
+            "accepted_occurrences": 0,
+            "held_occurrences": 8,
+            "decisions": {
+              "review": 8
+            }
+          }
+        }
+      },
+      "after": {
+        "gold_outcomes": {
+          "comedy": {
+            "groups": 0,
+            "groups_any_accepted": 0,
+            "groups_any_held": 0,
+            "occurrences": 0,
+            "accepted_occurrences": 0,
+            "held_occurrences": 0,
+            "decisions": {}
+          },
+          "non_comedy": {
+            "groups": 42,
+            "groups_any_accepted": 0,
+            "groups_any_held": 42,
+            "occurrences": 42,
+            "accepted_occurrences": 0,
+            "held_occurrences": 42,
+            "decisions": {
+              "reject": 39,
+              "review": 3
+            }
+          },
+          "unknown": {
+            "groups": 8,
+            "groups_any_accepted": 0,
+            "groups_any_held": 8,
+            "occurrences": 8,
+            "accepted_occurrences": 0,
+            "held_occurrences": 8,
+            "decisions": {
+              "review": 8
+            }
+          }
+        },
+        "remaining_comedy_holds": [],
+        "remaining_comedy_hold_reason_occurrence_counts": {}
+      }
+    },
+    {
+      "source_id": 595,
+      "reviewed_event_groups": 37,
+      "reviewed_occurrences": 84,
+      "before": {
+        "gold_outcomes": {
+          "comedy": {
+            "groups": 14,
+            "groups_any_accepted": 2,
+            "groups_any_held": 12,
+            "occurrences": 23,
+            "accepted_occurrences": 4,
+            "held_occurrences": 19,
+            "decisions": {
+              "reject": 7,
+              "review": 12,
+              "accept": 4
+            }
+          },
+          "non_comedy": {
+            "groups": 17,
+            "groups_any_accepted": 0,
+            "groups_any_held": 17,
+            "occurrences": 51,
+            "accepted_occurrences": 0,
+            "held_occurrences": 51,
+            "decisions": {
+              "review": 36,
+              "reject": 15
+            }
+          },
+          "unknown": {
+            "groups": 6,
+            "groups_any_accepted": 0,
+            "groups_any_held": 6,
+            "occurrences": 10,
+            "accepted_occurrences": 0,
+            "held_occurrences": 10,
+            "decisions": {
+              "review": 8,
+              "reject": 2
+            }
+          }
+        }
+      },
+      "after": {
+        "gold_outcomes": {
+          "comedy": {
+            "groups": 14,
+            "groups_any_accepted": 4,
+            "groups_any_held": 10,
+            "occurrences": 23,
+            "accepted_occurrences": 8,
+            "held_occurrences": 15,
+            "decisions": {
+              "reject": 7,
+              "review": 8,
+              "accept": 8
+            }
+          },
+          "non_comedy": {
+            "groups": 17,
+            "groups_any_accepted": 0,
+            "groups_any_held": 17,
+            "occurrences": 51,
+            "accepted_occurrences": 0,
+            "held_occurrences": 51,
+            "decisions": {
+              "review": 24,
+              "reject": 27
+            }
+          },
+          "unknown": {
+            "groups": 6,
+            "groups_any_accepted": 0,
+            "groups_any_held": 6,
+            "occurrences": 10,
+            "accepted_occurrences": 0,
+            "held_occurrences": 10,
+            "decisions": {
+              "review": 8,
+              "reject": 2
+            }
+          }
+        },
+        "remaining_comedy_holds": [
+          {
+            "event_id": 132785,
+            "title": "Beetlejuice Afterlife Cabaret",
+            "held_occurrences": 2,
+            "accepted_occurrences": 0,
+            "reason_occurrence_counts": {
+              "blocked_only_lineup": 2
+            }
+          },
+          {
+            "event_id": 121017,
+            "title": "UNDRGRND Comedy",
+            "held_occurrences": 1,
+            "accepted_occurrences": 0,
+            "reason_occurrence_counts": {
+              "blocked_only_lineup": 1
+            }
+          },
+          {
+            "event_id": 127684,
+            "title": "Sex & Candy Burlesque",
+            "held_occurrences": 2,
+            "accepted_occurrences": 0,
+            "reason_occurrence_counts": {
+              "unverified_performer": 2,
+              "insufficient_event_evidence": 2
+            }
+          },
+          {
+            "event_id": 145197,
+            "title": "Hey, Rube!  Open Mic and Variety Clown Night",
+            "held_occurrences": 1,
+            "accepted_occurrences": 0,
+            "reason_occurrence_counts": {
+              "unverified_performer": 1,
+              "insufficient_event_evidence": 1
+            }
+          },
+          {
+            "event_id": 142166,
+            "title": "FOOS GOT LOVE TOUR",
+            "held_occurrences": 1,
+            "accepted_occurrences": 0,
+            "reason_occurrence_counts": {
+              "database_membership_not_comedy_evidence": 1,
+              "insufficient_event_evidence": 1
+            }
+          },
+          {
+            "event_id": 143792,
+            "title": "TACOS and COMEDY",
+            "held_occurrences": 1,
+            "accepted_occurrences": 0,
+            "reason_occurrence_counts": {
+              "database_membership_not_comedy_evidence": 1,
+              "insufficient_event_evidence": 1
+            }
+          },
+          {
+            "event_id": 145211,
+            "title": "Don't Dream It, Tease It!  Tim Curry Burlesque Tribute",
+            "held_occurrences": 2,
+            "accepted_occurrences": 0,
+            "reason_occurrence_counts": {
+              "unverified_performer": 2,
+              "insufficient_event_evidence": 2
+            }
+          },
+          {
+            "event_id": 126130,
+            "title": "Jiggles and Giggles Comedy Cabaret",
+            "held_occurrences": 2,
+            "accepted_occurrences": 0,
+            "reason_occurrence_counts": {
+              "blocked_only_lineup": 2
+            }
+          },
+          {
+            "event_id": 122678,
+            "title": "Potter Parodies Presents: Holiday at Hogwarts",
+            "held_occurrences": 2,
+            "accepted_occurrences": 0,
+            "reason_occurrence_counts": {
+              "blocked_only_lineup": 2
+            }
+          },
+          {
+            "event_id": 145235,
+            "title": "Pok\u00e9Tease Burlesque",
+            "held_occurrences": 1,
+            "accepted_occurrences": 0,
+            "reason_occurrence_counts": {
+              "unverified_performer": 1,
+              "insufficient_event_evidence": 1
+            }
+          }
+        ],
+        "remaining_comedy_hold_reason_occurrence_counts": {
+          "blocked_only_lineup": 7,
+          "unverified_performer": 6,
+          "insufficient_event_evidence": 8,
+          "database_membership_not_comedy_evidence": 2
+        }
+      }
+    },
+    {
+      "source_id": 192,
+      "reviewed_event_groups": 60,
+      "reviewed_occurrences": 153,
+      "before": {
+        "gold_outcomes": {
+          "comedy": {
+            "groups": 13,
+            "groups_any_accepted": 0,
+            "groups_any_held": 13,
+            "occurrences": 28,
+            "accepted_occurrences": 0,
+            "held_occurrences": 28,
+            "decisions": {
+              "review": 26,
+              "reject": 2
+            }
+          },
+          "non_comedy": {
+            "groups": 1,
+            "groups_any_accepted": 0,
+            "groups_any_held": 1,
+            "occurrences": 1,
+            "accepted_occurrences": 0,
+            "held_occurrences": 1,
+            "decisions": {
+              "review": 1
+            }
+          },
+          "unknown": {
+            "groups": 46,
+            "groups_any_accepted": 0,
+            "groups_any_held": 46,
+            "occurrences": 124,
+            "accepted_occurrences": 0,
+            "held_occurrences": 124,
+            "decisions": {
+              "review": 123,
+              "reject": 1
+            }
+          }
+        }
+      },
+      "after": {
+        "gold_outcomes": {
+          "comedy": {
+            "groups": 13,
+            "groups_any_accepted": 0,
+            "groups_any_held": 13,
+            "occurrences": 28,
+            "accepted_occurrences": 0,
+            "held_occurrences": 28,
+            "decisions": {
+              "review": 27,
+              "reject": 1
+            }
+          },
+          "non_comedy": {
+            "groups": 1,
+            "groups_any_accepted": 0,
+            "groups_any_held": 1,
+            "occurrences": 1,
+            "accepted_occurrences": 0,
+            "held_occurrences": 1,
+            "decisions": {
+              "review": 1
+            }
+          },
+          "unknown": {
+            "groups": 46,
+            "groups_any_accepted": 0,
+            "groups_any_held": 46,
+            "occurrences": 124,
+            "accepted_occurrences": 0,
+            "held_occurrences": 124,
+            "decisions": {
+              "review": 123,
+              "reject": 1
+            }
+          }
+        },
+        "remaining_comedy_holds": [
+          {
+            "event_id": 142688,
+            "title": "Room 861 at Goodnights: Eva Evans - Oak City Comedy Festival",
+            "held_occurrences": 1,
+            "accepted_occurrences": 0,
+            "reason_occurrence_counts": {
+              "unverified_performer": 1,
+              "insufficient_event_evidence": 1
+            }
+          },
+          {
+            "event_id": 136700,
+            "title": "Special Event: Mario Adrion",
+            "held_occurrences": 5,
+            "accepted_occurrences": 0,
+            "reason_occurrence_counts": {
+              "database_membership_not_comedy_evidence": 5,
+              "insufficient_event_evidence": 5
+            }
+          },
+          {
+            "event_id": 142685,
+            "title": "Open Mic at Goodnights",
+            "held_occurrences": 1,
+            "accepted_occurrences": 0,
+            "reason_occurrence_counts": {
+              "blocked_only_lineup": 1
+            }
+          },
+          {
+            "event_id": 136478,
+            "title": "Special Event: That One Mailman",
+            "held_occurrences": 1,
+            "accepted_occurrences": 0,
+            "reason_occurrence_counts": {
+              "canonical_parent_resolved": 1,
+              "database_membership_not_comedy_evidence": 1,
+              "insufficient_event_evidence": 1
+            }
+          },
+          {
+            "event_id": 142689,
+            "title": "Room 861 at Goodnights: Hunter Luke Edwards",
+            "held_occurrences": 1,
+            "accepted_occurrences": 0,
+            "reason_occurrence_counts": {
+              "database_membership_not_comedy_evidence": 1,
+              "insufficient_event_evidence": 1
+            }
+          },
+          {
+            "event_id": 142029,
+            "title": "Special Event: Wes Barker",
+            "held_occurrences": 1,
+            "accepted_occurrences": 0,
+            "reason_occurrence_counts": {
+              "database_membership_not_comedy_evidence": 1,
+              "insufficient_event_evidence": 1
+            }
+          },
+          {
+            "event_id": 137239,
+            "title": "Room 861 at Goodnights: Hassan Phills",
+            "held_occurrences": 5,
+            "accepted_occurrences": 0,
+            "reason_occurrence_counts": {
+              "database_membership_not_comedy_evidence": 5,
+              "insufficient_event_evidence": 5
+            }
+          },
+          {
+            "event_id": 143903,
+            "title": "Special Event: Sarper Guven",
+            "held_occurrences": 1,
+            "accepted_occurrences": 0,
+            "reason_occurrence_counts": {
+              "canonical_parent_resolved": 1,
+              "database_membership_not_comedy_evidence": 1,
+              "insufficient_event_evidence": 1
+            }
+          },
+          {
+            "event_id": 143900,
+            "title": "Goodnights Presents: Ladies Laugh Lounge: Holiday Edition",
+            "held_occurrences": 1,
+            "accepted_occurrences": 0,
+            "reason_occurrence_counts": {
+              "affirmative_event_comedy": 1,
+              "blocked_only_lineup": 1,
+              "comedy_block_conflict": 1
+            }
+          },
+          {
+            "event_id": 133918,
+            "title": "Special Event: Ashley Gavin",
+            "held_occurrences": 5,
+            "accepted_occurrences": 0,
+            "reason_occurrence_counts": {
+              "database_membership_not_comedy_evidence": 5,
+              "insufficient_event_evidence": 5
+            }
+          },
+          {
+            "event_id": 143713,
+            "title": "Special Event: Steve Wrigley",
+            "held_occurrences": 1,
+            "accepted_occurrences": 0,
+            "reason_occurrence_counts": {
+              "database_membership_not_comedy_evidence": 1,
+              "insufficient_event_evidence": 1
+            }
+          },
+          {
+            "event_id": 144549,
+            "title": "Room 861 at Goodnights: SAANIYA ABBAS: HELLARIOUS",
+            "held_occurrences": 4,
+            "accepted_occurrences": 0,
+            "reason_occurrence_counts": {
+              "database_membership_not_comedy_evidence": 4,
+              "insufficient_event_evidence": 4
+            }
+          },
+          {
+            "event_id": 144561,
+            "title": "Special Event: Kunal Kamra (THIS SHOW IS COMPLETELY IN HINDI WITH NO TRANSLATION)",
+            "held_occurrences": 1,
+            "accepted_occurrences": 0,
+            "reason_occurrence_counts": {
+              "database_membership_not_comedy_evidence": 1,
+              "insufficient_event_evidence": 1
+            }
+          }
+        ],
+        "remaining_comedy_hold_reason_occurrence_counts": {
+          "unverified_performer": 1,
+          "insufficient_event_evidence": 26,
+          "database_membership_not_comedy_evidence": 25,
+          "blocked_only_lineup": 2,
+          "canonical_parent_resolved": 2,
+          "affirmative_event_comedy": 1,
+          "comedy_block_conflict": 1
+        }
+      }
+    }
+  ],
+  "interpretation": "Held means reject or review. Group any-held and any-accepted can overlap when occurrences differ. Unknown gold labels remain unknown, not evidence of safe rejection or false acceptance. Original no-go remains; no enforcement authorized.",
+  "deployment_status": "Evidence-enrichment implementation not deployed; all three pilot sources remain unreviewed/off version3. Enforcement acceptance criterion13550 remains open."
+}

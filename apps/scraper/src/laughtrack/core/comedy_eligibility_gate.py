@@ -49,6 +49,11 @@ def stamp_source(shows, source):
 
 def capture_event_inputs(show, event):
     """Preserve raw evidence without making malformed metadata drop legacy events."""
+    from laughtrack.core.comedy_event_evidence import description_evidence
+
+    for item in description_evidence(event):
+        if item not in show.eligibility_evidence:
+            show.eligibility_evidence.append(item)
     # SeatEngine transformers may remove title-shaped or reviewed label talents.
     # The pipeline supplies the original event, so eligibility still sees them.
     nested = event.get("event") if isinstance(event, dict) else None
@@ -92,24 +97,28 @@ def capture_event_inputs(show, event):
             if item not in show.eligibility_evidence:
                 show.eligibility_evidence.append(item)
             continue
-        for field in ("segment", "genre", "subGenre"):
-            value = classification.get(field)
+        for category_field in ("segment", "genre", "subGenre"):
+            value = classification.get(category_field)
             name = value.get("name") if isinstance(value, dict) else None
             if not isinstance(name, str):
                 continue
             kind = {"comedy": "comedy", "music": "music", "sports": "sports"}.get(name.lower())
             if kind:
-                item = {"kind": kind, "provenance": "event_category", "detail": f"Ticketmaster {field}: {name}"}
+                item = {"kind": kind, "provenance": "event_category", "detail": f"Ticketmaster {category_field}: {name}"}
                 if item not in show.eligibility_evidence:
                     show.eligibility_evidence.append(item)
 
 
 def event_evidence(show):
+    from laughtrack.core.comedy_event_evidence import unsafe_billing
+
     evidence = [EventEvidence(**e) for e in (show.eligibility_evidence or [])]
     # Only qualified event billing; no venue names, biographies, tags or show_type.
     for kind, pattern in (("comedy", _COMEDY_BILLING), ("music", _MUSIC_BILLING), ("sports", _SPORTS_BILLING)):
         if pattern.search(show.name or ""):
-            evidence.append(EventEvidence(kind, "event_billing", show.name))
+            # Keep uncertainty explicit so trusted-source fallback cannot accept
+            # a cancelled/negated comedy title after its positive signal is removed.
+            evidence.append(EventEvidence("unknown" if unsafe_billing(show.name) else kind, "event_billing", show.name))
     return evidence
 
 

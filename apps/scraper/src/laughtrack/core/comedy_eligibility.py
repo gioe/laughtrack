@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any, Iterable, cast
 if TYPE_CHECKING:
     from laughtrack.core.entities.club.comedy_policy import SourceComedyPolicy
 
-CLASSIFIER_VERSION = "comedy-eligibility-v1"
+CLASSIFIER_VERSION = "comedy-eligibility-v2"
 _LABEL_KINDS = frozenset({"troupe", "show_label"})
 _KINDS = _LABEL_KINDS | {"person"}
 _NON_COMEDY_BLOCK_REASONS = frozenset({"non_comedian_musician", "musician", "non_comedy_sports"})

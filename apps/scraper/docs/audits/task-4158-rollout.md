@@ -239,3 +239,27 @@ and staged evidence remain available; rollback did not erase review history.
 timestamps and before/after hashes. The original calendar-only pilot remains
 **no-go**. Evidence improvements and a disclosed rerun are ongoing; no source
 was promoted to enforcement by this exercise.
+
+### Evidence-enrichment development validation
+
+The evidence-collection repair was evaluated against the same 147 frozen event
+groups and their occurrences. Labels were already known during development:
+this is **known-label development validation, not a new independent evaluation**.
+No events were relabeled. Classifier `comedy-eligibility-v2` ran read-only with
+all three sources at `unreviewed/off`, version 3; shadow staging was disabled,
+with zero model requests, model cost or database writes.
+
+Source 527: confirmed-comedy accepted occurrences 0 → 0 of 0; remaining held 0; non-comedy accepted 0 → 0 of 42; unknown held 8 of 8.
+
+Source 595: confirmed-comedy accepted occurrences 4 → 8 of 23; remaining held 15; non-comedy accepted 0 → 0 of 51; unknown held 10 of 10.
+
+Source 192: confirmed-comedy accepted occurrences 0 → 0 of 28; remaining held 28; non-comedy accepted 0 → 0 of 1; unknown held 124 of 124.
+
+[The enriched comparison](task-4158-enriched-comparison.json) records both
+group and occurrence denominators, before/after decisions, input hashes and
+every remaining confirmed-comedy hold with reason counts. Unknown labels remain
+unknown. The original no-go remains: this rerun does not justify enforcement
+or establish performance on fresh independent events.
+
+The enrichment implementation is not deployed. All three pilot sources remain
+`unreviewed/off`; enforcement acceptance criterion 13550 remains open.

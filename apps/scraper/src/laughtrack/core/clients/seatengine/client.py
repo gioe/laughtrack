@@ -1,5 +1,8 @@
+import asyncio
 from typing import Any, Callable, List, Optional
 from urllib.parse import urlparse
+
+from bs4 import BeautifulSoup
 
 from curl_cffi.requests import Response
 
@@ -14,7 +17,7 @@ from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.core.clients.seatengine.circuit_breaker import SeatEngineCircuitBreaker
 from laughtrack.core.clients.seatengine.price import coerce_inventory_price_cents
-from laughtrack.core.clients.seatengine.routing import RoutingHold, record_hold, resolve
+from laughtrack.core.clients.seatengine.routing import ROUTES_KEY, RoutingHold, record_hold, resolve
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
 from laughtrack.foundation.utilities.url import URLUtils
 from laughtrack.infrastructure.config.config_manager import ConfigManager
@@ -23,6 +26,12 @@ from laughtrack.utilities.domain.show.headliner import is_title_shaped_performer
 
 class SeatEngineClient(BaseApiClient):
     """Client for interacting with SeatEngine's API."""
+
+    DETAIL_MAX_EVENTS = 150
+    DETAIL_CONCURRENCY = 4
+    DETAIL_REQUEST_TIMEOUT = 10
+    DETAIL_TOTAL_TIMEOUT = 45
+    DETAIL_SELECTOR = "#event-detail #descr .custom-content"
 
     def __init__(self, club: Club, proxy_pool: Optional[ProxyPool] = None):
         """Initialize the client with club data."""
@@ -97,6 +106,11 @@ class SeatEngineClient(BaseApiClient):
                     self.log_warning(f"Failed to fetch venue website for {venue_id}: {e}")
                     self.venue_website = ""
 
+            if self.club.source_metadata.get("seatengine_event_details") is True:
+                try:
+                    shows = await self.collect_event_descriptions(shows)
+                except Exception as exc:
+                    self.log_warning(f"SeatEngine optional descriptions failed: {type(exc).__name__}")
             return shows
 
         except (CircuitBreakerOpenError, NetworkError):
@@ -174,6 +188,83 @@ class SeatEngineClient(BaseApiClient):
         inventories = show.get("inventories")
         return isinstance(inventories, list) and len(inventories) > 0
 
+    @classmethod
+    def extract_event_description(cls, html: str, event_id: str) -> Optional[str]:
+        """Read only the event-description tab on a matching SeatEngine page.
+
+        Biography tabs, JSON-LD venue descriptions and mobile duplicate panels
+        are deliberately excluded. A redirect to another event stays unknown.
+        """
+        if not html or len(html) > 2_000_000:
+            return None
+        soup = BeautifulSoup(html, "html.parser")
+        root = soup.select_one("#event-detail")
+        if root is None or not any(
+            urlparse(anchor.get("href", "")).path.rstrip("/") == f"/events/{event_id}"
+            for anchor in root.find_all("a", href=True)
+        ):
+            return None
+        description = root.select_one("#descr .custom-content")
+        if description is None:
+            return None
+        for node in description.select("script, style, nav, form, #bio"):
+            node.decompose()
+        text = " ".join(description.get_text(" ", strip=True).split())
+        return text if text and len(text) <= 16_000 else None
+
+    async def collect_event_descriptions(self, shows: List[JSONDict]) -> List[JSONDict]:
+        """Bounded optional public detail reads, once per event per fetch call.
+
+        Missing/failed details never discard an occurrence or alter ticket data.
+        All work is awaited or cancelled before returning; no detached workers.
+        """
+        if ROUTES_KEY in self.club.source_metadata:
+            self.log_warning("SeatEngine optional descriptions skipped for routed source; per-venue URLs need review")
+            return shows
+        grouped = {}
+        for show in shows:
+            event = show.get("event") if isinstance(show, dict) else None
+            if not isinstance(event, dict):
+                continue
+            event_id, show_id = str(event.get("id", "")), str(show.get("id", ""))
+            if event_id.isdigit() and show_id.isdigit():
+                grouped.setdefault(event_id, show_id)
+        results = {
+            event_id: {"status": "budget_exhausted", "event_id": event_id, "show_id": show_id}
+            for event_id, show_id in grouped.items()
+        }
+        semaphore = asyncio.Semaphore(self.DETAIL_CONCURRENCY)
+
+        async def fetch(event_id, show_id):
+            async with semaphore:
+                result = {"event_id": event_id, "show_id": show_id, "selector": self.DETAIL_SELECTOR}
+                try:
+                    url = self._build_public_show_url(show_id)
+                    result["url"] = url
+                    html = await asyncio.wait_for(self.fetch_html(url), timeout=self.DETAIL_REQUEST_TIMEOUT)
+                    text = self.extract_event_description(html, event_id)
+                    result.update(status="collected" if text else "empty")
+                    if text:
+                        result["text"] = text
+                except Exception as exc:
+                    result.update(status="failed", error_type=type(exc).__name__)
+                    self.log_warning(f"SeatEngine event description unavailable for event {event_id}: {type(exc).__name__}")
+                results[event_id] = result
+
+        work = asyncio.gather(
+            *(fetch(event_id, show_id) for event_id, show_id in list(grouped.items())[:self.DETAIL_MAX_EVENTS])
+        )
+        try:
+            await asyncio.wait_for(work, timeout=self.DETAIL_TOTAL_TIMEOUT)
+        except asyncio.TimeoutError:
+            self.log_warning("SeatEngine event description collection reached its total time budget")
+        output = []
+        for show in shows:
+            event = show.get("event") if isinstance(show, dict) else None
+            detail = results.get(str(event.get("id"))) if isinstance(event, dict) else None
+            output.append({**show, "_comedy_event_detail": dict(detail)} if detail else show)
+        return output
+
     def create_show(self, show_dict: JSONDict) -> Optional[Show]:
         """Create a Show object from the SeatEngine response data."""
         try:
@@ -240,7 +331,12 @@ class SeatEngineClient(BaseApiClient):
             "name": event_data.get("name"),
             "date": parsed_date,
             "show_page_url": show_page_url,
-            "description": event_data.get("description"),
+            "description": (
+                show_dict["_comedy_event_detail"]["text"]
+                if isinstance(show_dict.get("_comedy_event_detail"), dict)
+                and show_dict["_comedy_event_detail"].get("status") == "collected"
+                else event_data.get("description")
+            ),
             "tickets": self._extract_ticket_data(show_dict),
         }
 

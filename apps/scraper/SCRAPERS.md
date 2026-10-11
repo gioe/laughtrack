@@ -805,6 +805,24 @@ When onboarding a new SeatEngine venue, check the subdomain before assuming whic
 
 **Finding the ID:** Use the `seatengine_national` discovery scraper, or enumerate via the SeatEngine REST API.
 
+**Optional event-description evidence:** For the `seatengine` scraper, source metadata
+`seatengine_event_details: true` enables bounded public show-page reads after the REST
+calendar fetch. This is opt-in; adding this code does not enable deployed sources.
+The client reads only `#event-detail #descr .custom-content` after checking a matching
+`/events/<event_id>` link. Biography tabs, venue descriptions, and page navigation are
+excluded. One page supplies all occurrences of that event in the current fetch;
+limits are 150 event groups, four concurrent requests, ten seconds per request, and
+45 seconds total. Failed, missing, or over-budget details retain the original events
+and tickets with unknown description evidence. Routed aggregate sources are skipped
+until their per-venue public URLs are verified. This does not change ingestion policy
+or make blocked performers into comedy evidence.
+
+Implementation: `core/clients/seatengine/client.py`. Saved-page fixture replay can
+substitute only the client's `fetch_html` response while exercising the same collection
+method, with no provider or model API calls; raw HTML must remain outside committed
+artifacts. `scripts/core/pilot_comedy_eligibility.py` replays the resulting saved events
+and is read-only by default (`--stage-shadow` explicitly records observations).
+
 **DB setup:**
 ```sql
 UPDATE clubs SET scraper = 'seatengine', seatengine_id = '123' WHERE name = 'My Club';
