@@ -1,0 +1,700 @@
+{
+  "version": 1,
+  "source_artifact": "TASK-4160 task-4160-fresh-selection.json",
+  "source_sha256": "c4a1aac80047666b7666baaad812ef85fbf51d89be605d9e8334c9c4d796099e",
+  "rule": "Exclude all previously exposed source/native-event pairs; new occurrences are not new groups.",
+  "excluded_groups": [
+    {
+      "source_id": 192,
+      "event_id": "125978"
+    },
+    {
+      "source_id": 192,
+      "event_id": "125980"
+    },
+    {
+      "source_id": 192,
+      "event_id": "131288"
+    },
+    {
+      "source_id": 192,
+      "event_id": "131981"
+    },
+    {
+      "source_id": 192,
+      "event_id": "132832"
+    },
+    {
+      "source_id": 192,
+      "event_id": "133529"
+    },
+    {
+      "source_id": 192,
+      "event_id": "133869"
+    },
+    {
+      "source_id": 192,
+      "event_id": "133918"
+    },
+    {
+      "source_id": 192,
+      "event_id": "133935"
+    },
+    {
+      "source_id": 192,
+      "event_id": "134251"
+    },
+    {
+      "source_id": 192,
+      "event_id": "134747"
+    },
+    {
+      "source_id": 192,
+      "event_id": "134748"
+    },
+    {
+      "source_id": 192,
+      "event_id": "134821"
+    },
+    {
+      "source_id": 192,
+      "event_id": "134930"
+    },
+    {
+      "source_id": 192,
+      "event_id": "135190"
+    },
+    {
+      "source_id": 192,
+      "event_id": "135457"
+    },
+    {
+      "source_id": 192,
+      "event_id": "135970"
+    },
+    {
+      "source_id": 192,
+      "event_id": "136476"
+    },
+    {
+      "source_id": 192,
+      "event_id": "136477"
+    },
+    {
+      "source_id": 192,
+      "event_id": "136478"
+    },
+    {
+      "source_id": 192,
+      "event_id": "136700"
+    },
+    {
+      "source_id": 192,
+      "event_id": "137063"
+    },
+    {
+      "source_id": 192,
+      "event_id": "137239"
+    },
+    {
+      "source_id": 192,
+      "event_id": "137902"
+    },
+    {
+      "source_id": 192,
+      "event_id": "137971"
+    },
+    {
+      "source_id": 192,
+      "event_id": "138576"
+    },
+    {
+      "source_id": 192,
+      "event_id": "138693"
+    },
+    {
+      "source_id": 192,
+      "event_id": "139227"
+    },
+    {
+      "source_id": 192,
+      "event_id": "139357"
+    },
+    {
+      "source_id": 192,
+      "event_id": "139360"
+    },
+    {
+      "source_id": 192,
+      "event_id": "139361"
+    },
+    {
+      "source_id": 192,
+      "event_id": "139522"
+    },
+    {
+      "source_id": 192,
+      "event_id": "139527"
+    },
+    {
+      "source_id": 192,
+      "event_id": "139557"
+    },
+    {
+      "source_id": 192,
+      "event_id": "139617"
+    },
+    {
+      "source_id": 192,
+      "event_id": "139845"
+    },
+    {
+      "source_id": 192,
+      "event_id": "140314"
+    },
+    {
+      "source_id": 192,
+      "event_id": "140694"
+    },
+    {
+      "source_id": 192,
+      "event_id": "141002"
+    },
+    {
+      "source_id": 192,
+      "event_id": "141074"
+    },
+    {
+      "source_id": 192,
+      "event_id": "141343"
+    },
+    {
+      "source_id": 192,
+      "event_id": "141868"
+    },
+    {
+      "source_id": 192,
+      "event_id": "142028"
+    },
+    {
+      "source_id": 192,
+      "event_id": "142029"
+    },
+    {
+      "source_id": 192,
+      "event_id": "142128"
+    },
+    {
+      "source_id": 192,
+      "event_id": "142164"
+    },
+    {
+      "source_id": 192,
+      "event_id": "142206"
+    },
+    {
+      "source_id": 192,
+      "event_id": "142299"
+    },
+    {
+      "source_id": 192,
+      "event_id": "142300"
+    },
+    {
+      "source_id": 192,
+      "event_id": "142301"
+    },
+    {
+      "source_id": 192,
+      "event_id": "142515"
+    },
+    {
+      "source_id": 192,
+      "event_id": "142516"
+    },
+    {
+      "source_id": 192,
+      "event_id": "142548"
+    },
+    {
+      "source_id": 192,
+      "event_id": "142685"
+    },
+    {
+      "source_id": 192,
+      "event_id": "142688"
+    },
+    {
+      "source_id": 192,
+      "event_id": "142689"
+    },
+    {
+      "source_id": 192,
+      "event_id": "143014"
+    },
+    {
+      "source_id": 192,
+      "event_id": "143015"
+    },
+    {
+      "source_id": 192,
+      "event_id": "143135"
+    },
+    {
+      "source_id": 192,
+      "event_id": "143136"
+    },
+    {
+      "source_id": 192,
+      "event_id": "143355"
+    },
+    {
+      "source_id": 192,
+      "event_id": "143478"
+    },
+    {
+      "source_id": 192,
+      "event_id": "143680"
+    },
+    {
+      "source_id": 192,
+      "event_id": "143713"
+    },
+    {
+      "source_id": 192,
+      "event_id": "143715"
+    },
+    {
+      "source_id": 192,
+      "event_id": "143723"
+    },
+    {
+      "source_id": 192,
+      "event_id": "143724"
+    },
+    {
+      "source_id": 192,
+      "event_id": "143783"
+    },
+    {
+      "source_id": 192,
+      "event_id": "143900"
+    },
+    {
+      "source_id": 192,
+      "event_id": "143903"
+    },
+    {
+      "source_id": 192,
+      "event_id": "143905"
+    },
+    {
+      "source_id": 192,
+      "event_id": "143907"
+    },
+    {
+      "source_id": 192,
+      "event_id": "143913"
+    },
+    {
+      "source_id": 192,
+      "event_id": "143916"
+    },
+    {
+      "source_id": 192,
+      "event_id": "144283"
+    },
+    {
+      "source_id": 192,
+      "event_id": "144549"
+    },
+    {
+      "source_id": 192,
+      "event_id": "144561"
+    },
+    {
+      "source_id": 192,
+      "event_id": "144809"
+    },
+    {
+      "source_id": 192,
+      "event_id": "144810"
+    },
+    {
+      "source_id": 192,
+      "event_id": "145027"
+    },
+    {
+      "source_id": 192,
+      "event_id": "145030"
+    },
+    {
+      "source_id": 192,
+      "event_id": "145222"
+    },
+    {
+      "source_id": 192,
+      "event_id": "145226"
+    },
+    {
+      "source_id": 192,
+      "event_id": "145227"
+    },
+    {
+      "source_id": 192,
+      "event_id": "145294"
+    },
+    {
+      "source_id": 192,
+      "event_id": "145296"
+    },
+    {
+      "source_id": 527,
+      "event_id": "140899"
+    },
+    {
+      "source_id": 527,
+      "event_id": "141056"
+    },
+    {
+      "source_id": 527,
+      "event_id": "141165"
+    },
+    {
+      "source_id": 527,
+      "event_id": "141223"
+    },
+    {
+      "source_id": 527,
+      "event_id": "141230"
+    },
+    {
+      "source_id": 527,
+      "event_id": "141234"
+    },
+    {
+      "source_id": 527,
+      "event_id": "141235"
+    },
+    {
+      "source_id": 527,
+      "event_id": "141236"
+    },
+    {
+      "source_id": 527,
+      "event_id": "141238"
+    },
+    {
+      "source_id": 527,
+      "event_id": "141239"
+    },
+    {
+      "source_id": 527,
+      "event_id": "141240"
+    },
+    {
+      "source_id": 527,
+      "event_id": "141923"
+    },
+    {
+      "source_id": 527,
+      "event_id": "142153"
+    },
+    {
+      "source_id": 527,
+      "event_id": "142154"
+    },
+    {
+      "source_id": 527,
+      "event_id": "142155"
+    },
+    {
+      "source_id": 527,
+      "event_id": "142157"
+    },
+    {
+      "source_id": 527,
+      "event_id": "142158"
+    },
+    {
+      "source_id": 527,
+      "event_id": "142159"
+    },
+    {
+      "source_id": 527,
+      "event_id": "142161"
+    },
+    {
+      "source_id": 527,
+      "event_id": "143732"
+    },
+    {
+      "source_id": 527,
+      "event_id": "143812"
+    },
+    {
+      "source_id": 527,
+      "event_id": "143813"
+    },
+    {
+      "source_id": 527,
+      "event_id": "143814"
+    },
+    {
+      "source_id": 527,
+      "event_id": "143815"
+    },
+    {
+      "source_id": 527,
+      "event_id": "143816"
+    },
+    {
+      "source_id": 527,
+      "event_id": "143817"
+    },
+    {
+      "source_id": 527,
+      "event_id": "143818"
+    },
+    {
+      "source_id": 527,
+      "event_id": "143819"
+    },
+    {
+      "source_id": 527,
+      "event_id": "143820"
+    },
+    {
+      "source_id": 527,
+      "event_id": "143821"
+    },
+    {
+      "source_id": 527,
+      "event_id": "143822"
+    },
+    {
+      "source_id": 527,
+      "event_id": "143823"
+    },
+    {
+      "source_id": 527,
+      "event_id": "143824"
+    },
+    {
+      "source_id": 527,
+      "event_id": "143825"
+    },
+    {
+      "source_id": 527,
+      "event_id": "143826"
+    },
+    {
+      "source_id": 527,
+      "event_id": "143827"
+    },
+    {
+      "source_id": 527,
+      "event_id": "143828"
+    },
+    {
+      "source_id": 527,
+      "event_id": "143829"
+    },
+    {
+      "source_id": 527,
+      "event_id": "143830"
+    },
+    {
+      "source_id": 527,
+      "event_id": "143831"
+    },
+    {
+      "source_id": 527,
+      "event_id": "144202"
+    },
+    {
+      "source_id": 527,
+      "event_id": "144218"
+    },
+    {
+      "source_id": 527,
+      "event_id": "144219"
+    },
+    {
+      "source_id": 527,
+      "event_id": "144220"
+    },
+    {
+      "source_id": 527,
+      "event_id": "144263"
+    },
+    {
+      "source_id": 527,
+      "event_id": "144285"
+    },
+    {
+      "source_id": 527,
+      "event_id": "145143"
+    },
+    {
+      "source_id": 527,
+      "event_id": "145164"
+    },
+    {
+      "source_id": 527,
+      "event_id": "145300"
+    },
+    {
+      "source_id": 527,
+      "event_id": "145441"
+    },
+    {
+      "source_id": 595,
+      "event_id": "90249"
+    },
+    {
+      "source_id": 595,
+      "event_id": "120222"
+    },
+    {
+      "source_id": 595,
+      "event_id": "121017"
+    },
+    {
+      "source_id": 595,
+      "event_id": "121751"
+    },
+    {
+      "source_id": 595,
+      "event_id": "122678"
+    },
+    {
+      "source_id": 595,
+      "event_id": "122726"
+    },
+    {
+      "source_id": 595,
+      "event_id": "125330"
+    },
+    {
+      "source_id": 595,
+      "event_id": "126130"
+    },
+    {
+      "source_id": 595,
+      "event_id": "127640"
+    },
+    {
+      "source_id": 595,
+      "event_id": "127683"
+    },
+    {
+      "source_id": 595,
+      "event_id": "127684"
+    },
+    {
+      "source_id": 595,
+      "event_id": "130169"
+    },
+    {
+      "source_id": 595,
+      "event_id": "132405"
+    },
+    {
+      "source_id": 595,
+      "event_id": "132785"
+    },
+    {
+      "source_id": 595,
+      "event_id": "133073"
+    },
+    {
+      "source_id": 595,
+      "event_id": "136209"
+    },
+    {
+      "source_id": 595,
+      "event_id": "138219"
+    },
+    {
+      "source_id": 595,
+      "event_id": "139932"
+    },
+    {
+      "source_id": 595,
+      "event_id": "141726"
+    },
+    {
+      "source_id": 595,
+      "event_id": "141789"
+    },
+    {
+      "source_id": 595,
+      "event_id": "142110"
+    },
+    {
+      "source_id": 595,
+      "event_id": "142166"
+    },
+    {
+      "source_id": 595,
+      "event_id": "142705"
+    },
+    {
+      "source_id": 595,
+      "event_id": "143516"
+    },
+    {
+      "source_id": 595,
+      "event_id": "143645"
+    },
+    {
+      "source_id": 595,
+      "event_id": "143646"
+    },
+    {
+      "source_id": 595,
+      "event_id": "143647"
+    },
+    {
+      "source_id": 595,
+      "event_id": "143730"
+    },
+    {
+      "source_id": 595,
+      "event_id": "143792"
+    },
+    {
+      "source_id": 595,
+      "event_id": "143800"
+    },
+    {
+      "source_id": 595,
+      "event_id": "144577"
+    },
+    {
+      "source_id": 595,
+      "event_id": "144845"
+    },
+    {
+      "source_id": 595,
+      "event_id": "145197"
+    },
+    {
+      "source_id": 595,
+      "event_id": "145211"
+    },
+    {
+      "source_id": 595,
+      "event_id": "145235"
+    },
+    {
+      "source_id": 595,
+      "event_id": "145268"
+    },
+    {
+      "source_id": 595,
+      "event_id": "145358"
+    }
+  ]
+}
