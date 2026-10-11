@@ -132,7 +132,7 @@ def extract_source(archive, destination):
                 path.write_bytes(saved.extractfile(member).read())
 
 
-def run_revision(revision, inputs, *, repo=REPO):
+def run_revision(revision, inputs, *, repo=REPO, ablations=False):
     """Execute committed source in a fresh interpreter, isolated from editable installs."""
     if not re.fullmatch(r"[0-9a-f]{40}", revision):
         raise ValueError("Replay requires a complete immutable git commit SHA")
@@ -149,14 +149,14 @@ def run_revision(revision, inputs, *, repo=REPO):
                        "PYTHONDONTWRITEBYTECODE": "1", "COMEDY_MODEL_ENABLED": "0",
                        "COMEDY_MODEL_CACHE_ENABLED": "0"}
         result = subprocess.run([sys.executable, str(SCRIPT), "--worker", str(runtime)],
-                                input=json.dumps(inputs), text=True, capture_output=True,
+                                input=json.dumps({"inputs": inputs, "ablations": ablations}), text=True, capture_output=True,
                                 cwd=runtime, env=environment, check=True, timeout=120)
     value = json.loads(result.stdout)
     return {"git_revision": revision, "source_archive_sha256": hashlib.sha256(archive).hexdigest(),
             "input_sha256": digest(inputs), **value}
 
 
-def worker(runtime, inputs):
+def worker(runtime, inputs, *, ablations=False):
     """Call the same pure capture/classification functions used by the write gate.
 
     Publication staging, human-review overrides and optional model caches are
@@ -165,6 +165,7 @@ def worker(runtime, inputs):
     import socket
     import sqlite3
     import psycopg2
+    import importlib.abc
     from types import SimpleNamespace
 
     def forbidden(*args, **kwargs):
@@ -175,7 +176,14 @@ def worker(runtime, inputs):
     socket.create_connection = forbidden
     socket.getaddrinfo = forbidden
     psycopg2.connect = forbidden
+    psycopg2._psycopg.connect = forbidden
     sqlite3.connect = forbidden
+    class NoModelImports(importlib.abc.MetaPathFinder):
+        def find_spec(self, fullname, path, target=None):
+            if fullname.split(".")[0] in {"openai", "anthropic"} or fullname == "laughtrack.core.comedy_eligibility_model":
+                raise RuntimeError("Offline replay forbids model imports")
+            return None
+    sys.meta_path.insert(0, NoModelImports())
     # Audit hooks also catch direct low-level socket/sqlite calls.
     def audit(event, args):
         if event in {"socket.connect", "socket.getaddrinfo", "sqlite3.connect"}:
@@ -206,14 +214,28 @@ def worker(runtime, inputs):
             reviewed_at = datetime.fromisoformat(str(policy.reviewed_at).replace("Z", "+00:00"))
             if reviewed_at.tzinfo is None:
                 raise ValueError("Reviewed source timestamp must have timezone")
-        decision = classifier.classify_comedy_eligibility(
-            source_id=snapshot["source_id"], policy=policy, evidence=evidence,
+        arguments = dict(source_id=snapshot["source_id"], policy=policy,
             performers=[classifier.PerformerObservation(name) for name in snapshot["performers"]],
             people=[classifier.CanonicalPerson(**person) for person in snapshot["people"]],
             denied=[classifier.DeniedName(**person) for person in snapshot["denied"]],
-        ).to_dict()
-        rows.append({"public_show_id": entry["public_show_id"], "policy_sha256": digest(snapshot["policy"]),
-                     "decision": decision})
+        )
+        def classify(items):
+            return classifier.classify_comedy_eligibility(evidence=items, **arguments).to_dict()
+        decision = classify(evidence)
+        row = {"public_show_id": entry["public_show_id"], "policy_sha256": digest(snapshot["policy"]),
+               "decision": decision}
+        if ablations:
+            def key(item):
+                return f"{item.rule_family}:{item.rule_reason}" if item.rule_family else None
+            def compact(value):
+                return {field: value[field] for field in ("decision", "content_status", "audience_format", "format_disposition")}
+            hits = sorted({key(item) for item in evidence if key(item) is not None})
+            base = [item for item in evidence if key(item) is None]
+            row["ablations"] = {"without_typed_rules": compact(classify(base)), "rules": {
+                rule: {"standalone": compact(classify(base + [item for item in evidence if key(item) == rule])),
+                       "without_rule": compact(classify([item for item in evidence if key(item) != rule]))}
+                for rule in hits}}
+        rows.append(row)
     imported = {}
     for name, module in sorted(sys.modules.items()):
         if name.startswith(("laughtrack.", "sql.")) and getattr(module, "__file__", None):
@@ -225,9 +247,10 @@ def worker(runtime, inputs):
             "rows": rows, "io_contract": {"database_writes": 0, "network_calls": 0, "model_calls": 0}}
 
 
-def replay(corpus, *, revisions=REVISIONS, diagnostic=False):
+def replay(corpus, *, revisions=REVISIONS, diagnostic=False, ablations=False):
     inputs, unsupported = prepare_inputs(corpus, diagnostic=diagnostic)
-    runs = {name: run_revision(revision, inputs) for name, revision in revisions.items()}
+    runs = {name: run_revision(revision, inputs, ablations=ablations and name == "candidate")
+            for name, revision in revisions.items()}
     if len({run["input_sha256"] for run in runs.values()}) != 1:
         raise ValueError("Revision inputs differ")
     return {"mode": "title_only_diagnostic" if diagnostic else "strict_ingestion_replay",
@@ -238,14 +261,222 @@ def replay(corpus, *, revisions=REVISIONS, diagnostic=False):
             "runs": runs}
 
 
+def row_denominators(records):
+    native = {(source_identity(row)["source_id"], source_identity(row)["event_key"]) for row in records
+              if source_identity(row)["source_id"] is not None and source_identity(row)["event_key"]}
+    return {"shows": len(records),
+            "venue_title_groups": len({(row["context"]["club_id"], row["event_evidence"]["title"]) for row in records}),
+            "resolved_native_groups": len(native),
+            "unresolved_native_group_occurrences": sum(source_identity(row)["source_id"] is None
+                                                        or not source_identity(row)["event_key"] for row in records),
+            "native_identifier_occurrences": sum(bool(source_identity(row)["source_performance_id"]) for row in records)}
+
+
+def outcome_counts(rows):
+    return {key: sum(row["decision"] == key for row in rows) for key in ("accept", "review", "reject")}
+
+
+def transitions(before, after):
+    return dict(sorted(Counter(f"{before[sid]['decision']}->{after[sid]['decision']}" for sid in before).items()))
+
+
+def outcome_summary(records, decisions):
+    selected = [row for row in records if row["public_show_id"] in decisions]
+    values = list(decisions.values())
+    labels = {}
+    for genre in ("comedy", "non_comedy", "unknown"):
+        ids = [row["public_show_id"] for row in selected if row["reference_label"]["genre"] == genre]
+        labels[genre] = {"shows": len(ids), **outcome_counts([decisions[sid] for sid in ids])}
+    formats = Counter(value.get("audience_format", "not_supported_by_revision") for value in values)
+    return {"denominators": row_denominators(selected), "decisions": outcome_counts(values),
+            "audience_formats": dict(sorted(formats.items())),
+            "format_dispositions": dict(sorted(Counter(value.get("format_disposition", "not_supported_by_revision")
+                                                       for value in values).items())),
+            "reference_genre_outcomes": labels,
+            "reference_selection_outcomes": {selection: outcome_counts([
+                decisions[row["public_show_id"]] for row in selected if row["reference_label"]["selection"] == selection])
+                for selection in ("flagged", "control", "unreviewed")},
+            "comedy_retained": labels["comedy"]["accept"],
+            "comedy_withheld": labels["comedy"]["review"] + labels["comedy"]["reject"],
+            "non_comedy_accepted": labels["non_comedy"]["accept"]}
+
+
+def proposed_ids(before, after):
+    return {sid for sid in before if after[sid]["decision"] == "reject"
+            or (before[sid]["decision"] == "accept" and after[sid]["decision"] != "accept")}
+
+
+def comparison_metrics(corpus, replayed):
+    """Paired denominators, sequential effects and candidate evidence ablations."""
+    records = corpus["records"]
+    decisions = {name: {row["public_show_id"]: row["decision"] for row in run["rows"]}
+                 for name, run in replayed["runs"].items()}
+    ids = set(decisions["baseline"])
+    if any(set(rows) != ids for rows in decisions.values()):
+        raise ValueError("Revision row identities differ")
+    before, after = decisions["baseline"], decisions["candidate"]
+    stages = list(decisions)
+    incremental = {f"{left}->{right}": transitions(decisions[left], decisions[right])
+                   for left, right in zip(stages, stages[1:])}
+    by_id = {row["public_show_id"]: row for row in records}
+    proposed = proposed_ids(before, after)
+    by_proxy = {}
+    for proxy in sorted({source_identity(by_id[sid])["last_scraped_by"] or "unknown" for sid in ids}):
+        members = [by_id[sid] for sid in ids if (source_identity(by_id[sid])["last_scraped_by"] or "unknown") == proxy]
+        by_proxy[proxy] = {"denominators": row_denominators(members),
+                          "before": outcome_counts([before[row["public_show_id"]] for row in members]),
+                          "after": outcome_counts([after[row["public_show_id"]] for row in members])}
+    by_source = {}
+    for source in sorted({source_identity(by_id[sid])["source_id"] for sid in ids
+                          if source_identity(by_id[sid])["source_id"] is not None}):
+        members = [by_id[sid] for sid in ids if source_identity(by_id[sid])["source_id"] == source]
+        by_source[str(source)] = {"denominators": row_denominators(members),
+                                  "before": outcome_counts([before[row["public_show_id"]] for row in members]),
+                                  "after": outcome_counts([after[row["public_show_id"]] for row in members])}
+    candidate_rows = replayed["runs"]["candidate"]["rows"]
+    variants = {row["public_show_id"]: row["ablations"] for row in candidate_rows if "ablations" in row}
+    rule_effects, overlap = {}, {}
+    if variants:
+        if set(variants) != ids:
+            raise ValueError("Partial ablation coverage")
+        untyped = {sid: row["without_typed_rules"] for sid, row in variants.items()}
+        keys = sorted({key for row in variants.values() for key in row["rules"]})
+        for key in keys:
+            hit_ids = {sid for sid, row in variants.items() if key in row["rules"]}
+            alone = {sid: row["rules"][key]["standalone"] if sid in hit_ids else untyped[sid]
+                     for sid, row in variants.items()}
+            without = {sid: row["rules"][key]["without_rule"] if sid in hit_ids else after[sid]
+                       for sid, row in variants.items()}
+            rule_effects[key] = {"matched": row_denominators([by_id[sid] for sid in hit_ids]),
+                                 "matched_public_show_ids": sorted(hit_ids),
+                                 "standalone_outcomes": outcome_counts(list(alone.values())),
+                                 "standalone_transitions_from_untyped": transitions(untyped, alone),
+                                 "combined_minus_this_rule_outcomes": outcome_counts(list(without.values())),
+                                 "incremental_transitions_into_combined": transitions(without, after)}
+        hit_sets = {sid: set(row["rules"]) for sid, row in variants.items()}
+        touched = {sid for sid, hits in hit_sets.items() if hits}
+        overlap = {"unique_matched": row_denominators([by_id[sid] for sid in touched]),
+                   "sum_of_rule_occurrence_matches": sum(len(hits) for hits in hit_sets.values()),
+                   "multiple_rule_occurrences": sum(len(hits) > 1 for hits in hit_sets.values()),
+                   "exact_rule_combinations": dict(sorted(Counter(" + ".join(sorted(hits)) for hits in hit_sets.values() if hits).items())),
+                   "without_typed_rules_outcomes": outcome_counts(list(untyped.values()))}
+    return {"mode": replayed["mode"], "corpus_denominators": row_denominators(records),
+            "evaluated_denominators": row_denominators([by_id[sid] for sid in ids]),
+            "unsupported_shows": len(replayed["unsupported"]),
+            "versions": {name: outcome_summary(records, rows) for name, rows in decisions.items()},
+            "sequential_incremental_transitions": incremental, "combined_transitions": transitions(before, after),
+            "proposed_exclusion_denominators": row_denominators([by_id[sid] for sid in proposed]),
+            "proposed_exclusion_ids": sorted(proposed),
+            "reference_comedy_newly_withheld_ids": sorted(sid for sid in ids if by_id[sid]["reference_label"]["genre"] == "comedy"
+                                                        and before[sid]["decision"] == "accept" and after[sid]["decision"] != "accept"),
+            "resolved_source_outcomes": by_source,
+            "last_scraped_by_proxy_outcomes_not_source_ownership": by_proxy,
+            "rule_ablations": rule_effects, "overlap": overlap,
+            "ablation_caveat": "Candidate classifier with typed evidence selected/removed; legacy untyped evidence retained. These are not historical revision baselines.",
+            "recall": None, "population_false_positive_rate": None}
+
+
+def changed_outcomes(corpus, replayed):
+    before = {row["public_show_id"]: row["decision"] for row in replayed["runs"]["baseline"]["rows"]}
+    after = {row["public_show_id"]: row["decision"] for row in replayed["runs"]["candidate"]["rows"]}
+    rows = []
+    for row in corpus["records"]:
+        sid = row["public_show_id"]
+        if sid not in before:
+            continue
+        previous, current = before[sid], after[sid]
+        if previous["decision"] == current["decision"]:
+            continue
+        rows.append({"public_show_id": sid, **source_identity(row), "title": row["event_evidence"]["title"],
+                     "venue": row["context"]["club_name"], "club_id": row["context"]["club_id"],
+                     "mode": replayed["mode"], "original_reference_label": row["reference_label"],
+                     "baseline_revision": replayed["runs"]["baseline"]["git_revision"],
+                     "candidate_revision": replayed["runs"]["candidate"]["git_revision"],
+                     "old": previous, "new": current})
+    return rows
+
+
+def validate_adjudications(corpus, replayed, document):
+    """Check post-outcome review coverage; never feed these judgments into replay."""
+    if (document.get("schema_version") != 1 or not document.get("reviewer") or not document.get("review_type")
+            or not document.get("reviewed_at")
+            or document.get("candidate_revision") != replayed["runs"]["candidate"]["git_revision"]
+            or document.get("manifest_sha256") != corpus["manifest_sha256"]
+            or document.get("corpus_version") != corpus["corpus_version"]):
+        raise ValueError("Adjudication version or review provenance mismatch")
+    before = {row["public_show_id"]: row["decision"] for row in replayed["runs"]["baseline"]["rows"]}
+    after = {row["public_show_id"]: row["decision"] for row in replayed["runs"]["candidate"]["rows"]}
+    expected = proposed_ids(before, after)
+    rows = document.get("records", [])
+    if len(rows) != len(expected) or {row["public_show_id"] for row in rows} != expected:
+        raise ValueError("Adjudication must cover every proposed exclusion exactly once")
+    originals = {row["public_show_id"]: (index, row) for index, row in enumerate(corpus["records"])}
+    for row in rows:
+        sid = row["public_show_id"]
+        index, original = originals[sid]
+        if (row.get("title") != original["event_evidence"]["title"] or row.get("venue") != original["context"]["club_name"]
+                or row.get("original_reference_label") != original["reference_label"]
+                or row.get("source_evidence") != original["source_evidence"]
+                or row.get("baseline_decision") != before[sid]["decision"]
+                or row.get("candidate_decision") != after[sid]["decision"]
+                or row.get("candidate_reason_codes") != after[sid]["reason_codes"]
+                or row.get("genre") not in {"comedy", "non_comedy", "unknown"}
+                or not row.get("judgment") or not row.get("rationale") or not row.get("evidence")):
+            raise ValueError("Adjudication identity, evidence or outcome mismatch")
+        for evidence in row["evidence"]:
+            field = {"name": "title", "description": "description"}.get(evidence.get("field"))
+            if (field is None or not evidence.get("excerpt")
+                    or evidence["excerpt"] not in (original["event_evidence"].get(field) or "")
+                    or evidence.get("reference") != f"raw/page-{index // 500}.json#/data/{index % 500}/{evidence['field']}"):
+                raise ValueError("Adjudication excerpt is not in the frozen event")
+    return {"sha256": digest(document), "review_type": document["review_type"], "reviewer": document["reviewer"],
+            "occurrences": len(rows), "judgments": dict(sorted(Counter(row["judgment"] for row in rows).items())),
+            "genres": dict(sorted(Counter(row["genre"] for row in rows).items()))}
+
+
+def build_report(corpus, *, adjudications=None):
+    strict = replay(corpus)
+    diagnostic = replay(corpus, diagnostic=True, ablations=True)
+    report = {"schema_version": 1, "strict": comparison_metrics(corpus, strict),
+              "title_only_diagnostic": comparison_metrics(corpus, diagnostic),
+              "strict_replay": strict, "diagnostic_replay": diagnostic,
+              "changed_outcomes": changed_outcomes(corpus, diagnostic),
+              "limits": ["Search publication is not a baseline ingestion acceptance decision.",
+                         "No source ownership, pre-filter performer or source policy reconstruction from public data.",
+                         "Public descriptions are reserved for manual adjudication, not invented collector evidence.",
+                         "Development comparison only: no blind validation, recall, rollout or inventory suppression."],
+              "database_writes": 0, "network_calls": 0, "model_calls": 0}
+    if adjudications is not None:
+        report["supplemental_adjudication"] = validate_adjudications(corpus, diagnostic, adjudications)
+    return report
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Compare frozen ingestion rule revisions offline.")
     parser.add_argument("--worker", type=Path, help=argparse.SUPPRESS)
+    parser.add_argument("--corpus", type=Path, default=SCRAPER / "docs/audits/comedy-search-rules/baseline-v1")
+    parser.add_argument("--output", type=Path, help="New local report JSON file; refuses overwriting")
+    parser.add_argument("--adjudications", type=Path, help="Optional post-outcome development review to validate")
     args = parser.parse_args(argv)
     if args.worker:
-        print(json.dumps(worker(args.worker, json.load(sys.stdin)), sort_keys=True))
+        request = json.load(sys.stdin)
+        print(json.dumps(worker(args.worker, request["inputs"], ablations=request["ablations"]), sort_keys=True))
     else:
-        parser.error("Report command is not yet configured")
+        sys.path.insert(0, str(SCRIPT.parent))
+        from comedy_search_corpus import load_corpus
+        corpus = load_corpus(args.corpus)
+        report = build_report(corpus, adjudications=json.loads(args.adjudications.read_bytes()) if args.adjudications else None)
+        if args.output:
+            output = args.output.resolve()
+            frozen = args.corpus.resolve()
+            if output == frozen or output.is_relative_to(frozen):
+                parser.error("Output cannot modify the frozen corpus")
+            output.parent.mkdir(parents=True, exist_ok=True)
+            with output.open("x") as handle:
+                json.dump(report, handle, sort_keys=True, separators=(",", ":"))
+                handle.write("\n")
+        print(json.dumps({key: value for key, value in report.items()
+                          if key not in {"strict_replay", "diagnostic_replay", "changed_outcomes"}}, indent=2, sort_keys=True))
 
 
 if __name__ == "__main__":
