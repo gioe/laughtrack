@@ -1,0 +1,181 @@
+{
+  "verified_at": "2026-10-11T14:58:02.496129+00:00",
+  "classification_generated_at": "2026-10-11T14:45:30.130817+00:00",
+  "provider_fetched_at": "2026-10-11T12:51:53.521471+00:00",
+  "purpose": "Persisted shadow execution and baseline evidence counts; no gold-label comparison.",
+  "run_flags": {
+    "COMEDY_MODEL_ENABLED": "0",
+    "COMEDY_MODEL_CACHE_ENABLED": "0",
+    "COMEDY_MONITOR_AUTO_DOWNGRADE": "0"
+  },
+  "model_requests": 0,
+  "model_cost": 0,
+  "stage_shadow": true,
+  "sources": [
+    {
+      "baseline_decisions": {
+        "reject": 3,
+        "review": 213
+      },
+      "club_id": 61,
+      "config_fingerprint": "79a4305232b6333170da1ae93480d6681d9c495a22ed96173b8f1d33fbbc75de",
+      "lineup_coverage": {
+        "observed": 207,
+        "partial": 9
+      },
+      "policy_version": 2,
+      "post_filter_occurrences": 216,
+      "provider_event_groups": 86,
+      "provider_occurrences": 216,
+      "shadow": {
+        "admitted": 216,
+        "public_writes": 0,
+        "reconciliation_safe": true,
+        "withheld": 0
+      },
+      "source_id": 192,
+      "transformed_occurrences": 216,
+      "unique_event_keys": 216,
+      "parent_resolved_occurrences": 3,
+      "parent_resolved_event_groups_mapped": 3,
+      "parent_resolved_structural_comedy_evidence_occurrences": 0,
+      "missing_lineup_occurrences": 0,
+      "partial_lineup_occurrences": 9,
+      "database_counts": {
+        "comedy_event_candidates": 216,
+        "comedy_event_decisions": 216,
+        "comedy_event_observations": 216,
+        "comedy_event_reviews": 0,
+        "comedy_event_publications": 0
+      },
+      "database_decisions": {
+        "review": 213,
+        "reject": 3
+      }
+    },
+    {
+      "baseline_decisions": {
+        "reject": 38,
+        "review": 12
+      },
+      "club_id": 475,
+      "config_fingerprint": "dd64d7f0a11320d9924cf44802367efb612d4aa7b62a70a5de871febc94fb410",
+      "lineup_coverage": {
+        "observed": 44,
+        "partial": 6
+      },
+      "policy_version": 2,
+      "post_filter_occurrences": 50,
+      "provider_event_groups": 50,
+      "provider_occurrences": 50,
+      "shadow": {
+        "admitted": 50,
+        "public_writes": 0,
+        "reconciliation_safe": true,
+        "withheld": 0
+      },
+      "source_id": 527,
+      "transformed_occurrences": 50,
+      "unique_event_keys": 50,
+      "parent_resolved_occurrences": 0,
+      "parent_resolved_event_groups_mapped": 0,
+      "parent_resolved_structural_comedy_evidence_occurrences": 0,
+      "missing_lineup_occurrences": 0,
+      "partial_lineup_occurrences": 6,
+      "database_counts": {
+        "comedy_event_candidates": 50,
+        "comedy_event_decisions": 50,
+        "comedy_event_observations": 50,
+        "comedy_event_reviews": 1,
+        "comedy_event_publications": 0
+      },
+      "database_decisions": {
+        "reject": 38,
+        "review": 12
+      }
+    },
+    {
+      "baseline_decisions": {
+        "accept": 4,
+        "reject": 24,
+        "review": 56
+      },
+      "club_id": 476,
+      "config_fingerprint": "94f0ce1fe4efe6cf6bd507442aa1137c0f3db713a5ef37a178c2a0bc5f499454",
+      "lineup_coverage": {
+        "observed": 34,
+        "partial": 50
+      },
+      "policy_version": 2,
+      "post_filter_occurrences": 84,
+      "provider_event_groups": 37,
+      "provider_occurrences": 84,
+      "shadow": {
+        "admitted": 84,
+        "public_writes": 0,
+        "reconciliation_safe": true,
+        "withheld": 0
+      },
+      "source_id": 595,
+      "transformed_occurrences": 84,
+      "unique_event_keys": 84,
+      "parent_resolved_occurrences": 0,
+      "parent_resolved_event_groups_mapped": 0,
+      "parent_resolved_structural_comedy_evidence_occurrences": 0,
+      "missing_lineup_occurrences": 0,
+      "partial_lineup_occurrences": 50,
+      "database_counts": {
+        "comedy_event_candidates": 84,
+        "comedy_event_decisions": 84,
+        "comedy_event_observations": 84,
+        "comedy_event_reviews": 0,
+        "comedy_event_publications": 0
+      },
+      "database_decisions": {
+        "review": 56,
+        "reject": 24,
+        "accept": 4
+      }
+    }
+  ],
+  "artifacts": {
+    "classified_sha256": "19550b4128a8e56cfbb75f5be69ceac7376bf8d1b6ef29e97d51a18cebaf5438",
+    "raw_provider_sha256": "237c6372890bb473328491eae97a3b50f63110accc7bd4cc3bdf4c83152dbedc",
+    "ledger_snapshot": {
+      "captured_at": "2026-10-11T14:58:02.496129+00:00",
+      "source_ids": [
+        192,
+        527,
+        595
+      ],
+      "tables": {
+        "comedy_event_candidates": {
+          "count": 350,
+          "sha256": "826beace26fe76e54273d36e776e73092634bfc1b216cf6b90ed62b1b4f5b57a"
+        },
+        "comedy_event_decisions": {
+          "count": 350,
+          "sha256": "7ec320143334469978be54341fb65024216ada45796aaa5355b07e196a84a566"
+        },
+        "comedy_event_observations": {
+          "count": 350,
+          "sha256": "8e8ddfb52e4420e4a2ed781868d5cc60c9e48a441e6a6f73d7f616be8ab814e7"
+        },
+        "comedy_event_reviews": {
+          "count": 1,
+          "sha256": "3b336df66ccd75d31860361c94739bc799bb521c06a7f00de2a78b06e5cdd72e"
+        },
+        "comedy_event_publications": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        }
+      }
+    }
+  },
+  "limitations": [
+    "Baseline counts count transformed occurrences, not independent event groups. Provider groups and occurrences are both reported.",
+    "Resolved canonical parent identity alone is not affirmative evidence that comedy occurs; structural comedy evidence is counted separately.",
+    "Public writes are zero by the pilot path (no ShowHandler) and no candidate-publication links exist; publication counts alone are not a general-purpose audit of unrelated writes.",
+    "Public-page descriptions were held out for independent labels, not supplied to the baseline classifier."
+  ]
+}

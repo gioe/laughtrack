@@ -1,0 +1,1623 @@
+{
+  "gold_sha256": "cc86177c3446a3ac95e573ad629798feecb7dd04a5a2b103e8eda10f01199a76",
+  "classified_sha256": "19550b4128a8e56cfbb75f5be69ceac7376bf8d1b6ef29e97d51a18cebaf5438",
+  "sources": [
+    {
+      "source_id": 527,
+      "reviewed_event_groups": 50,
+      "reviewed_occurrences": 50,
+      "gold_group_outcomes": {
+        "comedy": {
+          "count": 0,
+          "any_withheld": 0,
+          "any_accepted": 0
+        },
+        "non_comedy": {
+          "count": 42,
+          "any_withheld": 42,
+          "any_accepted": 0
+        },
+        "unknown": {
+          "count": 8,
+          "any_withheld": 8,
+          "any_accepted": 0
+        }
+      },
+      "gold_occurrence_decisions": {
+        "comedy": {},
+        "non_comedy": {
+          "reject": 38,
+          "review": 4
+        },
+        "unknown": {
+          "review": 8
+        }
+      },
+      "labelability": 0.84,
+      "parent_backed_occurrences": 0,
+      "missing_lineup_occurrences": 0,
+      "full_source_decisions": {
+        "reject": 38,
+        "review": 12
+      },
+      "full_source_lineup_coverage": {
+        "observed": 44,
+        "partial": 6
+      },
+      "groups": [
+        {
+          "event_id": 141234,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 141238,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 142153,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 142157,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143812,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 144218,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 142161,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 141235,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 141239,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 142154,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 142158,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 144285,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 144220,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 141236,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 141240,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 145143,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 142155,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 142159,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 141165,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 144219,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143813,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143817,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143822,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143826,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 144202,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143830,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143814,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143818,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143823,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 145441,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143827,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 140899,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 144263,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143815,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143819,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143824,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143828,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 141056,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143831,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143732,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143820,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143825,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143829,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 145300,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143816,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143821,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 145164,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 141223,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 141230,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 141923,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        }
+      ],
+      "go_no_go": "no_go"
+    },
+    {
+      "source_id": 595,
+      "reviewed_event_groups": 37,
+      "reviewed_occurrences": 84,
+      "gold_group_outcomes": {
+        "comedy": {
+          "count": 14,
+          "any_withheld": 12,
+          "any_accepted": 2
+        },
+        "non_comedy": {
+          "count": 17,
+          "any_withheld": 17,
+          "any_accepted": 0
+        },
+        "unknown": {
+          "count": 6,
+          "any_withheld": 6,
+          "any_accepted": 0
+        }
+      },
+      "gold_occurrence_decisions": {
+        "comedy": {
+          "reject": 7,
+          "review": 12,
+          "accept": 4
+        },
+        "non_comedy": {
+          "review": 36,
+          "reject": 15
+        },
+        "unknown": {
+          "review": 8,
+          "reject": 2
+        }
+      },
+      "labelability": 0.8378378378378378,
+      "parent_backed_occurrences": 0,
+      "missing_lineup_occurrences": 0,
+      "full_source_decisions": {
+        "accept": 4,
+        "reject": 24,
+        "review": 56
+      },
+      "full_source_lineup_coverage": {
+        "observed": 34,
+        "partial": 50
+      },
+      "groups": [
+        {
+          "event_id": 125330,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 138219,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "review": 12
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 142110,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "review": 2
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 133073,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 12
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 141726,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 90249,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "review": 2
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 132785,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "reject": 2
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143645,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 121017,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 141789,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "review": 6
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 127684,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "review": 2
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 130169,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "review": 3
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 145197,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 145268,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "accept": 3
+          },
+          "any_withheld": false,
+          "any_accepted": true,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143730,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 2
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 144577,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "review": 2
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 120222,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 144845,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143800,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 139932,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 2
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 142166,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 142705,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "review": 2
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143792,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 145211,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "review": 2
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 121751,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "reject": 2
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143646,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 126130,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "reject": 2
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 145358,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "review": 2
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143516,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "accept": 1
+          },
+          "any_withheld": false,
+          "any_accepted": true,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 127683,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "review": 2
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 132405,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 122678,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "reject": 2
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 122726,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 2
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143647,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 145235,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 127640,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "review": 2
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 136209,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        }
+      ],
+      "go_no_go": "no_go"
+    },
+    {
+      "source_id": 192,
+      "reviewed_event_groups": 60,
+      "reviewed_occurrences": 153,
+      "gold_group_outcomes": {
+        "comedy": {
+          "count": 13,
+          "any_withheld": 13,
+          "any_accepted": 0
+        },
+        "non_comedy": {
+          "count": 1,
+          "any_withheld": 1,
+          "any_accepted": 0
+        },
+        "unknown": {
+          "count": 46,
+          "any_withheld": 46,
+          "any_accepted": 0
+        }
+      },
+      "gold_occurrence_decisions": {
+        "comedy": {
+          "review": 26,
+          "reject": 2
+        },
+        "non_comedy": {
+          "review": 1
+        },
+        "unknown": {
+          "review": 123,
+          "reject": 1
+        }
+      },
+      "labelability": 0.23333333333333334,
+      "parent_backed_occurrences": 3,
+      "missing_lineup_occurrences": 0,
+      "full_source_decisions": {
+        "reject": 3,
+        "review": 213
+      },
+      "full_source_lineup_coverage": {
+        "observed": 207,
+        "partial": 9
+      },
+      "groups": [
+        {
+          "event_id": 142128,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 145027,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 137063,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 142688,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 133935,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 136700,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "review": 5
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 134930,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 5
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 139845,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 142685,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 136478,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 1
+        },
+        {
+          "event_id": 131288,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 5
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 139522,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 4
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 140694,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 142301,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 138576,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 5
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143136,
+          "gold_label": "non_comedy",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143355,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 136476,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 5
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 131981,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 5
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 134748,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 134821,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 135457,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 142689,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 139617,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 2
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 125978,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 5
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 133869,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 142028,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 141868,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 142029,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 145222,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 5
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 141343,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 1
+        },
+        {
+          "event_id": 137239,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "review": 5
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 142516,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 141002,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 5
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 142206,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 4
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 139360,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143903,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 1
+        },
+        {
+          "event_id": 144283,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 142515,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 5
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143900,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "reject": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 135190,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 145226,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143783,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 4
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143014,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143723,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 4
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 145030,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 5
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143478,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 133918,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "review": 5
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 139361,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 5
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 140314,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 5
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 144809,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 5
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143713,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 145294,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 144549,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "review": 4
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143907,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 5
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143715,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 2
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 142299,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 5
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143680,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 5
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 144561,
+          "gold_label": "comedy",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        },
+        {
+          "event_id": 143015,
+          "gold_label": "unknown",
+          "occurrence_decisions": {
+            "review": 1
+          },
+          "any_withheld": true,
+          "any_accepted": false,
+          "parent_backed_occurrences": 0
+        }
+      ],
+      "go_no_go": "no_go"
+    }
+  ]
+}

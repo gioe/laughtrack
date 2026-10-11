@@ -1,0 +1,2413 @@
+{
+  "version": 1,
+  "purpose": "independent event-format labels frozen before classifier comparison",
+  "reviewer": "Codex independent evidence reviewer; not human-adjudicated",
+  "frozen_at": "2026-10-11T14:47:54.934257+00:00",
+  "raw_calendar_sha256": "237c6372890bb473328491eae97a3b50f63110accc7bd4cc3bdf4c83152dbedc",
+  "raw_pages_sha256": "0daa4a8d67086a6e88c7e9d97d9718246de2577905a35d2c535275b77ff0e476",
+  "model_api_calls": 0,
+  "sources": [
+    {
+      "source_id": 527,
+      "club_id": 475,
+      "venue_id": "450",
+      "fetched_at": "2026-10-11T12:51:59.489136+00:00",
+      "source_payload_sha256": "776cb0684f3553f47bfa761d6cd9ef22f29ea9307fd755aa2b7e37a235b12f79",
+      "population_event_groups": 50,
+      "population_occurrences": 50,
+      "sample_event_groups": 50,
+      "sample_occurrences": 50,
+      "labels": [
+        {
+          "event_id": 141234,
+          "title": "THE TOLEDO SHOW",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "Mixing speak-easy jazz, funky bass lines, horns and the smoky, soulful voice of Toledo, the standing-room-only crowds don't know whether",
+          "evidence_url": "https://santamonica.harvelles.com/shows/381853",
+          "page_fetched_at": "2026-10-11T14:32:49.017416+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            381853
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 141238,
+          "title": "ALL-STAR JAM SESSION BENEFIT",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "Come for the incredible talent, or sign up and jam with the finest in the world! CC Thomas Jr C.C.",
+          "evidence_url": "https://santamonica.harvelles.com/shows/381857",
+          "page_fetched_at": "2026-10-11T14:32:49.387941+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            381857
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 142153,
+          "title": "THE NO CHASERS",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "most of their set includes classics from the 50s - 70s, they can pull out goodies from all genres and",
+          "evidence_url": "https://santamonica.harvelles.com/shows/383721",
+          "page_fetched_at": "2026-10-11T14:32:49.397858+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            383721
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 142157,
+          "title": "COME SING WITH THE BAND - LIVE BAND KARAOKE",
+          "label": "non_comedy",
+          "confidence": "high",
+          "evidence_field": "title",
+          "evidence_excerpt": "LIVE BAND KARAOKE",
+          "evidence_url": "https://santamonica.harvelles.com/shows/383725",
+          "page_fetched_at": "2026-10-11T14:32:49.358790+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            383725
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143812,
+          "title": "AMERICAN WOMXN",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "a seamless fusion of rock, revolution and the art of dance and burlesque. A captivating nod to the spirit of",
+          "evidence_url": "https://santamonica.harvelles.com/shows/387682",
+          "page_fetched_at": "2026-10-11T14:32:49.491080+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            387682
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 144218,
+          "title": "WESTERN REVENGE",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "a groundbreaking burlesque show that will ignite your senses and leave you breathless. Prepare to be captivated by a cast",
+          "evidence_url": "https://santamonica.harvelles.com/shows/388645",
+          "page_fetched_at": "2026-10-11T14:32:49.607772+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            388645
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 142161,
+          "title": "SMOKESTACK LIGHTNING",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "Big R&B energy when Smokestack Lightning blows into town. All aboard for a funky good time. Blowin Smoke is gone,",
+          "evidence_url": "https://santamonica.harvelles.com/shows/383729",
+          "page_fetched_at": "2026-10-11T14:32:49.746872+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            383729
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 141235,
+          "title": "THE TOLEDO SHOW",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "Mixing speak-easy jazz, funky bass lines, horns and the smoky, soulful voice of Toledo, the standing-room-only crowds don't know whether",
+          "evidence_url": "https://santamonica.harvelles.com/shows/381854",
+          "page_fetched_at": "2026-10-11T14:32:49.637710+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            381854
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 141239,
+          "title": "ALL-STAR JAM SESSION BENEFIT",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "Come for the incredible talent, or sign up and jam with the finest in the world! CC Thomas Jr C.C.",
+          "evidence_url": "https://santamonica.harvelles.com/shows/381858",
+          "page_fetched_at": "2026-10-11T14:32:49.746203+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            381858
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 142154,
+          "title": "THE NO CHASERS",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "most of their set includes classics from the 50s - 70s, they can pull out goodies from all genres and",
+          "evidence_url": "https://santamonica.harvelles.com/shows/383722",
+          "page_fetched_at": "2026-10-11T14:32:49.967845+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            383722
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 142158,
+          "title": "COME SING WITH THE BAND - LIVE BAND KARAOKE",
+          "label": "non_comedy",
+          "confidence": "high",
+          "evidence_field": "title",
+          "evidence_excerpt": "LIVE BAND KARAOKE",
+          "evidence_url": "https://santamonica.harvelles.com/shows/383726",
+          "page_fetched_at": "2026-10-11T14:32:50.039752+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            383726
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 144285,
+          "title": "90s Night - Benefit for LEE ANNE HENDRICKS",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "Ryan brings you the best 90s tribute with: 8 PM - Babelicious 9 pm - Raised on TV 10 PM",
+          "evidence_url": "https://santamonica.harvelles.com/shows/388846",
+          "page_fetched_at": "2026-10-11T14:32:49.982996+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            388846
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 144220,
+          "title": "WESTERN REVENGE",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "a groundbreaking burlesque show that will ignite your senses and leave you breathless. Prepare to be captivated by a cast",
+          "evidence_url": "https://santamonica.harvelles.com/shows/388647",
+          "page_fetched_at": "2026-10-11T14:32:49.981385+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            388647
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 141236,
+          "title": "THE TOLEDO SHOW",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "Mixing speak-easy jazz, funky bass lines, horns and the smoky, soulful voice of Toledo, the standing-room-only crowds don't know whether",
+          "evidence_url": "https://santamonica.harvelles.com/shows/381855",
+          "page_fetched_at": "2026-10-11T14:32:50.275480+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            381855
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 141240,
+          "title": "ALL-STAR JAM SESSION BENEFIT",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "Come for the incredible talent, or sign up and jam with the finest in the world! CC Thomas Jr C.C.",
+          "evidence_url": "https://santamonica.harvelles.com/shows/381859",
+          "page_fetched_at": "2026-10-11T14:32:50.293769+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            381859
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 145143,
+          "title": "DORINA - \"PROPAGANDA\" Album Release Party",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "DORINA - \"PROPAGANDA\" Album Release Party",
+          "evidence_url": "https://santamonica.harvelles.com/shows/390648",
+          "page_fetched_at": "2026-10-11T14:32:50.280802+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            390648
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 142155,
+          "title": "THE NO CHASERS",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "most of their set includes classics from the 50s - 70s, they can pull out goodies from all genres and",
+          "evidence_url": "https://santamonica.harvelles.com/shows/383723",
+          "page_fetched_at": "2026-10-11T14:32:50.309821+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            383723
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 142159,
+          "title": "COME SING WITH THE BAND - LIVE BAND KARAOKE",
+          "label": "non_comedy",
+          "confidence": "high",
+          "evidence_field": "title",
+          "evidence_excerpt": "LIVE BAND KARAOKE",
+          "evidence_url": "https://santamonica.harvelles.com/shows/383727",
+          "page_fetched_at": "2026-10-11T14:32:50.794977+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            383727
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 141165,
+          "title": "LA WINTER and TIM HAYN",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "LA WINTER and TIM HAYN",
+          "evidence_url": "https://santamonica.harvelles.com/shows/381647",
+          "page_fetched_at": "2026-10-11T14:32:50.537443+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            381647
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 144219,
+          "title": "WESTERN REVENGE",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "a groundbreaking burlesque show that will ignite your senses and leave you breathless. Prepare to be captivated by a cast",
+          "evidence_url": "https://santamonica.harvelles.com/shows/388646",
+          "page_fetched_at": "2026-10-11T14:32:50.832452+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            388646
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143813,
+          "title": "THE TOLEDO SHOW",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "Mixing speak-easy jazz, funky bass lines, horns and the smoky, soulful voice of Toledo, the standing-room-only crowds don't know whether",
+          "evidence_url": "https://santamonica.harvelles.com/shows/387683",
+          "page_fetched_at": "2026-10-11T14:32:50.628139+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            387683
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143817,
+          "title": "ALL-STAR JAM SESSION BENEFIT",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "Come for the incredible talent, or sign up and jam with the finest in the world! CC Thomas Jr C.C.",
+          "evidence_url": "https://santamonica.harvelles.com/shows/387687",
+          "page_fetched_at": "2026-10-11T14:32:50.796641+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            387687
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143822,
+          "title": "THE NO CHASERS",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "most of their set includes classics from the 50s - 70s, they can pull out goodies from all genres and",
+          "evidence_url": "https://santamonica.harvelles.com/shows/387692",
+          "page_fetched_at": "2026-10-11T14:32:50.851784+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            387692
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143826,
+          "title": "COME SING WITH THE BAND - LIVE BAND KARAOKE",
+          "label": "non_comedy",
+          "confidence": "high",
+          "evidence_field": "title",
+          "evidence_excerpt": "LIVE BAND KARAOKE",
+          "evidence_url": "https://santamonica.harvelles.com/shows/387696",
+          "page_fetched_at": "2026-10-11T14:32:51.178108+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            387696
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 144202,
+          "title": "DAY OF THE DEAD ROCK NIGHT",
+          "label": "non_comedy",
+          "confidence": "high",
+          "evidence_field": "title",
+          "evidence_excerpt": "DAY OF THE DEAD ROCK NIGHT",
+          "evidence_url": "https://santamonica.harvelles.com/shows/388620",
+          "page_fetched_at": "2026-10-11T14:32:51.173084+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            388620
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143830,
+          "title": "ALLIGATOR BEACH",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "We are going to grab something from The Meters, The Neville Brothers, Maceo Parker and Aretha. We are going to",
+          "evidence_url": "https://santamonica.harvelles.com/shows/387700",
+          "page_fetched_at": "2026-10-11T14:32:51.160824+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            387700
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143814,
+          "title": "THE TOLEDO SHOW",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "Mixing speak-easy jazz, funky bass lines, horns and the smoky, soulful voice of Toledo, the standing-room-only crowds don't know whether",
+          "evidence_url": "https://santamonica.harvelles.com/shows/387684",
+          "page_fetched_at": "2026-10-11T14:32:51.082557+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            387684
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143818,
+          "title": "ALL-STAR JAM SESSION BENEFIT",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "Come for the incredible talent, or sign up and jam with the finest in the world! CC Thomas Jr C.C.",
+          "evidence_url": "https://santamonica.harvelles.com/shows/387688",
+          "page_fetched_at": "2026-10-11T14:32:51.321769+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            387688
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143823,
+          "title": "THE NO CHASERS",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "most of their set includes classics from the 50s - 70s, they can pull out goodies from all genres and",
+          "evidence_url": "https://santamonica.harvelles.com/shows/387693",
+          "page_fetched_at": "2026-10-11T14:32:51.475697+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            387693
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 145441,
+          "title": "TYLER HILTON - THE CALLING HOURS",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "TYLER HILTON - THE CALLING HOURS",
+          "evidence_url": "https://santamonica.harvelles.com/shows/391323",
+          "page_fetched_at": "2026-10-11T14:32:51.507382+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            391323
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143827,
+          "title": "COME SING WITH THE BAND - LIVE BAND KARAOKE",
+          "label": "non_comedy",
+          "confidence": "high",
+          "evidence_field": "title",
+          "evidence_excerpt": "LIVE BAND KARAOKE",
+          "evidence_url": "https://santamonica.harvelles.com/shows/387697",
+          "page_fetched_at": "2026-10-11T14:32:51.416158+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            387697
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 140899,
+          "title": "HARVELLE'S PRESENTS",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "HARVELLE'S PRESENTS",
+          "evidence_url": "https://santamonica.harvelles.com/shows/381039",
+          "page_fetched_at": "2026-10-11T14:32:51.553808+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            381039
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 144263,
+          "title": "CHASE WALKER X DANNY AVILA",
+          "label": "non_comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "This will be an epic night of live music! Think The Black Keys meets Gov't Mule, with shades of Rival",
+          "evidence_url": "https://santamonica.harvelles.com/shows/388738",
+          "page_fetched_at": "2026-10-11T14:32:51.699907+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            388738
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143815,
+          "title": "THE TOLEDO SHOW",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "Mixing speak-easy jazz, funky bass lines, horns and the smoky, soulful voice of Toledo, the standing-room-only crowds don't know whether",
+          "evidence_url": "https://santamonica.harvelles.com/shows/387685",
+          "page_fetched_at": "2026-10-11T14:32:51.726169+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            387685
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143819,
+          "title": "ALL-STAR JAM SESSION BENEFIT",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "Come for the incredible talent, or sign up and jam with the finest in the world! CC Thomas Jr C.C.",
+          "evidence_url": "https://santamonica.harvelles.com/shows/387689",
+          "page_fetched_at": "2026-10-11T14:32:51.974170+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            387689
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143824,
+          "title": "THE NO CHASERS",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "most of their set includes classics from the 50s - 70s, they can pull out goodies from all genres and",
+          "evidence_url": "https://santamonica.harvelles.com/shows/387694",
+          "page_fetched_at": "2026-10-11T14:32:51.843153+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            387694
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143828,
+          "title": "COME SING WITH THE BAND - LIVE BAND KARAOKE",
+          "label": "non_comedy",
+          "confidence": "high",
+          "evidence_field": "title",
+          "evidence_excerpt": "LIVE BAND KARAOKE",
+          "evidence_url": "https://santamonica.harvelles.com/shows/387698",
+          "page_fetched_at": "2026-10-11T14:32:51.979380+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            387698
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 141056,
+          "title": "JUKETOX Presents",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "JUKETOX Presents",
+          "evidence_url": "https://santamonica.harvelles.com/shows/381417",
+          "page_fetched_at": "2026-10-11T14:32:52.053351+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            381417
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143831,
+          "title": "SMOKESTACK LIGHTNING",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "Big R&B energy when Smokestack Lightning blows into town. All aboard for a funky good time. Blowin Smoke is gone,",
+          "evidence_url": "https://santamonica.harvelles.com/shows/387701",
+          "page_fetched_at": "2026-10-11T14:32:52.097299+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            387701
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143732,
+          "title": "THE TOLEDO SHOW",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "Mixing speak-easy jazz, funky bass lines, horns and the smoky, soulful voice of Toledo, the standing-room-only crowds don't know whether",
+          "evidence_url": "https://santamonica.harvelles.com/shows/387464",
+          "page_fetched_at": "2026-10-11T14:32:52.229859+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            387464
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143820,
+          "title": "ALL-STAR JAM SESSION BENEFIT",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "Come for the incredible talent, or sign up and jam with the finest in the world! CC Thomas Jr C.C.",
+          "evidence_url": "https://santamonica.harvelles.com/shows/387690",
+          "page_fetched_at": "2026-10-11T14:32:52.268862+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            387690
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143825,
+          "title": "THE NO CHASERS",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "most of their set includes classics from the 50s - 70s, they can pull out goodies from all genres and",
+          "evidence_url": "https://santamonica.harvelles.com/shows/387695",
+          "page_fetched_at": "2026-10-11T14:32:52.391922+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            387695
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143829,
+          "title": "COME SING WITH THE BAND - LIVE BAND KARAOKE",
+          "label": "non_comedy",
+          "confidence": "high",
+          "evidence_field": "title",
+          "evidence_excerpt": "LIVE BAND KARAOKE",
+          "evidence_url": "https://santamonica.harvelles.com/shows/387699",
+          "page_fetched_at": "2026-10-11T14:32:52.385949+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            387699
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 145300,
+          "title": "HEMMENS BAND",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "Be sure to bring your dancing shoes for a great time and dancing!",
+          "evidence_url": "https://santamonica.harvelles.com/shows/390982",
+          "page_fetched_at": "2026-10-11T14:32:52.517255+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            390982
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143816,
+          "title": "THE TOLEDO SHOW",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "Mixing speak-easy jazz, funky bass lines, horns and the smoky, soulful voice of Toledo, the standing-room-only crowds don't know whether",
+          "evidence_url": "https://santamonica.harvelles.com/shows/387686",
+          "page_fetched_at": "2026-10-11T14:32:52.619802+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            387686
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143821,
+          "title": "ALL-STAR JAM SESSION BENEFIT",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "Come for the incredible talent, or sign up and jam with the finest in the world! CC Thomas Jr C.C.",
+          "evidence_url": "https://santamonica.harvelles.com/shows/387691",
+          "page_fetched_at": "2026-10-11T14:32:52.656036+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            387691
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 145164,
+          "title": "A MULTIARTIST SHOWCASE",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "artists performing original music with a professional backing band. Hosted by multi-platinum songwriter Drew Lawrence, the night brings together artists",
+          "evidence_url": "https://santamonica.harvelles.com/shows/390696",
+          "page_fetched_at": "2026-10-11T14:32:52.639248+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            390696
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 141223,
+          "title": "7 A DREAMSCAPE",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "7 A DREAMSCAPE",
+          "evidence_url": "https://santamonica.harvelles.com/shows/381826",
+          "page_fetched_at": "2026-10-11T14:32:52.892850+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            381826
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 141230,
+          "title": "7 A DREAMSCAPE",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "7 A DREAMSCAPE",
+          "evidence_url": "https://santamonica.harvelles.com/shows/381849",
+          "page_fetched_at": "2026-10-11T14:32:53.002243+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            381849
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 141923,
+          "title": "CELSO SALIM",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "CELSO SALIM",
+          "evidence_url": "https://santamonica.harvelles.com/shows/383269",
+          "page_fetched_at": "2026-10-11T14:32:52.993624+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            383269
+          ],
+          "occurrence_count": 1
+        }
+      ],
+      "label_counts": {
+        "comedy": 0,
+        "non_comedy": 42,
+        "unknown": 8
+      },
+      "distinct_title_count": 20
+    },
+    {
+      "source_id": 595,
+      "club_id": 476,
+      "venue_id": "451",
+      "fetched_at": "2026-10-11T12:52:05.722575+00:00",
+      "source_payload_sha256": "8e75676f4624f3021d92ccd6f8c1e038864911e98462e4a755fae5e4c31c6a8d",
+      "population_event_groups": 37,
+      "population_occurrences": 84,
+      "sample_event_groups": 37,
+      "sample_occurrences": 84,
+      "labels": [
+        {
+          "event_id": 125330,
+          "title": "Spotlight Dance",
+          "label": "non_comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "Spotlight is an adults-only dance showcase where artistry meets allure. From ballet to burlesque, hip-hop to heels, this electrifying night",
+          "evidence_url": "https://longbeach.harvelles.com/shows/361572",
+          "page_fetched_at": "2026-10-11T14:32:49.004036+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            361572
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 138219,
+          "title": "Kraken Karaoke",
+          "label": "non_comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "karaoke starts at 9 PM, and the stage is yours until close. ============================================ Doors open at 8:00 pm so you",
+          "evidence_url": "https://longbeach.harvelles.com/shows/380463",
+          "page_fetched_at": "2026-10-11T14:32:52.897357+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            380463,
+            380464,
+            380465,
+            383880,
+            383881,
+            383882,
+            383883,
+            383884,
+            383885,
+            383886,
+            383887,
+            383888
+          ],
+          "occurrence_count": 12
+        },
+        {
+          "event_id": 142110,
+          "title": "Soul Shack Productions: Wednesday Night Live",
+          "label": "non_comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "showcase celebrating live, local music. 🎤 Every 2nd Wednesday: Singer-Songwriter Night 🎸 Every 4th Wednesday: Local Band Night Discover fresh",
+          "evidence_url": "https://longbeach.harvelles.com/shows/383787",
+          "page_fetched_at": "2026-10-11T14:32:53.186929+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            383787,
+            383788
+          ],
+          "occurrence_count": 2
+        },
+        {
+          "event_id": 133073,
+          "title": "All-Star Jam Session",
+          "label": "non_comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "Come for the incredible talent, or sign up and jam with the finest in the world! CC Thomas Jr C.C.",
+          "evidence_url": "https://longbeach.harvelles.com/shows/380456",
+          "page_fetched_at": "2026-10-11T14:32:53.418105+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            380456,
+            380457,
+            380458,
+            383895,
+            383896,
+            383897,
+            383898,
+            383899,
+            383900,
+            383901,
+            383902,
+            383903
+          ],
+          "occurrence_count": 12
+        },
+        {
+          "event_id": 141726,
+          "title": "ERNESTO and FRIENDS",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "ERNESTO and FRIENDS",
+          "evidence_url": "https://longbeach.harvelles.com/shows/382815",
+          "page_fetched_at": "2026-10-11T14:32:53.322801+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            382815
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 90249,
+          "title": "Little Monster's Burlesque: Gaga Tribute",
+          "label": "non_comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "a seductive spectacle of burlesque, high-fashion horror, and theatrical decadence. Come dressed in your fiercest Gaga look, unleash your inner",
+          "evidence_url": "https://longbeach.harvelles.com/shows/382983",
+          "page_fetched_at": "2026-10-11T14:32:53.269018+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            382983,
+            382984
+          ],
+          "occurrence_count": 2
+        },
+        {
+          "event_id": 132785,
+          "title": "Beetlejuice Afterlife Cabaret",
+          "label": "comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "features dazzling burlesque, comedy, and theatrical performances from the strange residents of the Netherworld. Expect appearances from your favorite delightfully",
+          "evidence_url": "https://longbeach.harvelles.com/shows/372045",
+          "page_fetched_at": "2026-10-11T14:32:53.452807+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            372045,
+            372046
+          ],
+          "occurrence_count": 2
+        },
+        {
+          "event_id": 143645,
+          "title": "October After Dark Trivia",
+          "label": "non_comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "an electrifying night of trivia, laughs, music, and Halloween inspired fun. Gather your friends, test your knowledge, and battle it",
+          "evidence_url": "https://longbeach.harvelles.com/shows/387240",
+          "page_fetched_at": "2026-10-11T14:32:53.516153+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            387240
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 121017,
+          "title": "UNDRGRND Comedy",
+          "label": "comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "UNDRGRND Comedy is a monthly comedy show bringing big laughs and good energy to Long Beach. Featuring a mix of",
+          "evidence_url": "https://longbeach.harvelles.com/shows/384259",
+          "page_fetched_at": "2026-10-11T14:32:53.682457+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            384259
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 141789,
+          "title": "The Devil's Den: Hell's Hottest Live Band and Burlesque",
+          "label": "non_comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "live music and burlesque meet in one unforgettable night of sinfully good entertainment. Featuring the electrifying sounds of Marquis &",
+          "evidence_url": "https://longbeach.harvelles.com/shows/382970",
+          "page_fetched_at": "2026-10-11T14:32:53.722687+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            382970,
+            382971,
+            382973,
+            382974,
+            383020,
+            383021
+          ],
+          "occurrence_count": 6
+        },
+        {
+          "event_id": 127684,
+          "title": "Sex & Candy Burlesque",
+          "label": "comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "a Halloween burlesque party packed with jaw-dropping performances, comedy, audience interaction, larger-than-life multimedia, and plenty of tricks, treats, and strips.",
+          "evidence_url": "https://longbeach.harvelles.com/shows/373347",
+          "page_fetched_at": "2026-10-11T14:32:53.732460+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            373347,
+            373348
+          ],
+          "occurrence_count": 2
+        },
+        {
+          "event_id": 130169,
+          "title": "Spotlight Burlesque Night",
+          "label": "non_comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "Spotlight Burlesque Night is where the future of burlesque takes center stage. This one-of-a-kind showcase is packed with debuts, fresh",
+          "evidence_url": "https://longbeach.harvelles.com/shows/375289",
+          "page_fetched_at": "2026-10-11T14:32:53.808007+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            375289,
+            374541,
+            374556
+          ],
+          "occurrence_count": 3
+        },
+        {
+          "event_id": 145197,
+          "title": "Hey, Rube!  Open Mic and Variety Clown Night",
+          "label": "comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "try out your best clown bits alongside a variety of local performers. Doors open at 7:00 so you can sign",
+          "evidence_url": "https://longbeach.harvelles.com/shows/390752",
+          "page_fetched_at": "2026-10-11T14:32:53.969585+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            390752
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 145268,
+          "title": "Jay White's Dark Roast Comedy Show",
+          "label": "comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "an unfiltered night of stand-up in the heart of Long Beach. Hosted by Jay White , Dark Roast serves up",
+          "evidence_url": "https://longbeach.harvelles.com/shows/390927",
+          "page_fetched_at": "2026-10-11T14:32:53.978207+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            390927,
+            391031,
+            391032
+          ],
+          "occurrence_count": 3
+        },
+        {
+          "event_id": 143730,
+          "title": "House of Stephen King, a Burlesque Tribute",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "House of Stephen King, a Burlesque Tribute",
+          "evidence_url": "https://longbeach.harvelles.com/shows/387458",
+          "page_fetched_at": "2026-10-11T14:32:54.035257+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            387458,
+            387459
+          ],
+          "occurrence_count": 2
+        },
+        {
+          "event_id": 144577,
+          "title": "Cryptic Cabaret",
+          "label": "non_comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "a Halloween burlesque show featuring spooky glamour, sultry striptease, and all the things that go Bump n’ Gind! Step into",
+          "evidence_url": "https://longbeach.harvelles.com/shows/389422",
+          "page_fetched_at": "2026-10-11T14:32:54.063042+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            389422,
+            389423
+          ],
+          "occurrence_count": 2
+        },
+        {
+          "event_id": 120222,
+          "title": "Fuego Maldito, a Dia de los Muertos Burlesque",
+          "label": "non_comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "a Día de los Muertos–inspired burlesque cabaret where sultry skeletons, fiery phantoms, and La Catrina herself come alive in a",
+          "evidence_url": "https://longbeach.harvelles.com/shows/390756",
+          "page_fetched_at": "2026-10-11T14:32:54.205338+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            390756
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 144845,
+          "title": "Mike Glazer Self-Destructs Ft. Greg Schoepp",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Mike Glazer Self-Destructs Ft. Greg Schoepp",
+          "evidence_url": "https://longbeach.harvelles.com/shows/390002",
+          "page_fetched_at": "2026-10-11T14:32:54.230637+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            390002
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143800,
+          "title": "Soul Scenes Presents: Welcome to Crooklyn",
+          "label": "non_comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "a live music experience celebrating the unforgettable music, culture, and nostalgia of the iconic film Crooklyn. Step into the world",
+          "evidence_url": "https://longbeach.harvelles.com/shows/387646",
+          "page_fetched_at": "2026-10-11T14:32:54.303597+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            387646
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 139932,
+          "title": "Rocky Horror Burlesque Experience",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Rocky Horror Burlesque Experience",
+          "evidence_url": "https://longbeach.harvelles.com/shows/389835",
+          "page_fetched_at": "2026-10-11T14:32:54.341970+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            389835,
+            389836
+          ],
+          "occurrence_count": 2
+        },
+        {
+          "event_id": 142166,
+          "title": "FOOS GOT LOVE TOUR",
+          "label": "comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "We start with hilarious stand-up from Eric Ochoa (yep, that SUPEReeeGO/Cholo Adventures guy) and his funny ass homies! Then lights",
+          "evidence_url": "https://longbeach.harvelles.com/shows/383745",
+          "page_fetched_at": "2026-10-11T14:32:54.466896+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            383745
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 142705,
+          "title": "Snap! Snap!  Addams Family Burlesque",
+          "label": "comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "a night of burlesque, comedy, incredible costumes, and twisted character parodies inspired by Morticia, Gomez, Wednesday and the rest of",
+          "evidence_url": "https://longbeach.harvelles.com/shows/385075",
+          "page_fetched_at": "2026-10-11T14:32:54.492985+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            385075,
+            385076
+          ],
+          "occurrence_count": 2
+        },
+        {
+          "event_id": 143792,
+          "title": "TACOS and COMEDY",
+          "label": "comedy",
+          "confidence": "moderate",
+          "evidence_field": "bio",
+          "evidence_excerpt": "an evening of stand up, and maybe some tacos",
+          "evidence_url": "https://longbeach.harvelles.com/shows/387624",
+          "page_fetched_at": "2026-10-11T14:32:54.547200+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            387624
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 145211,
+          "title": "Don't Dream It, Tease It!  Tim Curry Burlesque Tribute",
+          "label": "comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "burlesque, dance, comedy, theatrical performances, and plenty of decadent surprises. Expect bold costumes, campy humor, seductive storytelling, and a loving",
+          "evidence_url": "https://longbeach.harvelles.com/shows/390780",
+          "page_fetched_at": "2026-10-11T14:32:54.669740+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            390780,
+            390781
+          ],
+          "occurrence_count": 2
+        },
+        {
+          "event_id": 121751,
+          "title": "Nightmare Before Stripmas",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Nightmare Before Stripmas",
+          "evidence_url": "https://longbeach.harvelles.com/shows/372138",
+          "page_fetched_at": "2026-10-11T14:32:54.727556+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            372138,
+            372139
+          ],
+          "occurrence_count": 2
+        },
+        {
+          "event_id": 143646,
+          "title": "Harry Potter Trivia Night",
+          "label": "non_comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "a magical night of Harry Potter trivia! From Hogwarts houses and unforgettable spells to obscure details, only a true Potter",
+          "evidence_url": "https://longbeach.harvelles.com/shows/387241",
+          "page_fetched_at": "2026-10-11T14:32:54.744941+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            387241
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 126130,
+          "title": "Jiggles and Giggles Comedy Cabaret",
+          "label": "comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "alongside some of the sharpest comedians in the business. It’s the perfect blend of tease and comedy that made our",
+          "evidence_url": "https://longbeach.harvelles.com/shows/373345",
+          "page_fetched_at": "2026-10-11T14:32:54.815776+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            373345,
+            373346
+          ],
+          "occurrence_count": 2
+        },
+        {
+          "event_id": 145358,
+          "title": "Flashback Funk, Live Band Burlesque",
+          "label": "non_comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "a high-energy, groove-filled night of live funk music, dazzling burlesque, and nonstop entertainment! Featuring the electrifying sounds of Reverend Doctor",
+          "evidence_url": "https://longbeach.harvelles.com/shows/391102",
+          "page_fetched_at": "2026-10-11T14:32:54.989556+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            391102,
+            391103
+          ],
+          "occurrence_count": 2
+        },
+        {
+          "event_id": 143516,
+          "title": "Sex, Drugs & Alcohol: The Ultimate Adult Comedy Show",
+          "label": "comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "a raw, uncensored night of comedy where absolutely nothing is off limits. Hosted by Adult Star Silvia Saige and Stoner",
+          "evidence_url": "https://longbeach.harvelles.com/shows/386936",
+          "page_fetched_at": "2026-10-11T14:32:54.997597+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            386936
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 127683,
+          "title": "Boob Tube Burlesque",
+          "label": "comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "This comedy burlesque extravaganza celebrates the TV shows and movies we obsessed over in the ’80s, ’90s, and early 2000s",
+          "evidence_url": "https://longbeach.harvelles.com/shows/373341",
+          "page_fetched_at": "2026-10-11T14:32:55.036708+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            373341,
+            373342
+          ],
+          "occurrence_count": 2
+        },
+        {
+          "event_id": 132405,
+          "title": "The Big Shimmy",
+          "label": "non_comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "From Burlesque to Drag-lesque and even some group shimmy shakers, we will have all the right moves to wrap up",
+          "evidence_url": "https://longbeach.harvelles.com/shows/381369",
+          "page_fetched_at": "2026-10-11T14:32:55.164323+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            381369
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 122678,
+          "title": "Potter Parodies Presents: Holiday at Hogwarts",
+          "label": "comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "a night filled with magic, comedy, burlesque, and some very familiar witches, wizards, and magical creatures like you’ve definitely never",
+          "evidence_url": "https://longbeach.harvelles.com/shows/385055",
+          "page_fetched_at": "2026-10-11T14:32:55.401930+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            385055,
+            385056
+          ],
+          "occurrence_count": 2
+        },
+        {
+          "event_id": 122726,
+          "title": "A Grinchy Tease-Mas Burlesque",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "A Grinchy Tease-Mas Burlesque",
+          "evidence_url": "https://longbeach.harvelles.com/shows/383241",
+          "page_fetched_at": "2026-10-11T14:32:55.279301+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            383241,
+            383242
+          ],
+          "occurrence_count": 2
+        },
+        {
+          "event_id": 143647,
+          "title": "Holiday Trivia Night",
+          "label": "non_comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "a festive night of holiday trivia! From classic Christmas movies and songs to traditions, history, food, and all things marie",
+          "evidence_url": "https://longbeach.harvelles.com/shows/387242",
+          "page_fetched_at": "2026-10-11T14:32:55.414529+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            387242
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 145235,
+          "title": "PokéTease Burlesque",
+          "label": "comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "a hilarious, high-energy night of burlesque, comedy, cosplay, and nostalgia. And what better way to kick off the weekend? PokéTease",
+          "evidence_url": "https://longbeach.harvelles.com/shows/390853",
+          "page_fetched_at": "2026-10-11T14:32:55.391939+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            390853
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 127640,
+          "title": "Space OddiTease: a Burlesque Tribute to David Bowie",
+          "label": "non_comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "sultry striptease, theatrical storytelling, and intergalactic glam. Expect shimmering costumes, iconic hits reimagined, and just enough weird and wonderful magic",
+          "evidence_url": "https://longbeach.harvelles.com/shows/382985",
+          "page_fetched_at": "2026-10-11T14:32:55.620777+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            382985,
+            382986
+          ],
+          "occurrence_count": 2
+        },
+        {
+          "event_id": 136209,
+          "title": "Caravan Nights Belly Dance Show",
+          "label": "non_comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "a live belly dance event featuring performers from across the LA and OC dance community, coming together to share their",
+          "evidence_url": "https://longbeach.harvelles.com/shows/382987",
+          "page_fetched_at": "2026-10-11T14:32:55.722909+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            382987
+          ],
+          "occurrence_count": 1
+        }
+      ],
+      "label_counts": {
+        "comedy": 14,
+        "non_comedy": 17,
+        "unknown": 6
+      },
+      "distinct_title_count": 37
+    },
+    {
+      "source_id": 192,
+      "club_id": 61,
+      "venue_id": "53",
+      "fetched_at": "2026-10-11T12:52:51.300952+00:00",
+      "source_payload_sha256": "7c1ff43a6b8343f0da93305331c180c7e5c120afff7fe41b017f37741d85061b",
+      "population_event_groups": 86,
+      "population_occurrences": 216,
+      "sample_event_groups": 60,
+      "sample_occurrences": 153,
+      "labels": [
+        {
+          "event_id": 142128,
+          "title": "Special Event: Pinky Patel",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: Pinky Patel",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/383674",
+          "page_fetched_at": "2026-10-11T14:32:49.069115+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            383674
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 145027,
+          "title": "Room 861 at Goodnights: Elle Orlando",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Room 861 at Goodnights: Elle Orlando",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/390338",
+          "page_fetched_at": "2026-10-11T14:32:55.759329+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            390338
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 137063,
+          "title": "Special Event: Chris vs. The People",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: Chris vs. The People",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/372061",
+          "page_fetched_at": "2026-10-11T14:32:55.924019+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            372061
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 142688,
+          "title": "Room 861 at Goodnights: Eva Evans - Oak City Comedy Festival",
+          "label": "comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "a headlining night of stand-up you won’t want to miss. Management reserves the right to prevent customers from entering the",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/385042",
+          "page_fetched_at": "2026-10-11T14:32:55.906622+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            385042
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 133935,
+          "title": "Special Event: David Nihill: Taking Tangents Tour",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: David Nihill: Taking Tangents Tour",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/364799",
+          "page_fetched_at": "2026-10-11T14:32:56.052221+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            364799
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 136700,
+          "title": "Special Event: Mario Adrion",
+          "label": "comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "The Superior Comedy Tour,” in clubs and theaters across the globe. Based out of Los Angeles, Mario is one of",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/371123",
+          "page_fetched_at": "2026-10-11T14:32:56.064166+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            371123,
+            371124,
+            371126,
+            371127,
+            371125
+          ],
+          "occurrence_count": 5
+        },
+        {
+          "event_id": 134930,
+          "title": "Room 861 At Goodnights: Conor Janda",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Room 861 At Goodnights: Conor Janda",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/366949",
+          "page_fetched_at": "2026-10-11T14:32:56.325495+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            366949,
+            366950,
+            366951,
+            366952,
+            366948
+          ],
+          "occurrence_count": 5
+        },
+        {
+          "event_id": 139845,
+          "title": "Special Event: Justin Whitehead",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: Justin Whitehead",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/378739",
+          "page_fetched_at": "2026-10-11T14:32:56.338641+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            378739
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 142685,
+          "title": "Open Mic at Goodnights",
+          "label": "comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "See 15+ of the best local comedians Raleigh has to offer! When there is a show in the Main Showroom,",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/385084",
+          "page_fetched_at": "2026-10-11T14:32:56.358239+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            385084
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 136478,
+          "title": "Special Event: That One Mailman",
+          "label": "comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "now going on tour with Gary Owen and doing the same to a live audience. He will tell you, “This",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/370538",
+          "page_fetched_at": "2026-10-11T14:32:56.394903+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            370538
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 131288,
+          "title": "Special Event: Ron Funches",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: Ron Funches",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/358325",
+          "page_fetched_at": "2026-10-11T14:32:56.644591+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            358325,
+            358326,
+            358328,
+            358329,
+            358327
+          ],
+          "occurrence_count": 5
+        },
+        {
+          "event_id": 139522,
+          "title": "Room 861 at Goodnights: Maggie Hughes Depalo",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Room 861 at Goodnights: Maggie Hughes Depalo",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/377913",
+          "page_fetched_at": "2026-10-11T14:32:56.735841+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            377913,
+            377915,
+            377914,
+            377916
+          ],
+          "occurrence_count": 4
+        },
+        {
+          "event_id": 140694,
+          "title": "Special Event: Grace Helbig & Mamrie Hart",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: Grace Helbig & Mamrie Hart",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/380540",
+          "page_fetched_at": "2026-10-11T14:32:56.601772+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            380540
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 142301,
+          "title": "Room 861 at Goodnights: Papp Johnson",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Room 861 at Goodnights: Papp Johnson",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/384130",
+          "page_fetched_at": "2026-10-11T14:32:56.668238+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            384130
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 138576,
+          "title": "Room 861 at Goodnights: Yvette Segan",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Room 861 at Goodnights: Yvette Segan",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/375732",
+          "page_fetched_at": "2026-10-11T14:32:56.862272+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            375732,
+            375733,
+            375734,
+            375735,
+            375736
+          ],
+          "occurrence_count": 5
+        },
+        {
+          "event_id": 143136,
+          "title": "Special Event: Rocky Horror Drag Brunch",
+          "label": "non_comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "a spectacular Rocky Horror Drag Show packed with glitter, glam, and all the outrageous fun of The Time Warp and",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/386016",
+          "page_fetched_at": "2026-10-11T14:32:56.934356+00:00",
+          "rationale": "The named event is billed as music, dancing, burlesque, karaoke, trivia or a drag performance without affirmative comedy performance evidence.",
+          "occurrence_ids": [
+            386016
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143355,
+          "title": "Special Event: 404Blac: Back for Tha First Time",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: 404Blac: Back for Tha First Time",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/386468",
+          "page_fetched_at": "2026-10-11T14:32:56.947503+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            386468
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 136476,
+          "title": "Special Event: Joe List",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: Joe List",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/370532",
+          "page_fetched_at": "2026-10-11T14:32:57.089463+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            370532,
+            370533,
+            370534,
+            370535,
+            370536
+          ],
+          "occurrence_count": 5
+        },
+        {
+          "event_id": 131981,
+          "title": "Room 861 at Goodnights: Blair Socci",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Room 861 at Goodnights: Blair Socci",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/359963",
+          "page_fetched_at": "2026-10-11T14:32:57.114152+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            359963,
+            359962,
+            359964,
+            359965,
+            359966
+          ],
+          "occurrence_count": 5
+        },
+        {
+          "event_id": 134748,
+          "title": "Special Event: La'trez Anderson",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: La'trez Anderson",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/366537",
+          "page_fetched_at": "2026-10-11T14:32:57.288117+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            366537
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 134821,
+          "title": "Room 861 at Goodnights: Hannah Jones",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Room 861 at Goodnights: Hannah Jones",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/366727",
+          "page_fetched_at": "2026-10-11T14:32:57.298254+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            366727
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 135457,
+          "title": "Special Event: Modi",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: Modi",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/368196",
+          "page_fetched_at": "2026-10-11T14:32:57.394798+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            368196
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 142689,
+          "title": "Room 861 at Goodnights: Hunter Luke Edwards",
+          "label": "comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "hard-hitting punchlines that just don’t stop will have you laughing from start to finish! When not performing on stage, you",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/385043",
+          "page_fetched_at": "2026-10-11T14:32:57.386034+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            385043
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 139617,
+          "title": "Room 861 at Goodnights: Francisco Ramos (THE WEDNESDAY, NOVEMBER 11TH SHOW IS COMPLETELY IN SPANISH WITH NO TRANSLATION)",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Room 861 at Goodnights: Francisco Ramos (THE WEDNESDAY, NOVEMBER 11TH SHOW IS COMPLETELY IN SPANISH WITH NO TRANSLATION)",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/378194",
+          "page_fetched_at": "2026-10-11T14:32:57.627299+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            378194,
+            378195
+          ],
+          "occurrence_count": 2
+        },
+        {
+          "event_id": 125978,
+          "title": "Room 861 at Goodnights: Emma Willmann",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Room 861 at Goodnights: Emma Willmann",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/345521",
+          "page_fetched_at": "2026-10-11T14:32:57.615100+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            345521,
+            345517,
+            345518,
+            345519,
+            345520
+          ],
+          "occurrence_count": 5
+        },
+        {
+          "event_id": 133869,
+          "title": "Special Event: Christian Johnson",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: Christian Johnson",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/364660",
+          "page_fetched_at": "2026-10-11T14:32:57.676207+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            364660
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 142028,
+          "title": "Room 861 at Goodnights: Jonathan Van Halem",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Room 861 at Goodnights: Jonathan Van Halem",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/383445",
+          "page_fetched_at": "2026-10-11T14:32:57.666913+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            383445
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 141868,
+          "title": "Special Event: Reem Edan",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: Reem Edan",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/383193",
+          "page_fetched_at": "2026-10-11T14:32:57.978899+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            383193
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 142029,
+          "title": "Special Event: Wes Barker",
+          "label": "comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "He will have you laughing at hilarious true stories one moment and be blowing your mind the next. Watching Wes",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/383446",
+          "page_fetched_at": "2026-10-11T14:32:57.962160+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            383446
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 145222,
+          "title": "Special Event: Tony Roberts",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: Tony Roberts",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/390803",
+          "page_fetched_at": "2026-10-11T14:32:58.023874+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            390803,
+            390804,
+            390806,
+            390807,
+            390805
+          ],
+          "occurrence_count": 5
+        },
+        {
+          "event_id": 141343,
+          "title": "Room 861 at Goodnights: Splou",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Room 861 at Goodnights: Splou",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/382057",
+          "page_fetched_at": "2026-10-11T14:32:57.933267+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            382057
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 137239,
+          "title": "Room 861 at Goodnights: Hassan Phills",
+          "label": "comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "His latest act combines exceptional storytelling with spontaneous crowd interaction, creating a unique, intimate experience that makes every performance unmissable.",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/372472",
+          "page_fetched_at": "2026-10-11T14:32:58.199202+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            372472,
+            372473,
+            372474,
+            372475,
+            372476
+          ],
+          "occurrence_count": 5
+        },
+        {
+          "event_id": 142516,
+          "title": "Special Event: Radel Ortiz",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: Radel Ortiz",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/384623",
+          "page_fetched_at": "2026-10-11T14:32:58.237032+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            384623
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 141002,
+          "title": "Special Event: Tim Meadows",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: Tim Meadows",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/381270",
+          "page_fetched_at": "2026-10-11T14:32:58.396812+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            381270,
+            381271,
+            381272,
+            381273,
+            381274
+          ],
+          "occurrence_count": 5
+        },
+        {
+          "event_id": 142206,
+          "title": "Special Event: Andrew Schulz",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: Andrew Schulz",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/383859",
+          "page_fetched_at": "2026-10-11T14:32:58.456204+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            383859,
+            383860,
+            383861,
+            383862
+          ],
+          "occurrence_count": 4
+        },
+        {
+          "event_id": 139360,
+          "title": "Special Event: Bubba Dub",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: Bubba Dub",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/377428",
+          "page_fetched_at": "2026-10-11T14:32:58.478782+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            377428
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143903,
+          "title": "Special Event: Sarper Guven",
+          "label": "comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "Totally new jokes. If you miss it, you’ll cry for years Couple's Package includes: - 2 premium seats - $90",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/387873",
+          "page_fetched_at": "2026-10-11T14:32:58.512837+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            387873
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 144283,
+          "title": "Room 861 at Goodnights: Jay Derrell",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Room 861 at Goodnights: Jay Derrell",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/388843",
+          "page_fetched_at": "2026-10-11T14:32:58.670680+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            388843
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 142515,
+          "title": "Special Event: Tacarra Williams",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: Tacarra Williams",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/384618",
+          "page_fetched_at": "2026-10-11T14:32:58.737993+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            384618,
+            384619,
+            384621,
+            384622,
+            384620
+          ],
+          "occurrence_count": 5
+        },
+        {
+          "event_id": 143900,
+          "title": "Goodnights Presents: Ladies Laugh Lounge: Holiday Edition",
+          "label": "comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "a night of comedy, cocktails, holiday cheer, and a room full of people ready to LAUGH. Whether you go full",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/387870",
+          "page_fetched_at": "2026-10-11T14:32:58.769883+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            387870
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 135190,
+          "title": "Special Event: Sammy Obeid",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: Sammy Obeid",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/367494",
+          "page_fetched_at": "2026-10-11T14:32:58.872915+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            367494
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 145226,
+          "title": "Special Event: Jake Cornell",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: Jake Cornell",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/390816",
+          "page_fetched_at": "2026-10-11T14:32:59.057284+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            390816
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143783,
+          "title": "Special Event: Arynne Wexler",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: Arynne Wexler",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/387598",
+          "page_fetched_at": "2026-10-11T14:32:59.037509+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            387598,
+            387599,
+            387600,
+            387601
+          ],
+          "occurrence_count": 4
+        },
+        {
+          "event_id": 143014,
+          "title": "Special Event: Steve Hofstetter & Friends",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: Steve Hofstetter & Friends",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/385717",
+          "page_fetched_at": "2026-10-11T14:32:59.049233+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            385717
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143723,
+          "title": "Room 861 at Goodnights: Josh Gondelman",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Room 861 at Goodnights: Josh Gondelman",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/387434",
+          "page_fetched_at": "2026-10-11T14:32:59.185251+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            387434,
+            387435,
+            387436,
+            387437
+          ],
+          "occurrence_count": 4
+        },
+        {
+          "event_id": 145030,
+          "title": "Room 861 at Goodnights: Nicky Paris",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Room 861 at Goodnights: Nicky Paris",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/390345",
+          "page_fetched_at": "2026-10-11T14:32:59.467243+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            390345,
+            390346,
+            390347,
+            390348,
+            390349
+          ],
+          "occurrence_count": 5
+        },
+        {
+          "event_id": 143478,
+          "title": "Special Event: Michelle Collins",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: Michelle Collins",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/386776",
+          "page_fetched_at": "2026-10-11T14:32:59.573103+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            386776
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 133918,
+          "title": "Special Event: Ashley Gavin",
+          "label": "comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "this show will feature primarily written material—with her signature edge intact. Couple's Package includes: - 2 premium seats - $90",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/364772",
+          "page_fetched_at": "2026-10-11T14:32:59.517862+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            364772,
+            364773,
+            364774,
+            364775,
+            364771
+          ],
+          "occurrence_count": 5
+        },
+        {
+          "event_id": 139361,
+          "title": "Room 861 at Goodnights: David Jolly",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Room 861 at Goodnights: David Jolly",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/377429",
+          "page_fetched_at": "2026-10-11T14:32:59.503571+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            377429,
+            377430,
+            377432,
+            377433,
+            377431
+          ],
+          "occurrence_count": 5
+        },
+        {
+          "event_id": 140314,
+          "title": "Room 861 at Goodnights: Chloe Radcliffe",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Room 861 at Goodnights: Chloe Radcliffe",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/379666",
+          "page_fetched_at": "2026-10-11T14:32:59.727897+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            379666,
+            379667,
+            379669,
+            379670,
+            379668
+          ],
+          "occurrence_count": 5
+        },
+        {
+          "event_id": 144809,
+          "title": "Goodnights Presents: Matthew Broussard",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Goodnights Presents: Matthew Broussard",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/389918",
+          "page_fetched_at": "2026-10-11T14:32:59.850948+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            389918,
+            389919,
+            389920,
+            389921,
+            389922
+          ],
+          "occurrence_count": 5
+        },
+        {
+          "event_id": 143713,
+          "title": "Special Event: Steve Wrigley",
+          "label": "comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "Steve Wrigley returns with a brand‑new hour of gloriously nerdy stand‑up. Originally from New Zealand, Steve has built a devoted",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/387405",
+          "page_fetched_at": "2026-10-11T14:32:59.758624+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            387405
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 145294,
+          "title": "Room 861 at Goodnights: Jay Badlani",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Room 861 at Goodnights: Jay Badlani",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/390970",
+          "page_fetched_at": "2026-10-11T14:32:59.907689+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            390970
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 144549,
+          "title": "Room 861 at Goodnights: SAANIYA ABBAS: HELLARIOUS",
+          "label": "comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "a brilliant hour of comedy\" - Broadway Baby ★★★★ Management reserves the right to prevent customers from entering the facility",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/389372",
+          "page_fetched_at": "2026-10-11T14:33:00.348258+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            389372,
+            389373,
+            389374,
+            389375
+          ],
+          "occurrence_count": 4
+        },
+        {
+          "event_id": 143907,
+          "title": "Room 861 at Goodnights: Henry Sir",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Room 861 at Goodnights: Henry Sir",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/387878",
+          "page_fetched_at": "2026-10-11T14:33:00.038947+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            387878,
+            387879,
+            387880,
+            387881,
+            387882
+          ],
+          "occurrence_count": 5
+        },
+        {
+          "event_id": 143715,
+          "title": "Special Event: Shelly Belly",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: Shelly Belly",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/387407",
+          "page_fetched_at": "2026-10-11T14:33:00.117599+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            387407,
+            387408
+          ],
+          "occurrence_count": 2
+        },
+        {
+          "event_id": 142299,
+          "title": "Special Event: Chris D'Elia",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: Chris D'Elia",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/384124",
+          "page_fetched_at": "2026-10-11T14:33:00.237665+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            384124,
+            384125,
+            384126,
+            384127,
+            384128
+          ],
+          "occurrence_count": 5
+        },
+        {
+          "event_id": 143680,
+          "title": "Special Event: Jared Freid",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: Jared Freid",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/387292",
+          "page_fetched_at": "2026-10-11T14:33:00.400430+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            387292,
+            387293,
+            387295,
+            387296,
+            387294
+          ],
+          "occurrence_count": 5
+        },
+        {
+          "event_id": 144561,
+          "title": "Special Event: Kunal Kamra (THIS SHOW IS COMPLETELY IN HINDI WITH NO TRANSLATION)",
+          "label": "comedy",
+          "confidence": "high",
+          "evidence_field": "description",
+          "evidence_excerpt": "Now Kamra brings that same sharp, unfiltered political comedy to the United States for a multi-city tour — a rare",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/389395",
+          "page_fetched_at": "2026-10-11T14:33:00.541925+00:00",
+          "rationale": "The event page describes comedy as part of the billed performance; other formats do not cancel that evidence.",
+          "occurrence_ids": [
+            389395
+          ],
+          "occurrence_count": 1
+        },
+        {
+          "event_id": 143015,
+          "title": "Special Event: Steve Hofstetter & Friends",
+          "label": "unknown",
+          "confidence": "unresolved",
+          "evidence_field": "title",
+          "evidence_excerpt": "Special Event: Steve Hofstetter & Friends",
+          "evidence_url": "http://www.goodnightscomedy.com/shows/385718",
+          "page_fetched_at": "2026-10-11T14:33:00.531043+00:00",
+          "rationale": "Supplied event text does not unambiguously establish a comedy or exclusively non-comedy performance. Names, biographies, or suggestive humor/parody language alone are insufficient.",
+          "occurrence_ids": [
+            385718
+          ],
+          "occurrence_count": 1
+        }
+      ],
+      "label_counts": {
+        "comedy": 13,
+        "non_comedy": 1,
+        "unknown": 46
+      },
+      "distinct_title_count": 59
+    }
+  ]
+}

@@ -1,0 +1,110 @@
+{
+  "verified_at": "2026-10-11T15:00:17.376784+00:00",
+  "source_policies": [
+    {
+      "source_id": 192,
+      "policy": "unreviewed",
+      "gate_mode": "off",
+      "version": 3,
+      "reviewed_at": "2026-10-11 15:00:08.625361+00:00",
+      "config_fingerprint": "79a4305232b6333170da1ae93480d6681d9c495a22ed96173b8f1d33fbbc75de",
+      "config_unchanged": true
+    },
+    {
+      "source_id": 527,
+      "policy": "unreviewed",
+      "gate_mode": "off",
+      "version": 3,
+      "reviewed_at": "2026-10-11 15:00:08.737744+00:00",
+      "config_fingerprint": "dd64d7f0a11320d9924cf44802367efb612d4aa7b62a70a5de871febc94fb410",
+      "config_unchanged": true
+    },
+    {
+      "source_id": 595,
+      "policy": "unreviewed",
+      "gate_mode": "off",
+      "version": 3,
+      "reviewed_at": "2026-10-11 15:00:08.774742+00:00",
+      "config_fingerprint": "94f0ce1fe4efe6cf6bd507442aa1137c0f3db713a5ef37a178c2a0bc5f499454",
+      "config_unchanged": true
+    }
+  ],
+  "ledger_before": {
+    "captured_at": "2026-10-11T14:58:02.496129+00:00",
+    "source_ids": [
+      192,
+      527,
+      595
+    ],
+    "tables": {
+      "comedy_event_candidates": {
+        "count": 350,
+        "sha256": "826beace26fe76e54273d36e776e73092634bfc1b216cf6b90ed62b1b4f5b57a"
+      },
+      "comedy_event_decisions": {
+        "count": 350,
+        "sha256": "7ec320143334469978be54341fb65024216ada45796aaa5355b07e196a84a566"
+      },
+      "comedy_event_observations": {
+        "count": 350,
+        "sha256": "8e8ddfb52e4420e4a2ed781868d5cc60c9e48a441e6a6f73d7f616be8ab814e7"
+      },
+      "comedy_event_reviews": {
+        "count": 1,
+        "sha256": "3b336df66ccd75d31860361c94739bc799bb521c06a7f00de2a78b06e5cdd72e"
+      },
+      "comedy_event_publications": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    }
+  },
+  "ledger_after": {
+    "captured_at": "2026-10-11T15:00:17.376784+00:00",
+    "source_ids": [
+      192,
+      527,
+      595
+    ],
+    "tables": {
+      "comedy_event_candidates": {
+        "count": 350,
+        "sha256": "826beace26fe76e54273d36e776e73092634bfc1b216cf6b90ed62b1b4f5b57a"
+      },
+      "comedy_event_decisions": {
+        "count": 350,
+        "sha256": "7ec320143334469978be54341fb65024216ada45796aaa5355b07e196a84a566"
+      },
+      "comedy_event_observations": {
+        "count": 350,
+        "sha256": "8e8ddfb52e4420e4a2ed781868d5cc60c9e48a441e6a6f73d7f616be8ab814e7"
+      },
+      "comedy_event_reviews": {
+        "count": 1,
+        "sha256": "3b336df66ccd75d31860361c94739bc799bb521c06a7f00de2a78b06e5cdd72e"
+      },
+      "comedy_event_publications": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    }
+  },
+  "exact_ledger_hashes_preserved": true,
+  "review_evidence": {
+    "candidate_id": 249,
+    "source_id": 527,
+    "event_id": 144263,
+    "occurrence_id": 388738,
+    "action": "reject",
+    "reason": "Event-specific public page bills live music",
+    "url": "https://santamonica.harvelles.com/shows/388738",
+    "applied_result_sha256": "a77e324575289cd022e5ac23ee4d17b9a8825532166dd6ff2b28673b1d30d8fa"
+  },
+  "publications": 0,
+  "disposition": "Original calendar-only pilot remains no-go. All three sources restored to unreviewed/off; evidence-improvement work continues without enforcement.",
+  "limitations": [
+    "Exact hashes cover only the three-source eligibility candidate, decision, observation, review and publication ledgers.",
+    "Source config fingerprints exclude policy audit fields and rollout annotation by the rollout helper contract.",
+    "Rollback restores policy; it does not delete historical public inventory or human review evidence."
+  ]
+}
