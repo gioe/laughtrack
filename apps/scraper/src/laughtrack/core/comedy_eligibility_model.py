@@ -59,6 +59,8 @@ _PROTECTED_REASONS = frozenset(
         "comedy_block_conflict",
         "blocked_only_lineup",
         "majority_blocked_lineup",
+        "audience_format_exclude",
+        "audience_format_review",
     }
 )
 

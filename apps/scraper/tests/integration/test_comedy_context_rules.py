@@ -167,7 +167,7 @@ def test_rule_decision_integration(monkeypatch):
         assert decision.decision == "accept", title
         assert "affirmative_event_comedy" in decision.reason_codes
         assert "explicit_unrelated_activity" not in decision.reason_codes
-        assert decision.evidence[0].rule_family == "comedy_format"
+        assert any(item.rule_family == "comedy_format" for item in decision.evidence)
         saved = decision.to_dict()
         replay = classify_comedy_eligibility(source_id=7, policy=SourceComedyPolicy(),
                                              evidence=[EventEvidence(**item) for item in saved["evidence"]])

@@ -45,7 +45,9 @@ def stamp_source(shows, source):
 def capture_event_inputs(show, event):
     """Preserve raw evidence without making malformed metadata drop legacy events."""
     from laughtrack.core.comedy_event_evidence import description_evidence, validated_event_description
-    from laughtrack.core.comedy_event_rules import description_rule_evidence, context_description_evidence
+    from laughtrack.core.comedy_event_rules import (
+        description_rule_evidence, context_description_evidence, audience_description_evidence,
+    )
 
     items = description_evidence(event)
     detail = validated_event_description(event)
@@ -64,6 +66,7 @@ def capture_event_inputs(show, event):
         items = [item for item in items if not duplicate_legacy(item)]
         items.extend(context_items)
         items.extend(description_rule_evidence(*detail))
+        items.extend(audience_description_evidence(*detail))
     for item in items:
         if item not in show.eligibility_evidence:
             show.eligibility_evidence.append(item)
@@ -123,13 +126,14 @@ def capture_event_inputs(show, event):
 
 
 def event_evidence(show):
-    from laughtrack.core.comedy_event_rules import title_rule_evidence, context_title_evidence
+    from laughtrack.core.comedy_event_rules import title_rule_evidence, context_title_evidence, audience_title_evidence
 
     evidence = [EventEvidence(**e) for e in (show.eligibility_evidence or [])]
     evidence.extend(EventEvidence(**e) for e in title_rule_evidence(show.name))
     # Shared bounded matching also owns legacy title genres, so no unguarded
     # substring matcher can bypass negation, venue suffixes, or mixed formats.
     evidence.extend(EventEvidence(**e) for e in context_title_evidence(show.name))
+    evidence.extend(EventEvidence(**e) for e in audience_title_evidence(show.name))
     return evidence
 
 

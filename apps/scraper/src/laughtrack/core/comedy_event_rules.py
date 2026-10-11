@@ -363,6 +363,10 @@ _COMEDY_AUDIENCE_LIVE = re.compile(
     r"|\b(?:music|musical) improv(?:isation)? (?:show|jam|performance)\b", re.I,
 )
 _CLASS_PERFORMANCE = re.compile(r"\b(?:class|workshoppe?)\s+(?:graduation\s+)?(?:shows?|showcases?)\b", re.I)
+_MIXED_AUDIENCE_LIVE = re.compile(
+    r"\b(?:comedy|stand[ -]?up)\s+(?:and|&)\s+(?:drag|burlesque|magic)\s+(?:show|performances?)\b"
+    r"|\b(?:drag|burlesque|magic)\s+(?:and|&)\s+(?:comedy|stand[ -]?up)\s+(?:show|performances?)\b", re.I,
+)
 
 
 def _audience_item(reason: str, provenance: str, detail: str, *, content: bool = False) -> RuleEvidence:
@@ -372,7 +376,8 @@ def _audience_item(reason: str, provenance: str, detail: str, *, content: bool =
 
 
 def _audience_matches(text: str, provenance: str, detail: str) -> list[RuleEvidence]:
-    live = _offered_positive_matches(_AUDIENCE_LIVE, text)
+    live = [match for pattern in (_AUDIENCE_LIVE, _COMEDY_PERFORMANCE_LIST, _MIXED_AUDIENCE_LIVE)
+            for match in _offered_positive_matches(pattern, text)]
     screen = list(_AUDIENCE_SCREEN.finditer(text))
     classes = list(_AUDIENCE_CLASS.finditer(text))
     workshops = list(_AUDIENCE_WORKSHOP.finditer(text))
@@ -407,6 +412,8 @@ def _audience_matches(text: str, provenance: str, detail: str) -> list[RuleEvide
         (_COMEDY_STUDY, "comedy_instruction", instruction or workshops),
         (_COMEDY_SCREEN, "comedy_screening", screen),
         (_COMEDY_AUDIENCE_LIVE, "comedy_performance", live),
+        (_COMEDY_PERFORMANCE_LIST, "comedy_performance", live),
+        (_MIXED_AUDIENCE_LIVE, "comedy_performance", live),
     ):
         if applies and _offered_positive_matches(pattern, text):
             items.append(_audience_item(reason, provenance, detail, content=True))
@@ -442,7 +449,7 @@ def audience_description_evidence(text: str, url: str) -> list[RuleEvidence]:
             components = [offering, *re.split(r"\s+(?:and|with|alongside)\s+|\s*[,&+]\s*", offering, flags=re.I)]
             patterns = (_AUDIENCE_LIVE, _AUDIENCE_SCREEN, _AUDIENCE_CLASS, _AUDIENCE_WORKSHOP,
                         _AUDIENCE_MIXER, _AUDIENCE_VARIETY, _COMEDY_STUDY, _COMEDY_SCREEN,
-                        _COMEDY_AUDIENCE_LIVE)
+                        _COMEDY_AUDIENCE_LIVE, _COMEDY_PERFORMANCE_LIST, _MIXED_AUDIENCE_LIVE)
             if not any(pattern.match(re.sub(r"^(?:(?:a|an|live|free)\s+){0,3}", "", component, flags=re.I))
                        for component in components for pattern in patterns):
                 continue
