@@ -189,28 +189,45 @@ class SeatEngineClient(BaseApiClient):
         return isinstance(inventories, list) and len(inventories) > 0
 
     @classmethod
-    def extract_event_description(cls, html: str, event_id: str) -> Optional[str]:
-        """Read only the event-description tab on a matching SeatEngine page.
+    def extract_event_blocks(cls, html: str, event_id: str) -> List[JSONDict]:
+        """Keep description and biography panels separate on a matching event.
 
-        Biography tabs, JSON-LD venue descriptions and mobile duplicate panels
-        are deliberately excluded. A redirect to another event stays unknown.
+        Biography text is not itself evidence: the consumer must establish
+        current performance billing. Paragraph boundaries survive extraction.
         """
         if not html or len(html) > 2_000_000:
-            return None
+            return []
         soup = BeautifulSoup(html, "html.parser")
         root = soup.select_one("#event-detail")
         if root is None or not any(
             urlparse(anchor.get("href", "")).path.rstrip("/") == f"/events/{event_id}"
             for anchor in root.find_all("a", href=True)
         ):
-            return None
-        description = root.select_one("#descr .custom-content")
-        if description is None:
-            return None
-        for node in description.select("script, style, nav, form, #bio"):
-            node.decompose()
-        text = " ".join(description.get_text(" ", strip=True).split())
-        return text if text and len(text) <= 16_000 else None
+            return []
+        blocks = []
+        for selector in (cls.DETAIL_SELECTOR, "#event-detail #bio"):
+            panel = root.select_one(selector.removeprefix("#event-detail "))
+            if panel is None:
+                continue
+            for node in panel.select("script, style, nav, form"):
+                node.decompose()
+            for node in panel.select("p, div, li, br"):
+                node.insert_after("\n")
+            text = "\n".join(
+                normalized for line in panel.get_text(" ", strip=False).splitlines()
+                if (normalized := " ".join(line.split()))
+            )
+            if text:
+                blocks.append({"selector": selector, "text": text})
+        # Reject the combined over-budget page, rather than silently dropping
+        # a later cancellation/negation while retaining earlier positive text.
+        return blocks if sum(len(block["text"]) for block in blocks) <= 16_000 else []
+
+    @classmethod
+    def extract_event_description(cls, html: str, event_id: str) -> Optional[str]:
+        """Compatibility accessor; biography panels are never merged into it."""
+        return next((block["text"] for block in cls.extract_event_blocks(html, event_id)
+                     if block["selector"] == cls.DETAIL_SELECTOR), None)
 
     async def collect_event_descriptions(self, shows: List[JSONDict]) -> List[JSONDict]:
         """Bounded optional public detail reads, once per event per fetch call.
@@ -242,10 +259,12 @@ class SeatEngineClient(BaseApiClient):
                     url = self._build_public_show_url(show_id)
                     result["url"] = url
                     html = await asyncio.wait_for(self.fetch_html(url), timeout=self.DETAIL_REQUEST_TIMEOUT)
-                    text = self.extract_event_description(html, event_id)
-                    result.update(status="collected" if text else "empty")
-                    if text:
-                        result["text"] = text
+                    blocks = self.extract_event_blocks(html, event_id)
+                    result.update(status="collected" if blocks else "empty")
+                    if blocks:
+                        result["blocks"] = blocks
+                        result["text"] = next((b["text"] for b in blocks
+                                               if b["selector"] == self.DETAIL_SELECTOR), "")
                 except Exception as exc:
                     result.update(status="failed", error_type=type(exc).__name__)
                     self.log_warning(f"SeatEngine event description unavailable for event {event_id}: {type(exc).__name__}")

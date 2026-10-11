@@ -117,9 +117,10 @@ def _state(row):
 
 
 class ReviewStore:
-    def __init__(self, transaction, snapshot_validator=None):
+    def __init__(self, transaction, snapshot_validator=None, *, allow_off_audit=False):
         self.transaction = transaction
         self.snapshot_validator = snapshot_validator
+        self.allow_off_audit = allow_off_audit
 
     def list_queue(self, filters=None, after_id=0, ceiling_id=None, limit=50):
         filters = dict(filters or {})
@@ -176,7 +177,7 @@ class ReviewStore:
                 for cid in sorted(candidate_ids):
                     cur.execute(CURRENT_SQL, (cid,))
                     row = _row(cur)
-                    if not row or row["decision_id"] is None or not row["enabled"] or row["gate_mode"] == "off" or row["policy_version"] != row["current_policy_version"]:
+                    if not row or row["decision_id"] is None or not row["enabled"] or (row["gate_mode"] == "off" and not self.allow_off_audit) or row["policy_version"] != row["current_policy_version"]:
                         raise ValueError("Candidate needs a current enabled-source observation")
                     if self.snapshot_validator is None or self.snapshot_validator(cur, row) != row["identity_fingerprint"]:
                         raise ValueError("Live identity changed; await a fresh observation")
@@ -212,7 +213,7 @@ class ReviewStore:
                     if not row or _token(row) != item:
                         raise ValueError("Candidate changed since preview")
                     source = sources[item["source_id"]]
-                    if not source or not source["enabled"] or source["comedy_policy_version"] != item["policy_version"] or source["comedy_gate_mode"] != item["gate_mode"] or source["comedy_gate_mode"] == "off":
+                    if not source or not source["enabled"] or source["comedy_policy_version"] != item["policy_version"] or source["comedy_gate_mode"] != item["gate_mode"] or (source["comedy_gate_mode"] == "off" and not self.allow_off_audit):
                         raise ValueError("Source policy changed since preview")
                     if self.snapshot_validator(cur, row) != item["identity_fingerprint"]:
                         raise ValueError("Comedian identity evidence changed since preview")

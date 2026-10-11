@@ -32,11 +32,17 @@ def parser():
     preview.add_argument("--action", choices=("approve", "reject", "defer"), required=True)
     preview.add_argument("--actor", required=True)
     preview.add_argument("--reason", required=True)
+    preview.add_argument(
+        "--allow-off-audit", action="store_true", help="Review audit observations while screening remains off"
+    )
     apply = commands.add_parser("apply", help="Apply the exact previously inspected preview")
     apply.add_argument("--preview-id", required=True)
     apply.add_argument("--token-digest", required=True)
     apply.add_argument("--actor", required=True)
     apply.add_argument("--idempotency-key", required=True)
+    apply.add_argument(
+        "--allow-off-audit", action="store_true", help="Apply an off-mode audit preview; never publishes"
+    )
     return result
 
 
@@ -50,7 +56,11 @@ def main(argv=None, *, store=None):
         from laughtrack.core.comedy_eligibility_review import current_identity_fingerprint
         from laughtrack.core.comedy_eligibility_review_store import ReviewStore
 
-        store = ReviewStore(get_transaction, snapshot_validator=current_identity_fingerprint)
+        store = ReviewStore(
+            get_transaction,
+            snapshot_validator=current_identity_fingerprint,
+            allow_off_audit=getattr(args, "allow_off_audit", False),
+        )
     if args.command == "list":
         filters = {
             k: getattr(args, k)

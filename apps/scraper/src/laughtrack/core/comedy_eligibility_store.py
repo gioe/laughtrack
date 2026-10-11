@@ -94,14 +94,14 @@ def load_source(cursor: Any, source_id: int, lock: bool = False) -> dict | None:
 def stage_candidate(cursor: Any, *, source_id: int, event_key: str, club_id: int,
                     payload: dict, decision: Any, gate_mode: str,
                     identity_fingerprint: str = "", baseline_identity_fingerprint: str = "",
-                    review_version: int | None = None) -> StagedCandidate:
+                    review_version: int | None = None, allow_off_audit: bool = False) -> StagedCandidate:
     evidence = decision.to_dict() if hasattr(decision, "to_dict") else dict(decision)
     source = load_source(cursor, source_id, lock=True)
     version = evidence["policy_version"]
     if (source is None or not source["enabled"] or evidence.get("source_id") != source_id
             or source["comedy_policy"] != evidence.get("policy")
             or source["comedy_policy_version"] != version or source["comedy_gate_mode"] != gate_mode
-            or gate_mode not in {"shadow", "enforce"}):
+            or gate_mode not in ({"off", "shadow", "enforce"} if allow_off_audit else {"shadow", "enforce"})):
         raise ValueError("Source policy changed or staging source is unavailable")
     if not event_key:
         raise ValueError("A stable event identity is required")
@@ -129,6 +129,8 @@ def stage_candidate(cursor: Any, *, source_id: int, event_key: str, club_id: int
 
 def verify_publication(cursor: Any, staged: StagedCandidate) -> bool:
     """Hold source and candidate locks until caller finishes public persistence."""
+    if staged.gate_mode not in {"shadow", "enforce"}:
+        return False  # Off-mode audit tokens can never authorize publication.
     source = load_source(cursor, staged.source_id, lock=True)
     if (source is None or not source["enabled"] or source["comedy_policy_version"] != staged.policy_version
             or source["comedy_gate_mode"] != staged.gate_mode):

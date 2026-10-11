@@ -36,7 +36,7 @@ from laughtrack.core.comedy_eligibility_gate import (
 from laughtrack.core.entities.club.comedy_policy import SourceComedyPolicy
 from laughtrack.core.comedy_eligibility_review import apply_review, baseline_identity_fingerprint
 from laughtrack.core.comedy_eligibility_review_store import load_review
-from laughtrack.core.comedy_eligibility_store import fingerprint
+from laughtrack.core.comedy_eligibility_store import fingerprint, stage_candidate
 from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.api.seatengine.scraper import SeatEngineScraper
 from scripts.core.rollout_comedy_eligibility import _rows, source_fingerprint, validate_manifest
@@ -86,7 +86,31 @@ def transform_saved(club, entry):
     return shows, len(filtered), losses
 
 
-def run(saved, source_ids, transaction, *, stage_shadow=False, prospective_manifest=None):
+def run(
+    saved,
+    source_ids,
+    transaction,
+    *,
+    stage_shadow=False,
+    prospective_manifest=None,
+    stage_audit_off=False,
+    audit_selection=None,
+):
+    if stage_audit_off and (stage_shadow or prospective_manifest is not None):
+        raise ValueError("Off audit staging cannot combine with shadow or prospective policy")
+    selected = {}
+    audit_versions = {}
+    if stage_audit_off:
+        if not isinstance(audit_selection, dict) or not audit_selection.get("adjudications"):
+            raise ValueError("Off audit staging requires explicit known-event adjudications")
+        for item in audit_selection["adjudications"]:
+            if not item.get("reason") or not (item.get("evidence") or {}).get("url"):
+                raise ValueError("Audit selection requires event-specific reason and evidence URL")
+            for occurrence in item["occurrence_ids"]:
+                selected[(item["source_id"], str(item["event_id"]), str(occurrence))] = item
+        audit_versions = {s["source_id"]: s["version"] for s in audit_selection["source_policy_snapshot"]}
+        if set(source_ids) != {key[0] for key in selected}:
+            raise ValueError("Selected sources must match explicit audit events")
     proposals = {}
     if prospective_manifest is not None:
         validate_manifest(prospective_manifest)
@@ -110,6 +134,21 @@ def run(saved, source_ids, transaction, *, stage_shadow=False, prospective_manif
             for sid in sorted(source_ids):
                 source = _source(cursor, sid)
                 entry = by_id[sid]
+                if stage_audit_off:
+                    if source["comedy_gate_mode"] != "off" or source["comedy_policy_version"] != audit_versions.get(
+                        sid
+                    ):
+                        raise ValueError("Audit source must remain off at the reviewed policy version")
+                    chosen = [
+                        e
+                        for e in entry["events"]
+                        if (sid, str((e.get("event") or {}).get("id")), str(e.get("id"))) in selected
+                    ]
+                    found = {(sid, str(e["event"]["id"]), str(e["id"])) for e in chosen}
+                    if found != {key for key in selected if key[0] == sid}:
+                        raise ValueError("Saved payload is missing explicitly selected audit occurrences")
+                    # Exclude every unselected group BEFORE any transform or classifier.
+                    entry = {**entry, "events": chosen}
                 typed = ScrapingSource.from_dict(source)
                 if entry["club_id"] != source["club_id"] or str(entry["venue_id"]) != str(
                     typed.typed_id_for_platform("seatengine")
@@ -207,6 +246,7 @@ def run(saved, source_ids, transaction, *, stage_shadow=False, prospective_manif
                             "payload": candidate_payload(show),
                             "baseline": decision.to_dict(),
                             "effective": effective.to_dict(),
+                            "baseline_identity_fingerprint": baseline_identity_fingerprint(effective, people, denied),
                             "review": {
                                 "version": review["review_version"],
                                 "stale": review.get("stale", False),
@@ -217,6 +257,35 @@ def run(saved, source_ids, transaction, *, stage_shadow=False, prospective_manif
                         }
                     )
         stage_result = None
+        if stage_audit_off:
+            staged = []
+            with transaction() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute("SELECT * FROM scraping_sources WHERE id=%s FOR SHARE", (source["id"],))
+                    live = _rows(cursor)
+                    if (
+                        not live
+                        or not live[0]["enabled"]
+                        or live[0]["comedy_gate_mode"] != "off"
+                        or live[0]["comedy_policy_version"] != source["comedy_policy_version"]
+                        or source_fingerprint(live[0]) != source_fingerprint(source)
+                    ):
+                        raise ValueError("Source changed before off audit staging")
+                    for decision in decisions:
+                        token = stage_candidate(
+                            cursor,
+                            source_id=source["id"],
+                            event_key=decision["event_key"],
+                            club_id=club.id,
+                            payload=decision["payload"],
+                            decision=decision["effective"],
+                            gate_mode="off",
+                            baseline_identity_fingerprint=decision["baseline_identity_fingerprint"],
+                            review_version=decision["review"]["version"],
+                            allow_off_audit=True,
+                        )
+                        staged.append(asdict(token))
+            stage_result = {"kind": "off_audit", "observations": staged, "public_writes": 0}
         if stage_shadow:
 
             @contextmanager
@@ -267,13 +336,15 @@ def run(saved, source_ids, transaction, *, stage_shadow=False, prospective_manif
                 "transformation_loss_identifiers": losses,
                 "lineup_coverage": dict(Counter(d["baseline"]["lineup_status"] for d in decisions)),
                 "decisions": decisions,
-                "shadow": stage_result,
+                "shadow": stage_result if stage_shadow else None,
+                "audit_off": stage_result if stage_audit_off else None,
             }
         )
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "input_fetched_at": saved.get("fetched_at"),
         "stage_shadow": stage_shadow,
+        "stage_audit_off": stage_audit_off,
         "model_requests": 0,
         "model_cost": 0,
         "sources": reports,
@@ -286,6 +357,12 @@ def main(argv=None, *, transaction=None):
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--source-id", type=int, action="append", required=True)
     parser.add_argument("--stage-shadow", action="store_true")
+    parser.add_argument(
+        "--stage-audit-off", action="store_true", help="Explicitly stage known audit events without enabling screening"
+    )
+    parser.add_argument(
+        "--audit-selection", type=Path, help="Reviewed adjudication manifest restricting events/occurrences"
+    )
     parser.add_argument(
         "--prospective-manifest", type=Path, help="Read-only policy simulation; never fabricates reviews"
     )
@@ -303,6 +380,8 @@ def main(argv=None, *, transaction=None):
         transaction,
         stage_shadow=args.stage_shadow,
         prospective_manifest=json.loads(args.prospective_manifest.read_text()) if args.prospective_manifest else None,
+        stage_audit_off=args.stage_audit_off,
+        audit_selection=json.loads(args.audit_selection.read_text()) if args.audit_selection else None,
     )
     args.output.write_text(json.dumps(result, indent=2, sort_keys=True, default=str) + "\n")
     print(

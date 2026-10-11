@@ -36,6 +36,23 @@ def test_narrow_description_excludes_biography_and_wrong_event():
     assert SeatEngineClient.extract_event_description('<div id="bio">Comedy show</div>', "10") is None
 
 
+def test_blocks_preserve_panel_provenance_and_paragraph_boundaries():
+    html = page(description="<p>Doors open.</p><p>This show features comedy performances.</p>")
+    html = html.replace("Biography: famous comedian.", "<p>Artist biography.</p><p>No live comedy tonight.</p>")
+    blocks = SeatEngineClient.extract_event_blocks(html, "10")
+    assert blocks == [
+        {"selector": SeatEngineClient.DETAIL_SELECTOR, "text": "Doors open.\nThis show features comedy performances."},
+        {"selector": "#event-detail #bio", "text": "Artist biography.\nNo live comedy tonight."},
+    ]
+    assert SeatEngineClient.extract_event_blocks(html, "99") == []
+    assert SeatEngineClient.extract_event_blocks('<div id="bio">A night of comedy.</div>', "10") == []
+
+
+def test_combined_page_budget_never_silently_discards_later_negative_panel():
+    html = page(description="x" * 15990).replace("Biography: famous comedian.", "No live comedy tonight.")
+    assert SeatEngineClient.extract_event_blocks(html, "10") == []
+
+
 @pytest.mark.asyncio
 async def test_one_request_per_event_preserves_occurrences_and_ticket_data(monkeypatch):
     value = client(monkeypatch)

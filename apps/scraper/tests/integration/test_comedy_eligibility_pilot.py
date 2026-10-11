@@ -272,3 +272,47 @@ def test_partial_raw_lineup_reason_matches_gate_for_both_outputs(monkeypatch):
         for kind in ("baseline", "effective"):
             assert decision[kind]["lineup_status"] == "partial"
             assert "raw_lineup_partial" in decision[kind]["reason_codes"]
+
+
+def test_off_audit_whitelist_excludes_new_groups_before_classification(monkeypatch):
+    setup(monkeypatch)
+    from laughtrack.core.comedy_eligibility_store import StagedCandidate
+
+    db = ReadDatabase()
+    db.source["comedy_gate_mode"] = "off"
+    raw = saved()
+    new = deepcopy(raw["sources"][0]["events"][0])
+    new["id"] = 999
+    new["event"]["id"] = 123
+    new["event"]["talents"] = [{"name": "Fresh unexposed performer"}]
+    raw["sources"][0]["events"].append(new)
+    seen_names, staged = [], []
+    monkeypatch.setattr(pilot, "_identity_snapshot", lambda cursor, names: (seen_names.extend(names) or [], []))
+
+    def stage(cursor, **kwargs):
+        staged.append(kwargs)
+        assert kwargs["allow_off_audit"] and kwargs["gate_mode"] == "off"
+        return StagedCandidate(1, 2, 1, kwargs["event_key"], 2, "off")
+
+    monkeypatch.setattr(pilot, "stage_candidate", stage)
+    selection = {
+        "adjudications": [
+            {
+                "source_id": 1,
+                "event_id": 5,
+                "occurrence_ids": [44],
+                "reason": "Known event reviewed",
+                "evidence": {"url": "https://example.com/shows/44"},
+            }
+        ],
+        "source_policy_snapshot": [{"source_id": 1, "version": 2}],
+    }
+    with pytest.raises(ValueError, match="adjudications"):
+        pilot.run(raw, [1], db.transaction, stage_audit_off=True)
+    result = pilot.run(raw, [1], db.transaction, stage_audit_off=True, audit_selection=selection)
+    assert "fresh unexposed performer" not in seen_names
+    assert len(staged) == 2
+    assert result["sources"][0]["provider_event_groups"] == 1
+    assert result["sources"][0]["shadow"] is None
+    assert result["sources"][0]["audit_off"]["kind"] == "off_audit"
+    assert result["sources"][0]["audit_off"]["public_writes"] == 0

@@ -305,3 +305,50 @@ it("fences older staged decisions while allowing a freshly staged payload revers
         ).rows,
     ).toEqual([]);
 });
+
+it("stores off audit observations but rejects their publication even by direct SQL", async () => {
+    await db.exec(
+        readFileSync(
+            resolve(
+                migrations,
+                "20261011180000_allow_comedy_off_audit/migration.sql",
+            ),
+            "utf8",
+        ),
+    );
+    const cid = await candidate();
+    const off = (
+        await q("INSERT_DECISION_SQL", [
+            cid,
+            "off-payload",
+            "identity",
+            1,
+            "audit-v3",
+            "off",
+            "accept",
+            "{}",
+            "{}",
+        ])
+    ).rows[0].id;
+    await expect(
+        db.query(
+            "INSERT INTO comedy_event_publications(candidate_id,decision_id,show_id) VALUES($1,$2,100)",
+            [cid, off],
+        ),
+    ).rejects.toThrow("Off-mode audit");
+    const normal = (await decision(cid)).rows[0].id;
+    await db.query(
+        "INSERT INTO comedy_event_publications(candidate_id,decision_id,show_id) VALUES($1,$2,100)",
+        [cid, normal],
+    );
+    await expect(
+        db.query(
+            "UPDATE comedy_event_publications SET decision_id=$1 WHERE candidate_id=$2",
+            [off, cid],
+        ),
+    ).rejects.toThrow("Off-mode audit");
+    expect(
+        (await db.query("SELECT decision_id FROM comedy_event_publications"))
+            .rows,
+    ).toEqual([{ decision_id: normal }]);
+});
