@@ -26,6 +26,7 @@ from laughtrack.core.comedy_eligibility_store import (
     link_published,
 )
 from laughtrack.core.comedy_eligibility_review import apply_review, baseline_identity_fingerprint
+from laughtrack.core.comedy_eligibility_monitor import observe_show
 from laughtrack.core.comedy_eligibility_review_store import load_review
 from laughtrack.core.entities.club.comedy_policy import SourceComedyPolicy
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -228,20 +229,22 @@ class EligibilityGate:
                 continue
             show.eligibility_persisted = False
             source_key = (getattr(show, "eligibility_source_id", None), show.club_id, show.last_scraped_by)
-            if source_key in off_sources:
+            if source_key in off_sources and off_sources[source_key]["comedy_policy"] != "comedy_only":
                 prepared.append((show, off_sources[source_key], None))
                 continue
-            source = None
+            source = off_sources.get(source_key)
             allow_shadow_fallback = False
             try:
                 with self.transaction() as conn:
                     with conn.cursor() as cursor:
-                        source = self._source(cursor, show)
+                        source = source or self._source(cursor, show)
                         mode = source["comedy_gate_mode"]
                         policy = SourceComedyPolicy.from_row(source)
                         staged = None
                         if mode == "off":
                             off_sources[source_key] = source
+                        if mode != "off" or policy.policy == "comedy_only":
+                            observe_show(cursor, source, show, identity_snapshots)
                         if mode != "off":
                             names = sorted(
                                 {

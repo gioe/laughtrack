@@ -75,11 +75,11 @@ def test_collision_blocks_stale_cleanup():
 
     handler = _handler()
     processor = ScrapingResultProcessor.__new__(ScrapingResultProcessor)
-    processor.show_service = handler
+    processor.show_service = SimpleNamespace(insert_shows=handler.insert_shows, show_handler=handler)
     processor._reconcile_stale_future_shows = MagicMock()
     club_result = SimpleNamespace(
         shows=[_show(1), _show(1, hour=21)], is_synthetic=False, club_name="Venue", scraper_key="thundertix",
-        cancellations=[],
+        cancellations=[], eligibility_source_id=None,
     )
     result = processor.insert_club_result(club_result)
     assert result.validation_errors == 2

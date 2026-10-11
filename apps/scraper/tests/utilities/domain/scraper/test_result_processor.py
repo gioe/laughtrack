@@ -13,6 +13,7 @@ def isolate_source_ownership_guard(monkeypatch):
     # This suite exercises the legacy clean-scrape/cap/organizer algorithm.
     # The real source-ownership guard is covered by eligibility gate contracts.
     monkeypatch.setattr("laughtrack.core.comedy_eligibility_gate.safe_to_reconcile", lambda handler, result: True)
+    monkeypatch.setattr("laughtrack.core.comedy_eligibility_monitor.evaluate_completed_source", lambda *args: None)
 
 
 def _make_processor():

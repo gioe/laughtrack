@@ -13,6 +13,7 @@ export const PGLITE_TEST_FILES = [
     "prisma/comedyEligibilityStaging.test.ts",
     "prisma/comedyModelCache.test.ts",
     "prisma/comedyEventReviews.test.ts",
+    "prisma/comedySourceMonitor.test.ts",
     "prisma/comedianVisibleConsolidation.test.ts",
     "prisma/discoveryEventsMigration.test.ts",
     "prisma/improvAsylumSourceMigration.test.ts",

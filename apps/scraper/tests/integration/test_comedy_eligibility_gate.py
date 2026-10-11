@@ -143,6 +143,7 @@ def _gate_environment(monkeypatch, mode="enforce"):
             and candidate.review_version == state.review_version
         )
 
+    monkeypatch.setattr(gate, "observe_show", lambda *args: True)
     monkeypatch.setattr(gate, "load_review", lambda *args: {"review_version": 0, "review": None, "stale": False})
     monkeypatch.setattr(gate, "load_source", load)
     monkeypatch.setattr(gate, "stage_candidate", stage)

@@ -99,6 +99,9 @@ class ScrapingResultProcessor:
             )
         else:
             self._reconcile_stale_future_shows(club_result, reconcile_cutoff)
+        from laughtrack.core.comedy_eligibility_monitor import evaluate_completed_source
+
+        evaluate_completed_source(self.show_service.show_handler.transaction, club_result.eligibility_source_id)
         return db_result
 
     def _reconcile_stale_future_shows(self, club_result: ClubScrapingResult, cutoff: datetime) -> None:

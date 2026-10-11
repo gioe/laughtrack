@@ -140,33 +140,36 @@ enum ComedyGateMode {
 }
 
 model ScrapingSource {
-  id                    Int                    @id @default(autoincrement())
-  clubId                Int?                   @map("club_id")
-  sourceTargetId        Int?                   @map("source_target_id")
-  platform              ScrapingPlatform
-  scraperKey            String                 @map("scraper_key")
-  seatengineId          Int?                   @map("seatengine_id")
-  eventbriteId          String?                @map("eventbrite_id")
-  ticketmasterId        String?                @map("ticketmaster_id")
-  wixEventId            String?                @map("wix_event_id")
-  ovationtixId          String?                @map("ovationtix_id")
-  squadupId             String?                @map("squadup_id")
-  seatengineV3Id        String?                @map("seatengine_v3_id")
-  sourceUrl             String?                @map("source_url")
-  priority              Int                    @default(0)
-  enabled               Boolean                @default(true)
-  metadata              Json                   @default("{}")
-  comedyEventCandidates ComedyEventCandidate[]
-  comedyPolicy          ComedyIngestionPolicy  @default(unreviewed) @map("comedy_policy")
-  comedyGateMode        ComedyGateMode         @default(off) @map("comedy_gate_mode")
-  comedyPolicyVersion   Int                    @default(1) @map("comedy_policy_version")
-  comedyReviewedBy      String?                @map("comedy_reviewed_by")
-  comedyReviewedAt      DateTime?              @map("comedy_reviewed_at") @db.Timestamptz
-  comedyReviewEvidence  Json                   @default("{}") @map("comedy_review_evidence")
-  createdAt             DateTime               @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt             DateTime               @updatedAt @map("updated_at") @db.Timestamptz
-  club                  Club?                  @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  sourceTarget          SourceTarget?          @relation(fields: [sourceTargetId], references: [id], onDelete: Cascade)
+  comedyMonitorSamples     ComedySourceSample[]
+  comedyMonitorReports     ComedySourceReport[]
+  comedyMonitorTransitions ComedySourceTransition[]
+  id                       Int                      @id @default(autoincrement())
+  clubId                   Int?                     @map("club_id")
+  sourceTargetId           Int?                     @map("source_target_id")
+  platform                 ScrapingPlatform
+  scraperKey               String                   @map("scraper_key")
+  seatengineId             Int?                     @map("seatengine_id")
+  eventbriteId             String?                  @map("eventbrite_id")
+  ticketmasterId           String?                  @map("ticketmaster_id")
+  wixEventId               String?                  @map("wix_event_id")
+  ovationtixId             String?                  @map("ovationtix_id")
+  squadupId                String?                  @map("squadup_id")
+  seatengineV3Id           String?                  @map("seatengine_v3_id")
+  sourceUrl                String?                  @map("source_url")
+  priority                 Int                      @default(0)
+  enabled                  Boolean                  @default(true)
+  metadata                 Json                     @default("{}")
+  comedyEventCandidates    ComedyEventCandidate[]
+  comedyPolicy             ComedyIngestionPolicy    @default(unreviewed) @map("comedy_policy")
+  comedyGateMode           ComedyGateMode           @default(off) @map("comedy_gate_mode")
+  comedyPolicyVersion      Int                      @default(1) @map("comedy_policy_version")
+  comedyReviewedBy         String?                  @map("comedy_reviewed_by")
+  comedyReviewedAt         DateTime?                @map("comedy_reviewed_at") @db.Timestamptz
+  comedyReviewEvidence     Json                     @default("{}") @map("comedy_review_evidence")
+  createdAt                DateTime                 @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                DateTime                 @updatedAt @map("updated_at") @db.Timestamptz
+  club                     Club?                    @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  sourceTarget             SourceTarget?            @relation(fields: [sourceTargetId], references: [id], onDelete: Cascade)
 
   @@unique([clubId, platform, priority])
   @@unique([sourceTargetId, platform, priority])
@@ -1475,4 +1478,57 @@ model ComedyEventReview {
   @@unique([candidateId, reviewVersion])
   @@index([operationKey], map: "comedy_event_reviews_operation_idx")
   @@map("comedy_event_reviews")
+}
+
+model ComedySourceSample {
+  sourceId            Int            @map("source_id")
+  eventKey            String         @map("event_key")
+  payloadFingerprint  String         @map("payload_fingerprint")
+  identityFingerprint String         @map("identity_fingerprint")
+  baseline            Json
+  policyVersion       Int            @map("policy_version")
+  firstSeenAt         DateTime       @default(dbgenerated("clock_timestamp()")) @map("first_seen_at") @db.Timestamptz
+  lastSeenAt          DateTime       @default(dbgenerated("clock_timestamp()")) @map("last_seen_at") @db.Timestamptz
+  source              ScrapingSource @relation(fields: [sourceId], references: [id], onDelete: Restrict)
+
+  @@id([sourceId, eventKey])
+  @@index([sourceId, lastSeenAt], map: "comedy_source_samples_window_idx")
+  @@map("comedy_source_samples")
+}
+
+model ComedySourceReport {
+  id             Int                      @id @default(autoincrement())
+  sourceId       Int                      @map("source_id")
+  reportDigest   String                   @map("report_digest")
+  evidenceDigest String                   @map("evidence_digest")
+  config         Json
+  metrics        Json
+  recommendation Json
+  sourceSnapshot Json                     @map("source_snapshot")
+  createdAt      DateTime                 @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz
+  source         ScrapingSource           @relation(fields: [sourceId], references: [id], onDelete: Restrict)
+  transitions    ComedySourceTransition[]
+
+  @@unique([sourceId, reportDigest])
+  @@map("comedy_source_reports")
+}
+
+model ComedySourceTransition {
+  id          Int                     @id @default(autoincrement())
+  sourceId    Int                     @map("source_id")
+  reportId    Int                     @map("report_id")
+  kind        String
+  rollbackOf  Int?                    @unique @map("rollback_of")
+  actor       String
+  reason      String
+  beforeState Json                    @map("before_state")
+  afterState  Json                    @map("after_state")
+  createdAt   DateTime                @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz
+  source      ScrapingSource          @relation(fields: [sourceId], references: [id], onDelete: Restrict)
+  report      ComedySourceReport      @relation(fields: [reportId], references: [id], onDelete: Restrict)
+  original    ComedySourceTransition? @relation("ComedySourceRollback", fields: [rollbackOf], references: [id], onDelete: Restrict)
+  rollback    ComedySourceTransition? @relation("ComedySourceRollback")
+
+  @@index([sourceId, id], map: "comedy_source_transitions_history_idx")
+  @@map("comedy_source_transitions")
 }
