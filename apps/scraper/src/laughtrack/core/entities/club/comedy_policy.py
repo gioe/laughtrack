@@ -6,6 +6,11 @@ from typing import Any, Mapping
 
 POLICIES = frozenset({"unreviewed", "comedy_only", "mixed"})
 GATE_MODES = frozenset({"off", "shadow", "enforce"})
+FORMAT_POLICY_VERSION = "comedy-audience-policy-v1"
+FORMAT_DEFAULTS = {
+    "live_performance": "allow", "screening": "exclude", "instruction": "exclude",
+    "mixer": "exclude", "mixed": "review", "ambiguous": "review", "unknown": "allow",
+}
 
 
 @dataclass(frozen=True)
@@ -26,6 +31,20 @@ class SourceComedyPolicy:
             raise ValueError("Comedy policy version must be a positive integer")
         if not isinstance(self.evidence, dict):
             raise ValueError("Comedy policy evidence must be an object")
+        self.format_policy  # Validate source-owned format configuration eagerly.
+
+    @property
+    def format_policy(self) -> dict[str, Any]:
+        raw = self.evidence.get("format_policy", {})
+        if not isinstance(raw, dict) or set(raw) - {"version", "dispositions"}:
+            raise ValueError("Invalid audience format policy")
+        version = raw.get("version", FORMAT_POLICY_VERSION)
+        overrides = raw.get("dispositions", {})
+        if (version != FORMAT_POLICY_VERSION or not isinstance(overrides, dict)
+                or set(overrides) - set(FORMAT_DEFAULTS)
+                or any(value not in ("allow", "exclude", "review") for value in overrides.values())):
+            raise ValueError("Invalid audience format policy version or dispositions")
+        return {"version": version, "dispositions": {**FORMAT_DEFAULTS, **overrides}}
 
     @classmethod
     def from_row(cls, row: Mapping[str, Any]) -> "SourceComedyPolicy":

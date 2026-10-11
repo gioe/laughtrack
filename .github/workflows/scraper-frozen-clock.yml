@@ -33,6 +33,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+        with:
+          # Full-suite offline rule replay needs the historical classifier commits.
+          fetch-depth: 0
 
       - name: Set up scraper Python environment
         uses: ./.github/actions/scraper-setup

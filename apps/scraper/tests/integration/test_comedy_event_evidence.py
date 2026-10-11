@@ -73,7 +73,11 @@ def test_gate_only_consumes_verified_marker_and_keeps_mixed_conflict():
     capture_event_inputs(show, payload)
     capture_event_inputs(show, payload)
     evidence = event_evidence(show)
-    assert len(evidence) == 2
+    assert len(evidence) == len(set(evidence)) == 4
+    assert {(item.rule_family, item.rule_reason) for item in evidence} == {
+        ("comedy_format", "live_comedy"), ("event_format", "music_performance"),
+        ("audience_format", "live_performance"), ("audience_content", "comedy_performance"),
+    }
     result = classify_comedy_eligibility(source_id=7, policy=SourceComedyPolicy(), evidence=evidence)
     assert result.decision == "review"
     assert "conflicting_event_evidence" in result.reason_codes
@@ -99,7 +103,11 @@ def test_current_negative_description_overrides_positive_title(text):
 def test_negated_title_is_explicitly_uncertain(title):
     show = SimpleNamespace(name=title, eligibility_evidence=[])
     evidence = event_evidence(show)
-    assert len(evidence) == 1 and evidence[0].kind == "unknown"
+    genre = [item for item in evidence if item.rule_family != "audience_format"]
+    assert len(genre) == 1 and genre[0].kind == "unknown"
+    audience = [item for item in evidence if item.rule_family == "audience_format"]
+    assert len(audience) == (1 if title == "Not a comedy show" else 0)
+    assert all(item.rule_reason == "ambiguous" for item in audience)
     trusted = SourceComedyPolicy(policy="comedy_only", reviewed_by="reviewer",
                                  reviewed_at=datetime(2026, 10, 11, tzinfo=timezone.utc),
                                  evidence={"calendar": "reviewed"})

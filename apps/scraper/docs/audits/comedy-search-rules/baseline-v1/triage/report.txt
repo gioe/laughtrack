@@ -1,0 +1,831 @@
+Public shows search content audit: October 11–17, 2026
+
+Fetched 2886 unique shows from 702 venues; triaged 2175 venue/title groups.
+
+Counts refer to show occurrences:
+screening_not_live_comedy: 9
+needs_more_evidence: 116
+class_workshop_or_mixer_review: 27
+strong_non_comedy_flag: 56
+promotion_or_unavailable_event: 4
+
+Strong non-comedy flags: 56/2886 (1.94%), across 30 venues. This is a flagged share, not a confirmed or exhaustive false-positive rate.
+
+Agent title triage across all 2175 exact venue/title groups, followed by targeted reading of returned descriptions and lineups for suspicious listings. Repeated occurrences grouped for review, counted separately in show totals. No production classifier run and no provider-model API call. These are content audit judgments, not independently verified ground truth.
+
+Limitations:
+- Flags are a conservative triage set, not an exhaustive false-positive rate; remaining listings are not certified comedy.
+- No description or lineup is not evidence of non-comedy.
+- Public lineups do not expose blocked identities or parent links, so blocked-only and blocked-only-with-parents rates cannot be calculated from this endpoint.
+- A non-comedy event at a venue does not establish that comedy never occurs there.
+- Movie screenings, workshops, mixed variety and drag require separate format decisions; do not blanket exclude them.
+- Offset pagination is not a transactional snapshot, though all six pages reported the same total and all 2886 IDs were unique.
+- This assesses published-content precision; cannot measure missed comedy/recall or substitute for the fresh validation required by TASK-4160.
+- This audit exposes these listings to the agent. Do not subsequently treat these judgments as blind independent validation labels.
+
+Flag details (full API descriptions and occurrence IDs in audit.json):
+
+screening_not_live_comedy | 1 occurrence(s) | American Theatre | The Addams Family - 7pm - Classic Movie Nights!
+Movie screening rather than a live comedy performance. A comedy film may still be comedy content; this is a format distinction.
+IDs: [6781738]
+Ticket URL: https://www.ticketmaster.com/the-addams-family-7pm-classic-movie-hampton-virginia-10-15-2026/event/0100651BD3EDDD2B
+
+needs_more_evidence | 1 occurrence(s) | Amish Country Theater | Jukebox Heroes LIVE!
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [2964831]
+Ticket URL: https://plugin.vbotickets.com/v5.0/event.asp?eid=181407
+
+class_workshop_or_mixer_review | 1 occurrence(s) | BABS Comedy Club | Comedy Writing Workshop Series (18+)
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [1597069]
+Ticket URL: https://www.babscomedyclub.com/shows/371703
+
+class_workshop_or_mixer_review | 1 occurrence(s) | BABS Comedy Club | Improv Workshop Series (18+)
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [1597068]
+Ticket URL: https://www.babscomedyclub.com/shows/371693
+
+needs_more_evidence | 1 occurrence(s) | Bergen Performing Arts Center | An Evening With John Cusack (featuring Screening Of High Fidelity)
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [2832229]
+Ticket URL: https://www.ticketmaster.com/an-evening-with-john-cusack-featuring-englewood-new-jersey-10-17-2026/event/000064CAC5776B2F
+
+class_workshop_or_mixer_review | 1 occurrence(s) | Big Laugh Comedy Club | FREE Intro To Improv Class
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [7761511]
+Ticket URL: https://fortworth.blcomedy.com/events/free-intro-to-improv-class-oct-17
+
+strong_non_comedy_flag | 1 occurrence(s) | Charlotte Comedy Zone | R&B Bingo
+Listing bills bingo/trivia/skills games without an explicit comedy performance; requires event-level confirmation before removal.
+IDs: [5144686]
+Ticket URL: https://www.cltcomedyzone.com/shows/383212
+
+needs_more_evidence | 1 occurrence(s) | Cleveland Funny Bone | Hocus Pocus Tribute Drag Brunch
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [5963500]
+Ticket URL: https://www.etix.com/ticket/p/42291290/hocus-pocus-tribute-drag-brunch-cleveland-funny-bone-comedy-club-cleveland?partner_id=100
+
+needs_more_evidence | 1 occurrence(s) | Club Cafe | Ian McConnell w/ Cherokee Social
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [6543185]
+Ticket URL: https://www.ticketweb.com/event/ian-mcconnell-w-cherokee-social-club-cafe-tickets/14983963
+
+needs_more_evidence | 1 occurrence(s) | Club Cafe | Mother of Earl w/ Poster Child & Chet Vincent and Tim Good
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [7679984]
+Ticket URL: https://www.ticketweb.com/event/mother-of-earl-w-poster-club-cafe-tickets/14349614
+
+needs_more_evidence | 1 occurrence(s) | Club Cafe | RH Pioneers + Jacob Perez w/ Cody Piper
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [8015302]
+Ticket URL: https://www.ticketweb.com/event/rh-pioneers-jacob-perez-club-cafe-tickets/14364674
+
+needs_more_evidence | 1 occurrence(s) | Club Cafe | WYEP Pesents: The Laurel Lowlifes w/ Blooming Trio & Becks!
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [6606947]
+Ticket URL: https://www.ticketweb.com/event/wyep-pesents-the-laurel-lowlifes-club-cafe-tickets/15049003
+
+strong_non_comedy_flag | 1 occurrence(s) | Comedy Cabin | Paint & Sip at Comedy Cabin
+Listing bills a paint-and-sip activity.
+IDs: [4178610]
+Ticket URL: https://www.cabinlaughs.com/shows/380218
+
+strong_non_comedy_flag | 1 occurrence(s) | Comedy In Harlem | Thursday Nite Jazz Party
+Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.
+IDs: [7900194]
+Ticket URL: https://www.comedyinharlem.com/shows/390571
+
+strong_non_comedy_flag | 3 occurrence(s) | Comedy Key West | A Pirate Looks Back: Jimmy Buffett Tribute Show
+Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.
+IDs: [4178531, 4178532, 4178533]
+Ticket URL: https://www.comedykeywest.com/shows/380405
+
+needs_more_evidence | 1 occurrence(s) | Comedy Plex Comedy Club | Chicago Burlesque Showcase: Halloween Edition
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [5238103]
+Ticket URL: https://www.comedyplex.com/event/chicago-burlesque-showcase-halloween-edition-951/register
+
+needs_more_evidence | 1 occurrence(s) | Comedy on State | Drag Bingo with Bianca Lynn Breeze & Renae Sance
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [4562223]
+Ticket URL: https://www.madisoncomedy.com/event/dragbingo26/
+
+strong_non_comedy_flag | 1 occurrence(s) | Comix Roadhouse | BULL RIDES
+Description sells mechanical bull rides with a waiver, not a comedy performance.
+IDs: [5925360]
+Ticket URL: https://events.leapevents.com/event/bull-rides-oct2026ufrfx4e
+
+needs_more_evidence | 1 occurrence(s) | Comix Roadhouse | SUMMER ORLANDO'S DRAG BINGO
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [6720036]
+Ticket URL: https://events.leapevents.com/event/summer-orlando-drag-bingo-101626ooo8jx7
+
+class_workshop_or_mixer_review | 1 occurrence(s) | Crescent Theater | Crescent Comedy Workshop
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [7444231]
+Ticket URL: https://www.ticketweb.com/event/crescent-comedy-workshop-crescent-theater-tickets/15039973
+
+strong_non_comedy_flag | 1 occurrence(s) | Dead Crow Comedy | Meeser Eddie's Funtime Trivia
+Listing bills bingo/trivia/skills games without an explicit comedy performance; requires event-level confirmation before removal.
+IDs: [7444729]
+Ticket URL: http://deadcrowcomedy.com/shows/389268
+
+strong_non_comedy_flag | 1 occurrence(s) | Deaf Puppy Comedy Club | Monday Night Football Madness
+Football viewing event; Game Day description explicitly advertises televised games and food/drink specials.
+IDs: [6394650]
+Ticket URL: Http://www.deafpuppyclub.com/shows/386292
+
+strong_non_comedy_flag | 1 occurrence(s) | Deaf Puppy Comedy Club | Trivia/Skills Competition w/Jacob Goss
+Listing bills bingo/trivia/skills games without an explicit comedy performance; requires event-level confirmation before removal.
+IDs: [6394652]
+Ticket URL: Http://www.deafpuppyclub.com/shows/386261
+
+needs_more_evidence | 1 occurrence(s) | Des Moines Funny Bone | Psychic Medium Cindy Kaza
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [836638]
+Ticket URL: https://www.etix.com/ticket/p/34347718/psychic-medium-cindy-kaza-west-des-moines-funny-bone-comedy-club-des-moines?partner_id=100
+
+class_workshop_or_mixer_review | 1 occurrence(s) | Desert Ridge Improv | Stand-Up Comedy Class
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [1776066]
+Ticket URL: https://www.desertridgeimprov.com/shows/341680
+
+needs_more_evidence | 1 occurrence(s) | Desert Ridge Improv | Twilight vs. Sinners Drag Brunch
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [6660156]
+Ticket URL: https://www.desertridgeimprov.com/shows/387119
+
+strong_non_comedy_flag | 1 occurrence(s) | Dharma Bums | An Evening of Singer-Songwriters - Hopkins, Eshbaugh, & McCarthy
+Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.
+IDs: [4451007]
+Ticket URL: https://services.seatengine.com/api/v1/venues/633/shows/381184
+
+needs_more_evidence | 1 occurrence(s) | Dharma Bums | Brandon Warrick
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [7740739]
+Ticket URL: https://services.seatengine.com/api/v1/venues/633/shows/390087
+
+strong_non_comedy_flag | 1 occurrence(s) | Dharma Bums | Psychedelic Community of New Hope MeetUp
+Community meetup or sewing circle, without comedy billing.
+IDs: [4191178]
+Ticket URL: https://services.seatengine.com/api/v1/venues/633/shows/380390
+
+strong_non_comedy_flag | 1 occurrence(s) | Dharma Bums | River Guild Monthly Sewing Circle
+Community meetup or sewing circle, without comedy billing.
+IDs: [7155359]
+Ticket URL: https://services.seatengine.com/api/v1/venues/633/shows/388507
+
+needs_more_evidence | 1 occurrence(s) | Dharma Bums | Skaht Kpraile, Our Bodies Themselves, Gaia Raga
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [7673045]
+Ticket URL: https://services.seatengine.com/api/v1/venues/633/shows/389925
+
+needs_more_evidence | 1 occurrence(s) | Dharma Bums | The Fitzkee Brothers
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [6453910]
+Ticket URL: https://services.seatengine.com/api/v1/venues/633/shows/386553
+
+needs_more_evidence | 1 occurrence(s) | Dunlap's Corner Bar | Fistula
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [4137995]
+Ticket URL: https://www.dunlapsbar.com/shows/380163
+
+needs_more_evidence | 1 occurrence(s) | Dunlap's Corner Bar | G.S. Harper's Cleveland Jubilee
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [7961797]
+Ticket URL: https://www.dunlapsbar.com/shows/372088
+
+needs_more_evidence | 1 occurrence(s) | Dunlap's Corner Bar | Sunny Daze & The Weathermen
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [7107776]
+Ticket URL: https://www.dunlapsbar.com/shows/388129
+
+needs_more_evidence | 1 occurrence(s) | Dunlap's Corner Bar | Whippet
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [7383532]
+Ticket URL: https://www.dunlapsbar.com/shows/389223
+
+class_workshop_or_mixer_review | 1 occurrence(s) | Endgames Training Center - South | Endgames Drop-In Classes
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [4019380]
+Ticket URL: https://www.eventbrite.com/e/endgames-drop-in-classes-tickets-1993755220535
+
+strong_non_comedy_flag | 1 occurrence(s) | Flappers Comedy Club And Restaurant Burbank | Game Day Burbank
+Football viewing event; Game Day description explicitly advertises televised games and food/drink specials.
+IDs: [5394642]
+Ticket URL: https://www.flapperscomedy.com/site/shows.php?event_id=79179
+
+class_workshop_or_mixer_review | 1 occurrence(s) | Flop House Comedy Club | The Game Room aka The Flophouse Acting Workshop for Stand-Ups
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [7620334]
+Ticket URL: https://www.eventbrite.com/e/tickets-2002456852350
+
+promotion_or_unavailable_event | 1 occurrence(s) | Fort Lauderdale Improv | Book Your Holiday Party
+Holiday party booking promotion or closed-for-private-event notice; unsuitable as a public show listing regardless of genre.
+IDs: [4270545]
+Ticket URL: https://www.improvftl.com/shows/380821
+
+class_workshop_or_mixer_review | 1 occurrence(s) | Fort Lauderdale Improv | Stand Up Comedy Workshop
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [7159607]
+Ticket URL: https://www.improvftl.com/shows/388576
+
+needs_more_evidence | 1 occurrence(s) | Fraze Pavilion | Hocus Pocus
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [2841620]
+Ticket URL: https://www.ticketmaster.com/event/Z7r9jZ1A70YP_
+
+strong_non_comedy_flag | 1 occurrence(s) | Give a Hoot Comedy Club | Trivia Night Benefitting Soroptimist Int.
+Listing bills bingo/trivia/skills games without an explicit comedy performance; requires event-level confirmation before removal.
+IDs: [4242752]
+Ticket URL: https://giveahootcomedy.com/shows/380664
+
+needs_more_evidence | 1 occurrence(s) | Goodnights Comedy Club | Room 861 at Goodnights: Invasion of The Body Snatchers
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [6995716]
+Ticket URL: http://www.goodnightscomedy.com/shows/387875
+
+strong_non_comedy_flag | 1 occurrence(s) | Grove 34 | JAZZ AND JOINTS
+Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.
+IDs: [8089311]
+Ticket URL: https://ti.to/grove34/jazz-and-joints-copy-2
+
+needs_more_evidence | 5 occurrence(s) | Hamburger Mary's - Las Vegas | Drag Brunch at Hamburger Mary's
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [2826599, 2826600, 2826601, 2826602, 2826603]
+Ticket URL: https://www.universe.com/events/drag-brunch-at-hamburger-marys-tickets-L20XGT?ref=ticketmaster
+
+needs_more_evidence | 1 occurrence(s) | Harvelle's Long Beach | All-Star Jam Session
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [4189446]
+Ticket URL: https://longbeach.harvelles.com/shows/380456
+
+needs_more_evidence | 1 occurrence(s) | Harvelle's Long Beach | ERNESTO and FRIENDS
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [5025862]
+Ticket URL: https://longbeach.harvelles.com/shows/382815
+
+strong_non_comedy_flag | 1 occurrence(s) | Harvelle's Long Beach | Kraken Karaoke
+Listing bills karaoke without an explicit comedy performance.
+IDs: [4189445]
+Ticket URL: https://longbeach.harvelles.com/shows/380463
+
+needs_more_evidence | 2 occurrence(s) | Harvelle's Long Beach | Little Monster's Burlesque: Gaga Tribute
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [5075951, 5075952]
+Ticket URL: https://longbeach.harvelles.com/shows/382983
+
+needs_more_evidence | 1 occurrence(s) | Harvelle's Long Beach | Soul Shack Productions: Wednesday Night Live
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [5471817]
+Ticket URL: https://longbeach.harvelles.com/shows/383787
+
+strong_non_comedy_flag | 1 occurrence(s) | Harvelle's Long Beach | Spotlight Dance
+Listing bills a dance event without comedy evidence in the API.
+IDs: [520039]
+Ticket URL: https://longbeach.harvelles.com/shows/361572
+
+needs_more_evidence | 1 occurrence(s) | Harvelle's Santa Monica | ALL-STAR JAM SESSION BENEFIT
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [4665059]
+Ticket URL: https://santamonica.harvelles.com/shows/381857
+
+needs_more_evidence | 1 occurrence(s) | Harvelle's Santa Monica | AMERICAN WOMXN
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [6877897]
+Ticket URL: https://santamonica.harvelles.com/shows/387682
+
+strong_non_comedy_flag | 1 occurrence(s) | Harvelle's Santa Monica | COME SING WITH THE BAND - LIVE BAND KARAOKE
+Listing bills karaoke without an explicit comedy performance.
+IDs: [5404829]
+Ticket URL: https://santamonica.harvelles.com/shows/383725
+
+needs_more_evidence | 1 occurrence(s) | Harvelle's Santa Monica | THE NO CHASERS
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [5404828]
+Ticket URL: https://santamonica.harvelles.com/shows/383721
+
+needs_more_evidence | 1 occurrence(s) | Harvelle's Santa Monica | THE TOLEDO SHOW
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [4665058]
+Ticket URL: https://santamonica.harvelles.com/shows/381853
+
+needs_more_evidence | 1 occurrence(s) | Harvelle's Santa Monica | WESTERN REVENGE
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [7202938]
+Ticket URL: https://santamonica.harvelles.com/shows/388645
+
+needs_more_evidence | 1 occurrence(s) | Helium & Elements Restaurant - Buffalo | Special Event: Stone Cold & The Jackal
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [3532268]
+Ticket URL: https://buffalo.heliumcomedy.com/shows/385736
+
+needs_more_evidence | 1 occurrence(s) | Helium Comedy Club - Indianapolis | Special Event: Challenge Mania Live
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [6278723]
+Ticket URL: https://indianapolis.heliumcomedy.com/shows/385919
+
+needs_more_evidence | 1 occurrence(s) | Helium Comedy Club - Indianapolis | Special Event: Dolly Parton Drag Brunch
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [7805089]
+Ticket URL: https://indianapolis.heliumcomedy.com/shows/390382
+
+needs_more_evidence | 1 occurrence(s) | Helium Comedy Club - Portland | Special Event: Love, Lies and Port Charles with Laura Wright and James Patrick Stuart
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [2347127]
+Ticket URL: https://portland.heliumcomedy.com/shows/375382
+
+class_workshop_or_mixer_review | 1 occurrence(s) | Highwire Improv | RPG Improv with Dave Hill - Friday Option
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [7430403]
+Ticket URL: https://www.eventbrite.com/e/rpg-improv-with-dave-hill-friday-option-tickets-2002181832759
+
+class_workshop_or_mixer_review | 1 occurrence(s) | Highwire Improv | RPG Improv with Dave Hill - Saturday Option
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [7430404]
+Ticket URL: https://www.eventbrite.com/e/rpg-improv-with-dave-hill-saturday-option-tickets-2002182002266
+
+class_workshop_or_mixer_review | 1 occurrence(s) | Highwire Improv | Youth RPG Improv with Dave Hill!
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [7430402]
+Ticket URL: https://www.eventbrite.com/e/youth-rpg-improv-with-dave-hill-tickets-2002181305181
+
+needs_more_evidence | 1 occurrence(s) | Hilarities 4th Street Theatre | Stone Cold and the Jackal
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [5773102]
+Ticket URL: https://www.hilarities.com/shows/384526
+
+screening_not_live_comedy | 7 occurrence(s) | IMAX THEATRE at TROPICANA | Digger: The IMAX Experience
+Movie screening rather than a live comedy performance. A comedy film may still be comedy content; this is a format distinction.
+IDs: [7360067, 7360068, 7360069, 7360070, 7360071, 7360072, 7360073]
+Ticket URL: https://www.ticketmaster.com/digger-the-imax-experience-atlantic-city-new-jersey-10-11-2026/event/02006531EEAE08F6
+
+needs_more_evidence | 3 occurrence(s) | Ice House Comedy Club | Social Hour
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [7087975, 7087978, 2466263]
+Ticket URL: https://tockify.com/theicehouse/detail/1527/1792027800000
+
+strong_non_comedy_flag | 1 occurrence(s) | Jacques' Cabaret | Karaoke
+Listing bills karaoke without an explicit comedy performance.
+IDs: [3179111]
+Ticket URL: https://events.timely.fun/fwq8raf8/agenda/event/karaoke-5/20261013210000
+
+strong_non_comedy_flag | 1 occurrence(s) | Keller Auditorium | Oregon Ballet Theatre Presents Swan Lake
+Listing bills Swan Lake ballet, including explicit Oregon Ballet Theatre billing.
+IDs: [6393473]
+Ticket URL: https://www.ticketmaster.com/event/Z7r9jZ1AAvkAJ
+
+strong_non_comedy_flag | 2 occurrence(s) | Keller Auditorium | Swan Lake
+Listing bills Swan Lake ballet, including explicit Oregon Ballet Theatre billing.
+IDs: [6791420, 6791421]
+Ticket URL: https://www.ticketmaster.com/event/Z7r9jZ1AAvPpk
+
+class_workshop_or_mixer_review | 1 occurrence(s) | Krackpots Comedy Club | COMEDY WORKSHOP - THE HISTORY OF COMEDY & 10 THINGS YOU SHOULD BE DOING AS A COMEDIAN
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [7633748]
+Ticket URL: http://www.krackpotscomedyclub.com/shows/389751
+
+needs_more_evidence | 1 occurrence(s) | Largo at the Coronet | Megan Mullally and her band, Nancy And Beth
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [3599116]
+Ticket URL: https://wl.seetickets.us/event/megan-mullally-and-her-band-nancy-and-beth/697715?afflky=LargoAtTheCoronet
+
+class_workshop_or_mixer_review | 1 occurrence(s) | Laugh Camp Comedy Club | Improv 101; The basics of improv, Tuesdays at 6:30, Oct 13 - Dec 1
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [7270318]
+Ticket URL: https://www.camp-bar.net/shows/388792
+
+strong_non_comedy_flag | 1 occurrence(s) | Laugh Camp Comedy Club | Interactive Music Trivia from Music Mayhem - No tickets or reservations needed.
+Listing bills bingo/trivia/skills games without an explicit comedy performance; requires event-level confirmation before removal.
+IDs: [7129453]
+Ticket URL: https://www.camp-bar.net/shows/388490
+
+needs_more_evidence | 1 occurrence(s) | Laughs Unlimited | Travis Holp
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [475914]
+Ticket URL: https://www.laughsunlimited.com/shows/360213
+
+class_workshop_or_mixer_review | 1 occurrence(s) | Lesher Center for the Arts | (WORKSHOP) Diablo Improv Festival: ASA ERLENDSON
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [6064566]
+Ticket URL: https://purchase.lesherartscenter.org/EventAvailability?EventId=105401APRJVMGJLHSJCNQLVPBJJLBQLJQ
+
+class_workshop_or_mixer_review | 1 occurrence(s) | Lesher Center for the Arts | (WORKSHOP) Diablo Improv Festival: Navaris Darson: Character Crash Course
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [6064565]
+Ticket URL: https://purchase.lesherartscenter.org/EventAvailability?EventId=105201ASGSJBSQQDKPHKRNPNHMLLTKGMH
+
+needs_more_evidence | 1 occurrence(s) | Liberty Funny Bone | Hocus Pocus Tribute Drag Brunch
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [5912532]
+Ticket URL: https://www.etix.com/ticket/p/77746238/hocus-pocus-tribute-drag-brunch-liberty-township-funny-bone-comedy-club-cincinnati?partner_id=100
+
+needs_more_evidence | 1 occurrence(s) | Loony Bin Comedy Club - Wichita | Cindy Kaza
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [3846440]
+Ticket URL: https://wichita.loonybincomedy.com/events
+
+needs_more_evidence | 1 occurrence(s) | Louisville Comedy Club | The Extraordinary Card Magic of Jason Ladanye
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [394454]
+Ticket URL: https://www.louisvillecomedy.com/shows/364555
+
+strong_non_comedy_flag | 1 occurrence(s) | Lyric Hyperion Theater & Cafe | The Lyric Sessions: Music Open Mic
+Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.
+IDs: [3214719]
+Ticket URL: https://www.eventbrite.com/e/the-lyric-sessions-music-open-mic-tickets-1992383893860
+
+class_workshop_or_mixer_review | 1 occurrence(s) | MadLab Theatre | David Razowsky Weekend Intensive
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [4574523]
+Ticket URL: https://ci.ovationtix.com/35811/production/1284023?performanceId=11844537
+
+needs_more_evidence | 1 occurrence(s) | Mesa Arts Center | Whispers In The Dark: Stories by Edgar Allan Poe Southwest Shakespeare Company SSC
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [5734291]
+Ticket URL: https://boxoffice.mesaartscenter.com/Online/default.asp?BOset::WScontent::SearchCriteria::search_criteria=EdgarAllanPoe&BOparam::WScontent::search::article_search_id=90D2C441-0944-4735-93D1-6DDCA86CCB70&doWork::WScontent::search=1
+
+promotion_or_unavailable_event | 1 occurrence(s) | Miami Improv | Book Your Holiday Party
+Holiday party booking promotion or closed-for-private-event notice; unsuitable as a public show listing regardless of genre.
+IDs: [4270487]
+Ticket URL: http://www.miamiimprov.com/shows/380837
+
+class_workshop_or_mixer_review | 1 occurrence(s) | Mic Drop Comedy | ADVANCED STAND UP COMEDY CLASS
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [6990836]
+Ticket URL: http://www.micdropcomedy.com/shows/387927
+
+needs_more_evidence | 1 occurrence(s) | Mic Drop Comedy | DAYTIME AT MIC DROP
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [4853056]
+Ticket URL: http://www.micdropcomedy.com/shows/382407
+
+class_workshop_or_mixer_review | 1 occurrence(s) | Mic Drop Comedy | INTRO TO STAND UP COMEDY CLASS
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [6990837]
+Ticket URL: http://www.micdropcomedy.com/shows/387921
+
+class_workshop_or_mixer_review | 1 occurrence(s) | Mic Drop Comedy Chandler | MUSICAL COMEDY WORKSHOP W/ JAMIE SHRINER
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [7084481]
+Ticket URL: https://www.micdropcomedychandler.com/shows/388167
+
+strong_non_comedy_flag | 3 occurrence(s) | Mic Drop Comedy Detroit | DETROIT GHOST WALK
+Listing bills a ghost/history walking tour without comedy evidence in the API; confirm the actual tour before removal.
+IDs: [523419, 8210519, 523421]
+Ticket URL: http://micdropcomedyDetroit.com/shows/378066
+
+strong_non_comedy_flag | 7 occurrence(s) | Mic Drop Comedy Plano | APPARITION EXPEDITION WALKING TOUR - LIMITED EVENT
+Listing bills a ghost/history walking tour without comedy evidence in the API; confirm the actual tour before removal.
+IDs: [6483869, 6483870, 6483871, 6483873, 6483874, 6483875, 6483878]
+Ticket URL: https://micdropcomedyplano.com/shows/386736
+
+strong_non_comedy_flag | 2 occurrence(s) | Mic Drop Comedy Plano | ONCE UPON A PLANO: WALKING TOUR OF DOWNTOWN PLANO
+Listing bills a ghost/history walking tour without comedy evidence in the API; confirm the actual tour before removal.
+IDs: [6911294, 6911306]
+Ticket URL: https://micdropcomedyplano.com/shows/387711
+
+strong_non_comedy_flag | 1 occurrence(s) | Mic Drop Comedy Plano | PLANO GHOST WALK
+Listing bills a ghost/history walking tour without comedy evidence in the API; confirm the actual tour before removal.
+IDs: [476367]
+Ticket URL: https://micdropcomedyplano.com/shows/378041
+
+needs_more_evidence | 1 occurrence(s) | Music Farm | Oct (On Company Time) w/ Lewky
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [2840948]
+Ticket URL: https://www.ticketmaster.com/oct-on-company-time-w-lewky-charleston-south-carolina-10-11-2026/event/2D00648FAF60234E
+
+strong_non_comedy_flag | 1 occurrence(s) | Numerica Veterans Arena | Disney Worlds Collide Concert Tour
+Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.
+IDs: [2875901]
+Ticket URL: https://www.ticketmaster.com/event/Z7r9jZ1A7-gxb
+
+needs_more_evidence | 1 occurrence(s) | Off Cabot Comedy and Events | Ross Livermore
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [8039539]
+Ticket URL: https://thecabot.org/event/ross-livermore/
+
+needs_more_evidence | 1 occurrence(s) | Off Cabot Comedy and Events | The Music Box Open Mic hosted by Brian Donnelly
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [7988371]
+Ticket URL: https://thecabot.org/book/?show=220401AHNKSPJNBPQPSDKVJQJVCVDNLRN
+
+strong_non_comedy_flag | 2 occurrence(s) | Ohio Star Theater at Dutch Valley | 2026 Chris Collins & Boulder Canyon John Denver Tribute
+Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.
+IDs: [2965043, 2965044]
+Ticket URL: https://ci.ovationtix.com/35490/production/1254109?performanceId=11705190
+
+needs_more_evidence | 5 occurrence(s) | Ohio Star Theater at Dutch Valley | 2026 Elijah: Prophet of Fire
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [2964704, 2964705, 2964706, 2964707, 2964708]
+Ticket URL: https://ci.ovationtix.com/35490/production/1251155?performanceId=11691895
+
+needs_more_evidence | 1 occurrence(s) | Omaha Funny Bone | Hocus Pocus Tribute Drag Show
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [6312444]
+Ticket URL: https://www.etix.com/ticket/p/85357255/hocus-pocus-tribute-drag-show-omaha-funny-bone-comedy-club-omaha?partner_id=100
+
+needs_more_evidence | 1 occurrence(s) | Omaha Funny Bone | Psychic Medium Cindy Kaza
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [836349]
+Ticket URL: https://www.etix.com/ticket/p/80105295/psychic-medium-cindy-kaza-omaha-funny-bone-comedy-club-omaha?partner_id=100
+
+needs_more_evidence | 1 occurrence(s) | One Night Stans Comedy Club | Dueling Pianos
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [6482909]
+Ticket URL: https://www.standingroomonlytickets.com/WebOffice/EventList/571
+
+needs_more_evidence | 1 occurrence(s) | Ontario Improv | Hocus Pocus Drag Brunch
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [3948740]
+Ticket URL: https://www.ticketweb.com/event/hocus-pocus-drag-brunch-ontario-improv-tickets/14251144?pl=ontarioimprov&REFID=ontarioWP
+
+class_workshop_or_mixer_review | 1 occurrence(s) | Peak Improv Theater | Corporate Mixer - Learn How Improv Can Help Your Business!
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [8131238]
+Ticket URL: https://peakimprov.com/events-2-1/corporate-mixer-learn-how-improv-can-help-your-business-1
+
+class_workshop_or_mixer_review | 1 occurrence(s) | Peak Improv Theater | Stage Combat Workshop
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [7842978]
+Ticket URL: https://peakimprov.com/events-2-1/stage-combat-workshop
+
+needs_more_evidence | 1 occurrence(s) | Planet Of The Tapes | Lyons Lane
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [5247156]
+Ticket URL: https://www.planetofthetapes.biz/shows/383296
+
+strong_non_comedy_flag | 1 occurrence(s) | Planet Of The Tapes | Movie Trivia w/ Greg Welsh!
+Listing bills bingo/trivia/skills games without an explicit comedy performance; requires event-level confirmation before removal.
+IDs: [2664013]
+Ticket URL: https://www.planetofthetapes.biz/shows/383072
+
+needs_more_evidence | 1 occurrence(s) | Planet Of The Tapes | My Ride's Here
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [4707308]
+Ticket URL: https://www.planetofthetapes.biz/shows/381875
+
+needs_more_evidence | 1 occurrence(s) | Planet Of The Tapes | Saturdays at Sunnydale
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [7282011]
+Ticket URL: https://www.planetofthetapes.biz/shows/388825
+
+needs_more_evidence | 2 occurrence(s) | Planet Of The Tapes | Silas Fangs: Holy Ghost Contest
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [5679770, 5679771]
+Ticket URL: https://www.planetofthetapes.biz/shows/384245
+
+needs_more_evidence | 1 occurrence(s) | Planet Of The Tapes | The Louisville Gore Club
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [2664011]
+Ticket URL: https://www.planetofthetapes.biz/shows/376323
+
+needs_more_evidence | 1 occurrence(s) | Planet Of The Tapes | Twin Peaks Tuesdays
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [7281991]
+Ticket URL: https://www.planetofthetapes.biz/shows/388808
+
+needs_more_evidence | 1 occurrence(s) | Post Office Cafe | Drag Brunch
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [4912266]
+Ticket URL: https://postofficecafecabaret.thundertix.com/orders/new?event_id=261488&performance_id=3241643
+
+needs_more_evidence | 1 occurrence(s) | Post Office Cafe | Misleading Ladies
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [4633653]
+Ticket URL: https://postofficecafecabaret.thundertix.com/orders/new?event_id=261488&performance_id=3246388
+
+needs_more_evidence | 1 occurrence(s) | Post Office Cafe | Queen of the PO Drag Brunch
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [4912267]
+Ticket URL: https://postofficecafecabaret.thundertix.com/orders/new?event_id=261488&performance_id=3241681
+
+needs_more_evidence | 1 occurrence(s) | Post Office Cafe | The Devil Wears Payless
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [5019150]
+Ticket URL: https://postofficecafecabaret.thundertix.com/orders/new?event_id=263005&performance_id=3272206
+
+needs_more_evidence | 1 occurrence(s) | Punchline Comedy Lounge | BATTLE OF THE SEXES GAME NIGHT - HOSTED BY: LALA LOVE & SHAWN E
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [6619048]
+Ticket URL: https://www.comedypunchline.com/shows/387013
+
+needs_more_evidence | 1 occurrence(s) | Red Room (Provincetown) | Speakeasy: Zoë Lewis and the Bootleggers
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [519773]
+Ticket URL: https://redroom.club/shows/365637
+
+needs_more_evidence | 1 occurrence(s) | Revolution Hall | Ashley Cooke: The Baby Blues Tour
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [8135326]
+Ticket URL: https://www.etix.com/ticket/p/65736762/ashley-cookethe-baby-blues-tour-portland-revolution-hall
+
+needs_more_evidence | 5 occurrence(s) | Saxe Theater at Planet Hollywood Inside the Miracle Mile Mall | Vegas! The Show
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [2873795, 2873797, 2873799, 2873801, 2873802]
+Ticket URL: https://www.ticketmaster.com/event/Z7r9jZ1A7xpbK
+
+needs_more_evidence | 3 occurrence(s) | Sheba's Speakeasy Comedy Club | Sinful Sunday at Sheba's Speakeasy! Get Flirty!
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [6576467, 7658397, 7658412]
+Ticket URL: https://www.eventbrite.com/e/sinful-sunday-at-shebas-speakeasy-get-flirty-tickets-1998130650564
+
+strong_non_comedy_flag | 1 occurrence(s) | Snappers Palm Harbor | Audio Star Band
+Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.
+IDs: [7182661]
+Ticket URL: https://www.snappersgrill.com/shows/388659
+
+needs_more_evidence | 1 occurrence(s) | Spokane Comedy Club | Tucked & Loaded Drag Bingo: Welcome to the Fun House
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [3679014]
+Ticket URL: https://www.spokanecomedyclub.com/shows/379206
+
+needs_more_evidence | 1 occurrence(s) | Sports Drink | Bing-Oh at SPORTS DRINK (Thursday, 7:00p)
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [506936]
+Ticket URL: https://event.tixologi.com/event/13586/tickets
+
+needs_more_evidence | 1 occurrence(s) | Sports Drink | Community Night at SPORTS DRINK (Wednesday, 6:30p)
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [1094627]
+Ticket URL: https://event.tixologi.com/event/13532/tickets
+
+strong_non_comedy_flag | 1 occurrence(s) | Sports Drink | Tropical Trivia with Sean Bahama at SPORTS DRINK (Wednesday, 7:30p)
+Listing bills bingo/trivia/skills games without an explicit comedy performance; requires event-level confirmation before removal.
+IDs: [1094628]
+Ticket URL: https://event.tixologi.com/event/13533/tickets
+
+needs_more_evidence | 1 occurrence(s) | Stampede - Aurora | Ladies Night at Stampede
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [2831863]
+Ticket URL: https://www.ticketmaster.com/event/Z7r9jZ1A70vOy
+
+class_workshop_or_mixer_review | 1 occurrence(s) | StandUpLive Phoenix | Stand-Up Comedy Class
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [1778518]
+Ticket URL: https://phoenix.standuplive.com/shows/341671
+
+needs_more_evidence | 1 occurrence(s) | Summit City Comedy Club | Summit City Divas Drag Brunch
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [4738029]
+Ticket URL: https://summitcity.seatengine.com/shows/382122
+
+needs_more_evidence | 1 occurrence(s) | Tacoma Comedy Club | It's Bingo B**** - A Drag Bingo Event!
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [3621437]
+Ticket URL: https://www.tacomacomedyclub.com/shows/379124
+
+class_workshop_or_mixer_review | 1 occurrence(s) | Tempe Improv | Stand-Up Comedy Class
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [509065]
+Ticket URL: http://www.tempeimprov.com/shows/341676
+
+needs_more_evidence | 1 occurrence(s) | The Annoyance Theatre | Jay Collen: Come Hang Out with the Magician
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [7451325]
+Ticket URL: https://theannoyance.thundertix.com/orders/new?event_id=261569&performance_id=3279356
+
+needs_more_evidence | 1 occurrence(s) | The Annoyance Theatre | King of Drag Season 2 Watch Party
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [7451327]
+Ticket URL: https://theannoyance.thundertix.com/orders/new?event_id=270726&performance_id=3275389
+
+needs_more_evidence | 2 occurrence(s) | The Clocktower Cabaret | Nightmare
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [3313756, 3313757]
+Ticket URL: https://ci.ovationtix.com/35628/production/1073788?performanceId=11831677
+
+needs_more_evidence | 1 occurrence(s) | The Clocktower Cabaret | The King Penny Radio Show
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [4154085]
+Ticket URL: https://ci.ovationtix.com/35628/production/1199408?performanceId=11839235
+
+needs_more_evidence | 1 occurrence(s) | The Clocktower Cabaret | The Legend of Sleepy Hollow
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [3313773]
+Ticket URL: https://ci.ovationtix.com/35628/production/1235741?performanceId=11827078
+
+needs_more_evidence | 2 occurrence(s) | The Comedy Loft of DC | Creepypasties: A Burlesque and Variety Tribute to Urban Legends
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [392538, 392539]
+Ticket URL: https://www.dccomedyloft.com/shows/345612
+
+strong_non_comedy_flag | 2 occurrence(s) | The Comedy Loft of DC | Jazz Room
+Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.
+IDs: [3407383, 3407384]
+Ticket URL: https://www.dccomedyloft.com/shows/378538
+
+needs_more_evidence | 4 occurrence(s) | The Den Theatre | 4000 Miles
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [5686062, 5686057, 5686054, 5686052]
+Ticket URL: https://thedentheatre.com/calendar/2026/10/8/4000-miles-the-den-theatre-comedy-club-chicago-afg7z-aj7f6
+
+needs_more_evidence | 7 occurrence(s) | The Empire Strips Back Theater | The Empire Strips Back
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [2830668, 2830669, 2830670, 2830671, 2830672, 2830673, 2830674]
+Ticket URL: https://www.ticketmaster.com/the-empire-strips-back-las-vegas-nevada-10-11-2026/event/390064C9C6551F1F
+
+class_workshop_or_mixer_review | 1 occurrence(s) | The FanaticSalon Theater | Culver City Comedy Club | Improv Drop-In with Jeff Michalski
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [4381150]
+Ticket URL: https://fanaticsalon.com/event/improv-drop-in-with-jeff-michalski/2026-10-17/
+
+class_workshop_or_mixer_review | 1 occurrence(s) | The Improv Collective | Intro to Improv Drop Ins
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [7155173]
+Ticket URL: https://jetbook.co/e/intro-to-improv-drop-insg0bn
+
+needs_more_evidence | 1 occurrence(s) | The Lounge at World Stage | Audawind
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [3024099]
+Ticket URL: https://www.etix.com/ticket/v/1599/music-hall-at-world-stage
+
+needs_more_evidence | 1 occurrence(s) | The Lounge at World Stage | Tour Godz Presents The Impact Tour
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [7658448]
+Ticket URL: https://www.etix.com/ticket/v/1599/music-hall-at-world-stage
+
+needs_more_evidence | 1 occurrence(s) | The Rockwell | Andro Queen, Headfirst & Friends
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [5593576]
+Ticket URL: https://therockwell.org/calendar/andro-queen-and-co/
+
+strong_non_comedy_flag | 1 occurrence(s) | The Rockwell | Foamflower EP Release Show
+Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.
+IDs: [7758349]
+Ticket URL: https://therockwell.org/calendar/foamflower-ep-release/
+
+strong_non_comedy_flag | 1 occurrence(s) | The Rockwell | Jamie Webster
+Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.
+IDs: [4846030]
+Ticket URL: https://therockwell.org/calendar/jamie-webster/
+
+strong_non_comedy_flag | 1 occurrence(s) | The Rockwell | Jiwon, Sally Boy, & Jazz Cuti
+Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.
+IDs: [7422401]
+Ticket URL: https://therockwell.org/calendar/jiwon-sallyboy-jazzcuti/
+
+needs_more_evidence | 1 occurrence(s) | The Rockwell | Rockwell Open Mic @ Saloon
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [7184908]
+Ticket URL: https://therockwell.org/calendar/rockwell-open-mic-saloon/2026-10-12/
+
+strong_non_comedy_flag | 1 occurrence(s) | The Rockwell | Sex Mex
+Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.
+IDs: [4846032]
+Ticket URL: https://therockwell.org/calendar/sex-mex/
+
+strong_non_comedy_flag | 2 occurrence(s) | The Tiny Cupboard | Free Karaoke
+Listing bills karaoke without an explicit comedy performance.
+IDs: [7747014, 7795577]
+Ticket URL: https://www.thetinycupboard.com/events/free-karaoke-2026-10-11220000
+
+needs_more_evidence | 1 occurrence(s) | Tommy T's Pleasanton | Tommy T's Wing Wednesday!
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [6396077]
+Ticket URL: http://tommyts.com/shows/386494
+
+strong_non_comedy_flag | 1 occurrence(s) | Uncle Vinnie's Comedy Club | Cameron Mathison, Katelyn MacMullen & Cynthia Watros - Rosemont - Oct 17, 2026
+Description advertises a General Hospital actor meet-and-greet, autograph/photo session, dinner or Q&A without comedy billing.
+IDs: [3185261]
+Ticket URL: https://ci.ovationtix.com/35774/production/1275458?performanceId=11806542
+
+strong_non_comedy_flag | 1 occurrence(s) | Uncle Vinnie's Comedy Club | Cameron Mathison, Katelyn MacMullen & Cynthia Watros - Schaumburg - Oct 17, 2026
+Description advertises a General Hospital actor meet-and-greet, autograph/photo session, dinner or Q&A without comedy billing.
+IDs: [3185262]
+Ticket URL: https://ci.ovationtix.com/35774/production/1275461?performanceId=11806544
+
+strong_non_comedy_flag | 1 occurrence(s) | Uptown Theater | BERTHA: Grateful Drag
+Listing bills music, a band, a concert, or a music open mic; no live comedy billing in the returned event evidence.
+IDs: [1670277]
+Ticket URL: https://www.uptownpvd.com/events/bertha-grateful-drag
+
+screening_not_live_comedy | 1 occurrence(s) | Uptown Theater | Trick r' Treat
+Movie screening rather than a live comedy performance. A comedy film may still be comedy content; this is a format distinction.
+IDs: [6748089]
+Ticket URL: https://www.uptownpvd.com/events/trick-r-treat
+
+class_workshop_or_mixer_review | 1 occurrence(s) | Very Good Improv | VGI Improv 401 Fall 2026 - Thurs 6:30pm-9:30pm
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [4466536]
+Ticket URL: https://www.crowdwork.com/e/vgi-improv-401-fall-2026-thurs-6-30pm-9-30pm
+
+needs_more_evidence | 1 occurrence(s) | Villain Theater | Doll LinkUp Drag Show
+Ambiguous or mixed format, sparse description, or a suspected music/social/variety event. No conclusive non-comedy label from this API response.
+IDs: [7861644]
+Ticket URL: https://www.eventbrite.com/e/doll-linkup-drag-show-tickets-1999727763572
+
+strong_non_comedy_flag | 1 occurrence(s) | West Nyack Levity Live | Gotham Wrestling
+Title and description bill Gotham Wrestling without comedy billing.
+IDs: [5555174]
+Ticket URL: https://www.ticketweb.com/event/gotham-wrestling-west-nyack-levity-live-tickets/15039063?pl=palisadeslevity&REFID=nyackWP
+
+class_workshop_or_mixer_review | 1 occurrence(s) | West Side Comedy Club | Class: Building A Set with William Kean
+Training/workshop/mixer rather than an obvious audience show. Keep separate from non-comedy: comedy can occur in these activities, and graduation showcases are not included by this rule.
+IDs: [8019443]
+Ticket URL: https://punchup.live/show/4a593f12-2e67-43ce-9a83-eeeacae69b99
+
+promotion_or_unavailable_event | 2 occurrence(s) | Whiplash Comedy | CLOSED FOR PRIVATE EVENT
+Holiday party booking promotion or closed-for-private-event notice; unsuitable as a public show listing regardless of genre.
+IDs: [7666049, 7666050]
+Ticket URL: https://whiplashcomedy.com/shows/389887

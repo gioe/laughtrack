@@ -8,14 +8,14 @@ empirically calibrated probabilities.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Iterable, cast
 
 if TYPE_CHECKING:
     from laughtrack.core.entities.club.comedy_policy import SourceComedyPolicy
 
-CLASSIFIER_VERSION = "comedy-eligibility-v3"
+CLASSIFIER_VERSION = "comedy-eligibility-v3-rules-v3"
 _LABEL_KINDS = frozenset({"troupe", "show_label"})
 _KINDS = _LABEL_KINDS | {"person"}
 _NON_COMEDY_BLOCK_REASONS = frozenset({"non_comedian_musician", "musician", "non_comedy_sports"})
@@ -31,18 +31,31 @@ class EventEvidence:
     kind: str
     provenance: str
     detail: str
+    rule_family: str | None = None
+    rule_version: str | None = None
+    rule_reason: str | None = None
 
     def __post_init__(self) -> None:
         if not all(isinstance(value, str) for value in (self.kind, self.provenance, self.detail)):
             raise ValueError("Event evidence fields must be strings")
+        if not all(value is None or isinstance(value, str) for value in (self.rule_family, self.rule_version, self.rule_reason)):
+            raise ValueError("Rule metadata must be strings when supplied")
 
     @property
     def valid(self) -> bool:
-        return (
-            self.kind in {"comedy", "music", "sports"}
-            and self.provenance in _PROVENANCE
-            and isinstance(self.detail, str)
-            and bool(self.detail.strip())
+        from laughtrack.core.comedy_event_rules import RULE_REASONS, RULE_VERSIONS
+
+        if self.provenance not in _PROVENANCE or not self.detail.strip():
+            return False
+        metadata = (self.rule_family, self.rule_version, self.rule_reason)
+        if all(value is None for value in metadata):
+            return self.kind in {"comedy", "music", "sports"}
+        return bool(
+            self.rule_family in RULE_REASONS
+            and self.kind == ("comedy" if self.rule_family in {"comedy_format", "audience_content"} else self.rule_family)
+            and self.rule_version == RULE_VERSIONS[self.rule_family]
+            and self.rule_reason in RULE_REASONS[self.rule_family]
+            and self.provenance in {"event_billing", "event_description"}
         )
 
 
@@ -118,12 +131,23 @@ class ComedyEligibilityDecision:
     lineup_status: str
     blocked_count: int
     performer_count: int
+    content_status: str = "unknown"
+    audience_format: str = "unknown"
+    format_disposition: str = "allow"
+    format_policy: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         """JSON-safe stable contract suitable for staging and replay."""
         import json
 
-        return cast(dict[str, Any], json.loads(json.dumps(asdict(self), sort_keys=True)))
+        payload = asdict(self)
+        # Keep legacy three-field evidence byte shape stable. Optional rule
+        # fields remain round-trippable through EventEvidence(**saved_item).
+        for item in payload["evidence"]:
+            for key in ("rule_family", "rule_version", "rule_reason"):
+                if item[key] is None:
+                    del item[key]
+        return cast(dict[str, Any], json.loads(json.dumps(payload, sort_keys=True)))
 
 
 def _reviewed_trust(policy: SourceComedyPolicy) -> bool:
@@ -306,7 +330,9 @@ def classify_comedy_eligibility(
     if source_id is not None and (type(source_id) is not int or source_id <= 0):
         raise ValueError("Source ID must be a positive integer")
     observed = tuple(performers or ())
-    supplied = tuple(sorted(set(evidence), key=lambda e: (e.kind, e.provenance, e.detail)))
+    supplied = tuple(sorted(set(evidence), key=lambda e: (
+        e.kind, e.provenance, e.detail, e.rule_family or "", e.rule_version or "", e.rule_reason or "",
+    )))
     valid = tuple(e for e in supplied if e.valid)
     resolved = _resolve_performers(observed, people, denied)
     reasons: set[str] = set()
@@ -330,11 +356,20 @@ def classify_comedy_eligibility(
     if conflict:
         reasons.add("identity_conflict")
     positive = any(e.kind == "comedy" for e in valid)
-    negative = any(e.kind in {"music", "sports"} for e in valid)
+    negative = any(e.kind in {"music", "sports", "non_public", "unrelated_activity", "event_format"} for e in valid)
     if positive:
         reasons.add("affirmative_event_comedy")
-    if negative:
+    if any(e.kind in {"music", "sports"} for e in valid):
         reasons.add("explicit_non_comedy_event")
+    for item in valid:
+        if item.rule_family:
+            reasons.add(f"rule_{item.rule_family}_{item.rule_reason}")
+            if item.kind == "non_public":
+                reasons.add("explicit_non_public_event")
+            elif item.kind == "unrelated_activity":
+                reasons.add("explicit_unrelated_activity")
+            elif item.kind == "event_format":
+                reasons.add("explicit_non_comedy_event")
 
     if any(not e.valid for e in supplied):
         decision, confidence = "review", 0.3
@@ -367,6 +402,25 @@ def classify_comedy_eligibility(
         reasons.add("insufficient_event_evidence")
         if policy.policy == "comedy_only":
             reasons.add("unverified_source_policy")
+    genre_negative = any(e.kind in {"music", "sports", "event_format", "unrelated_activity"} for e in valid)
+    content_status = ("conflicting" if positive and genre_negative else
+                      "comedy" if positive else "non_comedy" if genre_negative else "unknown")
+    formats = {e.rule_reason for e in valid if e.rule_family == "audience_format"}
+    # Training and networking are both non-audience offerings, but a performance
+    # combined with either requires review rather than a standalone exclusion.
+    concrete = formats - {"ambiguous"}
+    audience_format = ("mixed" if len(concrete) > 1 else
+                       "ambiguous" if "ambiguous" in formats else
+                       next(iter(concrete)) if concrete else "unknown")
+    format_policy = policy.format_policy
+    disposition = format_policy["dispositions"][audience_format]
+    if disposition != "allow":
+        reasons.add(f"audience_format_{disposition}")
+        # Invalid evidence and contradictions always remain reviewable. A format
+        # allowance never upgrades the existing identity/content decision.
+        if "invalid_event_evidence" not in reasons and "conflicting_event_evidence" not in reasons:
+            decision = "reject" if disposition == "exclude" else "review"
+            confidence = 0.95 if disposition == "exclude" else 0.5
     return ComedyEligibilityDecision(
         decision,
         tuple(sorted(reasons)),
@@ -384,4 +438,8 @@ def classify_comedy_eligibility(
         ),
         blocked,
         total,
+        content_status,
+        audience_format,
+        disposition,
+        format_policy,
     )

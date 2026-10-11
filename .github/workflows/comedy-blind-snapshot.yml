@@ -1,0 +1,67 @@
+name: Comedy blind snapshots
+
+on:
+  schedule:
+    - cron: "23 10 * * *"
+  workflow_dispatch:
+    inputs:
+      bootstrap:
+        description: "First run only: initialize history when no successful run exists"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: comedy-blind-snapshots
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/scraper
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/scraper-setup
+      - name: Install browser fallback
+        run: playwright install chromium --with-deps
+      - name: Restore cumulative evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          BOOTSTRAP: ${{ inputs.bootstrap || false }}
+        run: |
+          args=()
+          if [ "$BOOTSTRAP" = true ]; then args+=(--bootstrap); fi
+          python scripts/core/collect_comedy_blind_snapshots.py \
+            --restore-repo "$REPOSITORY" --output "$RUNNER_TEMP/blind-prior" "${args[@]}"
+      - name: Collect source evidence without classification
+        env:
+          DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+          DATABASE_USER: ${{ secrets.DATABASE_USER }}
+          DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+          SEATENGINE_AUTH_TOKEN: ${{ secrets.SEATENGINE_AUTH_TOKEN }}
+          COMEDY_MODEL_ENABLED: "0"
+          COMEDY_MODEL_CACHE_ENABLED: "0"
+          COMEDY_MONITOR_AUTO_DOWNGRADE: "0"
+        run: |
+          args=(--previous "$RUNNER_TEMP/blind-prior/history.json")
+          if [ -f "$RUNNER_TEMP/blind-prior/bootstrap.json" ]; then args=(--bootstrap); fi
+          python scripts/core/collect_comedy_blind_snapshots.py \
+            --run-id "$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT@$GITHUB_SHA" \
+            --output "$RUNNER_TEMP/blind-output" "${args[@]}"
+      - name: Preserve cumulative immutable evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: comedy-blind-history-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/blind-output/*.json
+          retention-days: 90
+          if-no-files-found: error

@@ -1,0 +1,3219 @@
+{
+  "schema_version": 1,
+  "reviewer": "codex:/root",
+  "reviewed_at": "2026-10-11T22:29:21.958808+00:00",
+  "review_type": "post-outcome development adjudication; not independent blind labels",
+  "selection": "Every title-diagnostic candidate reject, plus every baseline accept changing to candidate review. Generic missing-evidence review is not a proposed successful exclusion.",
+  "candidate_revision": "346cac72604a6338673fff90f5e3d6781de49b13",
+  "corpus_version": "comedy-search-2026-10-11-v1",
+  "manifest_sha256": "f6e6e5f11c069e81cb4331cb3884df3b9ceb47ce275db23722c92365a4936c28",
+  "counts": {
+    "occurrences": 60,
+    "title_description_venue_groups": 50,
+    "judgments": {
+      "comedy_format_withheld": 9,
+      "unresolved": 26,
+      "live_comedy_withheld": 14,
+      "supported_non_comedy": 6,
+      "supported_non_public": 4,
+      "supported_non_audience_format": 1
+    },
+    "genres": {
+      "comedy": 23,
+      "unknown": 31,
+      "non_comedy": 6
+    }
+  },
+  "records": [
+    {
+      "public_show_id": 1776066,
+      "venue": "Desert Ridge Improv",
+      "title": "Stand-Up Comedy Class",
+      "original_reference_label": {
+        "show_id": 1776066,
+        "group_index": 434,
+        "selection": "flagged",
+        "triage_category": "class_workshop_or_mixer_review",
+        "genre": "comedy",
+        "format": "training",
+        "public_availability": "unknown",
+        "rationale": "The event title explicitly bills comedy or improv instruction. This is comedy-related training, not evidence of a public audience show.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "Stand-Up Comedy Class",
+            "reference": "raw/page-0.json#/data/11/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "comedy",
+      "format": "training",
+      "judgment": "comedy_format_withheld",
+      "rationale": "The title explicitly advertises stand-up comedy instruction. Format exclusion is not a non-comedy finding.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Stand-Up Comedy Class",
+          "reference": "raw/page-0.json#/data/11/name"
+        }
+      ],
+      "baseline_decision": "accept",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "affirmative_event_comedy",
+        "audience_format_exclude",
+        "missing_lineup",
+        "rule_audience_content_comedy_instruction",
+        "rule_audience_format_instruction",
+        "rule_comedy_format_live_comedy"
+      ],
+      "source_evidence": {
+        "show_id": 1776066,
+        "present_in_database": true,
+        "club_id": 104,
+        "source_performance_id": null,
+        "show_page_url": "https://www.desertridgeimprov.com/shows/341680",
+        "last_scraped_by": "seatengine_classic",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 1778518,
+      "venue": "StandUpLive Phoenix",
+      "title": "Stand-Up Comedy Class",
+      "original_reference_label": {
+        "show_id": 1778518,
+        "group_index": 1416,
+        "selection": "flagged",
+        "triage_category": "class_workshop_or_mixer_review",
+        "genre": "comedy",
+        "format": "training",
+        "public_availability": "unknown",
+        "rationale": "The event title explicitly bills comedy or improv instruction. This is comedy-related training, not evidence of a public audience show.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "Stand-Up Comedy Class",
+            "reference": "raw/page-0.json#/data/12/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "comedy",
+      "format": "training",
+      "judgment": "comedy_format_withheld",
+      "rationale": "The title explicitly advertises stand-up comedy instruction. Format exclusion is not a non-comedy finding.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Stand-Up Comedy Class",
+          "reference": "raw/page-0.json#/data/12/name"
+        }
+      ],
+      "baseline_decision": "accept",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "affirmative_event_comedy",
+        "audience_format_exclude",
+        "missing_lineup",
+        "rule_audience_content_comedy_instruction",
+        "rule_audience_format_instruction",
+        "rule_comedy_format_live_comedy"
+      ],
+      "source_evidence": {
+        "show_id": 1778518,
+        "present_in_database": true,
+        "club_id": 129,
+        "source_performance_id": null,
+        "show_page_url": "https://phoenix.standuplive.com/shows/341671",
+        "last_scraped_by": "seatengine_classic",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 6911294,
+      "venue": "Mic Drop Comedy Plano",
+      "title": "ONCE UPON A PLANO: WALKING TOUR OF DOWNTOWN PLANO",
+      "original_reference_label": {
+        "show_id": 6911294,
+        "group_index": 1055,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "unknown",
+        "format": "tour",
+        "public_availability": "unknown",
+        "rationale": "The event title identifies a walking/ghost/history tour, but the API has no description confirming whether comedic narration or a comedy segment is included.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "ONCE UPON A PLANO: WALKING TOUR OF DOWNTOWN PLANO",
+            "reference": "raw/page-0.json#/data/24/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "tour",
+      "judgment": "unresolved",
+      "rationale": "Walking-tour billing without a description does not resolve whether comic narration or a comedy segment occurs.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "ONCE UPON A PLANO: WALKING TOUR OF DOWNTOWN PLANO",
+          "reference": "raw/page-0.json#/data/24/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_sightseeing_tour"
+      ],
+      "source_evidence": {
+        "show_id": 6911294,
+        "present_in_database": true,
+        "club_id": 119,
+        "source_performance_id": null,
+        "show_page_url": "https://micdropcomedyplano.com/shows/387711",
+        "last_scraped_by": "seatengine",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 6911306,
+      "venue": "Mic Drop Comedy Plano",
+      "title": "ONCE UPON A PLANO: WALKING TOUR OF DOWNTOWN PLANO",
+      "original_reference_label": {
+        "show_id": 6911306,
+        "group_index": 1055,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "unknown",
+        "format": "tour",
+        "public_availability": "unknown",
+        "rationale": "The event title identifies a walking/ghost/history tour, but the API has no description confirming whether comedic narration or a comedy segment is included.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "ONCE UPON A PLANO: WALKING TOUR OF DOWNTOWN PLANO",
+            "reference": "raw/page-5.json#/data/48/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "tour",
+      "judgment": "unresolved",
+      "rationale": "Walking-tour billing without a description does not resolve whether comic narration or a comedy segment occurs.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "ONCE UPON A PLANO: WALKING TOUR OF DOWNTOWN PLANO",
+          "reference": "raw/page-5.json#/data/48/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_sightseeing_tour"
+      ],
+      "source_evidence": {
+        "show_id": 6911306,
+        "present_in_database": true,
+        "club_id": 119,
+        "source_performance_id": null,
+        "show_page_url": "https://micdropcomedyplano.com/shows/387712",
+        "last_scraped_by": "seatengine",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 5144686,
+      "venue": "Charlotte Comedy Zone",
+      "title": "R&B Bingo",
+      "original_reference_label": {
+        "show_id": 5144686,
+        "group_index": 235,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "unknown",
+        "format": "activity",
+        "public_availability": "unknown",
+        "rationale": "The title bills a game or trivia event. No event description establishes whether a comedy host or performance is included; the initial non-comedy suspicion is unresolved.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "R&B Bingo",
+            "reference": "raw/page-0.json#/data/35/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "activity",
+      "judgment": "unresolved",
+      "rationale": "R&B bingo title alone does not resolve comedy hosting or a mixed programme.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "R&B Bingo",
+          "reference": "raw/page-0.json#/data/35/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_games_sports"
+      ],
+      "source_evidence": {
+        "show_id": 5144686,
+        "present_in_database": true,
+        "club_id": 58,
+        "source_performance_id": null,
+        "show_page_url": "https://www.cltcomedyzone.com/shows/383212",
+        "last_scraped_by": "seatengine_classic",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 3679014,
+      "venue": "Spokane Comedy Club",
+      "title": "Tucked & Loaded Drag Bingo: Welcome to the Fun House",
+      "original_reference_label": {
+        "show_id": 3679014,
+        "group_index": 1376,
+        "selection": "flagged",
+        "triage_category": "needs_more_evidence",
+        "genre": "unknown",
+        "format": "mixed_live",
+        "public_availability": "unknown",
+        "rationale": "Drag, burlesque, bingo or variety billing alone does not establish or exclude comedy. Available details do not explicitly promise a comedy act or comedic performance.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "Tucked & Loaded Drag Bingo: Welcome to the Fun House",
+            "reference": "raw/page-0.json#/data/109/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "mixed_live",
+      "judgment": "unresolved",
+      "rationale": "Drag bingo can include comic performance; no description resolves this event.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Tucked & Loaded Drag Bingo: Welcome to the Fun House",
+          "reference": "raw/page-0.json#/data/109/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_games_sports"
+      ],
+      "source_evidence": {
+        "show_id": 3679014,
+        "present_in_database": true,
+        "club_id": 128,
+        "source_performance_id": null,
+        "show_page_url": "https://www.spokanecomedyclub.com/shows/379206",
+        "last_scraped_by": "seatengine_classic",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 3171129,
+      "venue": "West River Comedy Club",
+      "title": "Open Mic Night and Karaoke",
+      "original_reference_label": {
+        "show_id": 3171129,
+        "genre": "unknown",
+        "selection": "unreviewed",
+        "rationale": "Not reviewed; publication does not prove comedy."
+      },
+      "genre": "unknown",
+      "format": "mixed_open_mic",
+      "judgment": "unresolved",
+      "rationale": "An open mic plus karaoke may include comedy; neither its disciplines nor the actual bill are provided.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Open Mic Night and Karaoke",
+          "reference": "raw/page-0.json#/data/141/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_karaoke"
+      ],
+      "source_evidence": {
+        "show_id": 3171129,
+        "present_in_database": true,
+        "club_id": 1059,
+        "source_performance_id": null,
+        "show_page_url": "https://www.tickettailor.com/events/westrivercomedyclub/2224569?date=2026-10-11",
+        "last_scraped_by": "ticket_tailor",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 4242752,
+      "venue": "Give a Hoot Comedy Club",
+      "title": "Trivia Night Benefitting Soroptimist Int.",
+      "original_reference_label": {
+        "show_id": 4242752,
+        "group_index": 585,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "unknown",
+        "format": "activity",
+        "public_availability": "unknown",
+        "rationale": "The title bills a game or trivia event. No event description establishes whether a comedy host or performance is included; the initial non-comedy suspicion is unresolved.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "Trivia Night Benefitting Soroptimist Int.",
+            "reference": "raw/page-0.json#/data/148/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "activity",
+      "judgment": "unresolved",
+      "rationale": "Trivia-night title supplies no evidence about a possible comedy component.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Trivia Night Benefitting Soroptimist Int.",
+          "reference": "raw/page-0.json#/data/148/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_games_sports"
+      ],
+      "source_evidence": {
+        "show_id": 4242752,
+        "present_in_database": true,
+        "club_id": 524,
+        "source_performance_id": null,
+        "show_page_url": "https://giveahootcomedy.com/shows/380664",
+        "last_scraped_by": "seatengine",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 7367674,
+      "venue": "Uptown Comedy Corner",
+      "title": "Uptown Comedy Corner Presents: Jon Kondelik 's Adult Bingo & Naughty Games",
+      "original_reference_label": {
+        "show_id": 7367674,
+        "group_index": 2014,
+        "selection": "control",
+        "triage_category": null,
+        "genre": "comedy",
+        "format": "live_performance",
+        "public_availability": "public",
+        "rationale": "The bingo/game event itself explicitly promises comedy.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "Uptown Comedy Corner Presents: Jon Kondelik 's Adult Bingo & Naughty Games",
+            "reference": "raw/page-0.json#/data/182/name"
+          },
+          {
+            "field": "description",
+            "excerpt": "Hilarious and Naughty COMEDY",
+            "reference": "raw/page-0.json#/data/182/description"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "comedy",
+      "format": "live_performance",
+      "judgment": "live_comedy_withheld",
+      "rationale": "The event description explicitly calls this bingo programme Hilarious and Naughty COMEDY. Title-only rejection loses same-event comedy evidence.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Uptown Comedy Corner Presents: Jon Kondelik 's Adult Bingo & Naughty Games",
+          "reference": "raw/page-0.json#/data/182/name"
+        },
+        {
+          "field": "description",
+          "excerpt": "Adult Bingo & Naughty Games is COMING! You’re an ADULT. Play Like ONE! Adult Bingo isn’t just a GAME, It’s a Hilarious and Naughty COMEDY",
+          "reference": "raw/page-0.json#/data/182/description"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_games_sports"
+      ],
+      "source_evidence": {
+        "show_id": 7367674,
+        "present_in_database": true,
+        "club_id": 11462,
+        "source_performance_id": null,
+        "show_page_url": "https://www.eventbrite.com/e/uptown-comedy-corner-presents-jon-kondelik-s-adult-bingo-naughty-games-tickets-2002103260748",
+        "last_scraped_by": "eventbrite",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 8013080,
+      "venue": "The Bit Theater",
+      "title": "Laughter at the Bit: Stand-up Comedy Open Mic",
+      "original_reference_label": {
+        "show_id": 8013080,
+        "genre": "unknown",
+        "selection": "unreviewed",
+        "rationale": "Not reviewed; publication does not prove comedy."
+      },
+      "genre": "comedy",
+      "format": "live_performance",
+      "judgment": "live_comedy_withheld",
+      "rationale": "The title explicitly bills a Stand-up Comedy Open Mic; the new review hold loses affirmative event billing.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Laughter at the Bit: Stand-up Comedy Open Mic",
+          "reference": "raw/page-0.json#/data/213/name"
+        }
+      ],
+      "baseline_decision": "accept",
+      "candidate_decision": "review",
+      "candidate_reason_codes": [
+        "insufficient_event_evidence",
+        "missing_lineup"
+      ],
+      "source_evidence": {
+        "show_id": 8013080,
+        "present_in_database": true,
+        "club_id": 552,
+        "source_performance_id": null,
+        "show_page_url": "https://www.bitimprov.org/event/laughter-at-the-bit-stand-up-comedy-open-mic-598",
+        "last_scraped_by": "the_bit_theater",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 2875901,
+      "venue": "Numerica Veterans Arena",
+      "title": "Disney Worlds Collide Concert Tour",
+      "original_reference_label": {
+        "show_id": 2875901,
+        "group_index": 1136,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "unknown",
+        "format": "live_performance",
+        "public_availability": "unknown",
+        "rationale": "The title suggests music, a band, a tribute act, or a jam. Without event detail the presence or absence of a same-event comedy component remains unresolved.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "Disney Worlds Collide Concert Tour",
+            "reference": "raw/page-0.json#/data/352/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "live_performance",
+      "judgment": "unresolved",
+      "rationale": "A concert title suggests music but no description resolves the complete programme or any comedy segment.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Disney Worlds Collide Concert Tour",
+          "reference": "raw/page-0.json#/data/352/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_music_performance"
+      ],
+      "source_evidence": {
+        "show_id": 2875901,
+        "present_in_database": true,
+        "club_id": 4910,
+        "source_performance_id": null,
+        "show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1A7-gxb",
+        "last_scraped_by": "live_nation",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 6445698,
+      "venue": "Sunset Strip Comedy Club",
+      "title": "Live at Sunset Strip: Comedy Showcase",
+      "original_reference_label": {
+        "show_id": 6445698,
+        "genre": "unknown",
+        "selection": "unreviewed",
+        "rationale": "Not reviewed; publication does not prove comedy."
+      },
+      "genre": "comedy",
+      "format": "live_performance",
+      "judgment": "live_comedy_withheld",
+      "rationale": "Comedy Showcase explicitly identifies this live event; location wording should not erase that billing.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Live at Sunset Strip: Comedy Showcase",
+          "reference": "raw/page-0.json#/data/369/name"
+        }
+      ],
+      "baseline_decision": "accept",
+      "candidate_decision": "review",
+      "candidate_reason_codes": [
+        "insufficient_event_evidence",
+        "missing_lineup"
+      ],
+      "source_evidence": {
+        "show_id": 6445698,
+        "present_in_database": true,
+        "club_id": 175,
+        "source_performance_id": null,
+        "show_page_url": "https://squadup.com/events/live-at-sunset-strip-comedy-showcase-110",
+        "last_scraped_by": "squadup",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 7747014,
+      "venue": "The Tiny Cupboard",
+      "title": "Free Karaoke",
+      "original_reference_label": {
+        "show_id": 7747014,
+        "group_index": 1893,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "non_comedy",
+        "format": "activity",
+        "public_availability": "public",
+        "rationale": "The actual event description invites attendees to sing on stage in the game bar, establishing a karaoke session.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "Free Karaoke",
+            "reference": "raw/page-0.json#/data/375/name"
+          },
+          {
+            "field": "description",
+            "excerpt": "Sing whatever you want on stage in front of people.",
+            "reference": "raw/page-0.json#/data/375/description"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "non_comedy",
+      "format": "activity",
+      "judgment": "supported_non_comedy",
+      "rationale": "The full preserved description invites attendees to sing on stage in the game bar, describing karaoke rather than comedy.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Free Karaoke",
+          "reference": "raw/page-0.json#/data/375/name"
+        },
+        {
+          "field": "description",
+          "excerpt": "Sing whatever you want on stage in front of people.In our game bar area! Free just support the bar.",
+          "reference": "raw/page-0.json#/data/375/description"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_karaoke"
+      ],
+      "source_evidence": {
+        "show_id": 7747014,
+        "present_in_database": true,
+        "club_id": 11,
+        "source_performance_id": null,
+        "show_page_url": "https://www.thetinycupboard.com/events/free-karaoke-2026-10-11220000",
+        "last_scraped_by": "json_ld",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 7795577,
+      "venue": "The Tiny Cupboard",
+      "title": "Free Karaoke",
+      "original_reference_label": {
+        "show_id": 7795577,
+        "group_index": 1893,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "non_comedy",
+        "format": "activity",
+        "public_availability": "public",
+        "rationale": "The actual event description invites attendees to sing on stage in the game bar, establishing a karaoke session.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "Free Karaoke",
+            "reference": "raw/page-4.json#/data/469/name"
+          },
+          {
+            "field": "description",
+            "excerpt": "Sing whatever you want on stage in front of people.",
+            "reference": "raw/page-4.json#/data/469/description"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "non_comedy",
+      "format": "activity",
+      "judgment": "supported_non_comedy",
+      "rationale": "The full preserved description invites attendees to sing on stage in the game bar, describing karaoke rather than comedy.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Free Karaoke",
+          "reference": "raw/page-4.json#/data/469/name"
+        },
+        {
+          "field": "description",
+          "excerpt": "Sing whatever you want on stage in front of people.In our game bar area! Free just support the bar.",
+          "reference": "raw/page-4.json#/data/469/description"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_karaoke"
+      ],
+      "source_evidence": {
+        "show_id": 7795577,
+        "present_in_database": true,
+        "club_id": 11,
+        "source_performance_id": null,
+        "show_page_url": "https://www.thetinycupboard.com/events/free-karaoke-2026-10-16115900",
+        "last_scraped_by": "json_ld",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 7612243,
+      "venue": "Greenwich Village Comedy Club",
+      "title": "Stand up comedy on the historic “Comedy Row” in Greenwich Village.",
+      "original_reference_label": {
+        "show_id": 7612243,
+        "genre": "unknown",
+        "selection": "unreviewed",
+        "rationale": "Not reviewed; publication does not prove comedy."
+      },
+      "genre": "comedy",
+      "format": "live_performance",
+      "judgment": "live_comedy_withheld",
+      "rationale": "Title bills stand-up comedy and description advertises the specific Saturday comedy showcase. Venue-location phrasing does not negate the event.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Stand up comedy on the historic “Comedy Row” in Greenwich Village.",
+          "reference": "raw/page-0.json#/data/407/name"
+        },
+        {
+          "field": "description",
+          "excerpt": "A New York City Comedy Club located on the historic “Comedy Row” in Greenwich Village. Step off the historic streets of the Village and into the heart of the New York comedy scene. Our 7:00 PM Saturday showcase features a powerhouse lineup of comics seen on Netflix, HBO, and Comedy Central. It’s the perfect high-energy kickoff to your night—expect razor-sharp wit, a packed room, and that unmistakable ‘anything can happen’ energy that only Saturday night in the Village provides.",
+          "reference": "raw/page-0.json#/data/407/description"
+        }
+      ],
+      "baseline_decision": "accept",
+      "candidate_decision": "review",
+      "candidate_reason_codes": [
+        "invalid_event_evidence",
+        "missing_lineup"
+      ],
+      "source_evidence": {
+        "show_id": 7612243,
+        "present_in_database": true,
+        "club_id": 17080,
+        "source_performance_id": null,
+        "show_page_url": "https://www.greenwichvillagecomedyclub.com/shows/2026-10-11-stand-up-comedy-in-greenwich-village-1100-pm",
+        "last_scraped_by": "greenwich_village_comedy_club",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 5925360,
+      "venue": "Comix Roadhouse",
+      "title": "BULL RIDES",
+      "original_reference_label": {
+        "show_id": 5925360,
+        "group_index": 366,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "non_comedy",
+        "format": "activity",
+        "public_availability": "public",
+        "rationale": "This listing sells a mechanical bull ride, including a waiver and host-desk purchase instructions; the described activity is not a comedy performance.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "BULL RIDES",
+            "reference": "raw/page-0.json#/data/418/name"
+          },
+          {
+            "field": "description",
+            "excerpt": "WAIVER REQUIRED, MUST BE 18+",
+            "reference": "raw/page-0.json#/data/418/description"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "non_comedy",
+      "format": "activity",
+      "judgment": "supported_non_comedy",
+      "rationale": "This listing sells mechanical bull rides with hours, a waiver and host-desk tickets; it does not describe a comedy performance.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "BULL RIDES",
+          "reference": "raw/page-0.json#/data/418/name"
+        },
+        {
+          "field": "description",
+          "excerpt": "**RIDE THE COMIX BULL TONIGHT** - STARTS @ 6:30 & STOPS 1 HOUR BEFORE CLOSE - TICKETS AVAILABLE AT OUR HOST DESK - DAY OF PURCHASES ONLY - WAIVER REQUIRED, MUST BE 18+ 18 and Over",
+          "reference": "raw/page-0.json#/data/418/description"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_unrelated_activity",
+        "missing_lineup",
+        "rule_unrelated_activity_bull_rides"
+      ],
+      "source_evidence": {
+        "show_id": 5925360,
+        "present_in_database": true,
+        "club_id": 11484,
+        "source_performance_id": null,
+        "show_page_url": "https://www.comixroadhouse.com/comics/bull-rides-oct2026",
+        "last_scraped_by": "comix_roadhouse",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 4178610,
+      "venue": "Comedy Cabin",
+      "title": "Paint & Sip at Comedy Cabin",
+      "original_reference_label": {
+        "show_id": 4178610,
+        "group_index": 282,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "unknown",
+        "format": "activity",
+        "public_availability": "unknown",
+        "rationale": "The title bills paint-and-sip, but no description confirms the full programme or excludes a same-event comedy component.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "Paint & Sip at Comedy Cabin",
+            "reference": "raw/page-0.json#/data/446/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "activity",
+      "judgment": "unresolved",
+      "rationale": "Paint-and-sip title alone cannot exclude a same-event comedy segment; venue name supplies no genre evidence.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Paint & Sip at Comedy Cabin",
+          "reference": "raw/page-0.json#/data/446/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_unrelated_activity",
+        "missing_lineup",
+        "rule_unrelated_activity_paint_and_sip"
+      ],
+      "source_evidence": {
+        "show_id": 4178610,
+        "present_in_database": true,
+        "club_id": 97,
+        "source_performance_id": null,
+        "show_page_url": "https://www.cabinlaughs.com/shows/380218",
+        "last_scraped_by": "seatengine_classic",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 4270487,
+      "venue": "Miami Improv",
+      "title": "Book Your Holiday Party",
+      "original_reference_label": {
+        "show_id": 4270487,
+        "group_index": 1023,
+        "selection": "flagged",
+        "triage_category": "promotion_or_unavailable_event",
+        "genre": "unknown",
+        "format": "promotion",
+        "public_availability": "non_public",
+        "rationale": "The listing is an invitation to book a holiday party rather than a scheduled public show. No comedy genre is inferred from the venue.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "Book Your Holiday Party",
+            "reference": "raw/page-1.json#/data/14/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "promotion",
+      "judgment": "supported_non_public",
+      "rationale": "Book Your Holiday Party advertises booking services, not a scheduled public audience event; genre is unknown.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Book Your Holiday Party",
+          "reference": "raw/page-1.json#/data/14/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_public_event",
+        "missing_lineup",
+        "rule_non_public_booking_promotion"
+      ],
+      "source_evidence": {
+        "show_id": 4270487,
+        "present_in_database": true,
+        "club_id": 55,
+        "source_performance_id": null,
+        "show_page_url": "http://www.miamiimprov.com/shows/380837",
+        "last_scraped_by": "seatengine",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 4270545,
+      "venue": "Fort Lauderdale Improv",
+      "title": "Book Your Holiday Party",
+      "original_reference_label": {
+        "show_id": 4270545,
+        "group_index": 556,
+        "selection": "flagged",
+        "triage_category": "promotion_or_unavailable_event",
+        "genre": "unknown",
+        "format": "promotion",
+        "public_availability": "non_public",
+        "rationale": "The listing is an invitation to book a holiday party rather than a scheduled public show. No comedy genre is inferred from the venue.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "Book Your Holiday Party",
+            "reference": "raw/page-1.json#/data/15/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "promotion",
+      "judgment": "supported_non_public",
+      "rationale": "Book Your Holiday Party advertises booking services, not a scheduled public audience event; genre is unknown.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Book Your Holiday Party",
+          "reference": "raw/page-1.json#/data/15/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_public_event",
+        "missing_lineup",
+        "rule_non_public_booking_promotion"
+      ],
+      "source_evidence": {
+        "show_id": 4270545,
+        "present_in_database": true,
+        "club_id": 53,
+        "source_performance_id": null,
+        "show_page_url": "https://www.improvftl.com/shows/380821",
+        "last_scraped_by": "seatengine_classic",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 509065,
+      "venue": "Tempe Improv",
+      "title": "Stand-Up Comedy Class",
+      "original_reference_label": {
+        "show_id": 509065,
+        "group_index": 1494,
+        "selection": "flagged",
+        "triage_category": "class_workshop_or_mixer_review",
+        "genre": "comedy",
+        "format": "training",
+        "public_availability": "unknown",
+        "rationale": "The event title explicitly bills comedy or improv instruction. This is comedy-related training, not evidence of a public audience show.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "Stand-Up Comedy Class",
+            "reference": "raw/page-1.json#/data/54/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "comedy",
+      "format": "training",
+      "judgment": "comedy_format_withheld",
+      "rationale": "The title explicitly advertises stand-up comedy instruction. Format exclusion is not a non-comedy finding.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Stand-Up Comedy Class",
+          "reference": "raw/page-1.json#/data/54/name"
+        }
+      ],
+      "baseline_decision": "accept",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "affirmative_event_comedy",
+        "audience_format_exclude",
+        "missing_lineup",
+        "rule_audience_content_comedy_instruction",
+        "rule_audience_format_instruction",
+        "rule_comedy_format_live_comedy"
+      ],
+      "source_evidence": {
+        "show_id": 509065,
+        "present_in_database": true,
+        "club_id": 54,
+        "source_performance_id": null,
+        "show_page_url": "http://www.tempeimprov.com/shows/341676",
+        "last_scraped_by": "seatengine",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 2664013,
+      "venue": "Planet Of The Tapes",
+      "title": "Movie Trivia w/ Greg Welsh!",
+      "original_reference_label": {
+        "show_id": 2664013,
+        "group_index": 1222,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "unknown",
+        "format": "activity",
+        "public_availability": "unknown",
+        "rationale": "The title bills a game or trivia event. No event description establishes whether a comedy host or performance is included; the initial non-comedy suspicion is unresolved.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "Movie Trivia w/ Greg Welsh!",
+            "reference": "raw/page-1.json#/data/147/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "activity",
+      "judgment": "unresolved",
+      "rationale": "Movie trivia title alone leaves possible comedy hosting or performance unresolved.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Movie Trivia w/ Greg Welsh!",
+          "reference": "raw/page-1.json#/data/147/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_games_sports"
+      ],
+      "source_evidence": {
+        "show_id": 2664013,
+        "present_in_database": true,
+        "club_id": 123,
+        "source_performance_id": null,
+        "show_page_url": "https://www.planetofthetapes.biz/shows/383072",
+        "last_scraped_by": "seatengine_classic",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 4562223,
+      "venue": "Comedy on State",
+      "title": "Drag Bingo with Bianca Lynn Breeze & Renae Sance",
+      "original_reference_label": {
+        "show_id": 4562223,
+        "group_index": 355,
+        "selection": "flagged",
+        "triage_category": "needs_more_evidence",
+        "genre": "unknown",
+        "format": "mixed_live",
+        "public_availability": "unknown",
+        "rationale": "Drag, burlesque, bingo or variety billing alone does not establish or exclude comedy. Available details do not explicitly promise a comedy act or comedic performance.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "Drag Bingo with Bianca Lynn Breeze & Renae Sance",
+            "reference": "raw/page-1.json#/data/150/name"
+          },
+          {
+            "field": "description",
+            "excerpt": "<p>Join us for a night of lighthearted fun for drag bingo hosted by the talented Bianca Lynn Breeze & Renae Sance! Pre-sale tickets available online only are $15 (which reserves […]</p>\\n",
+            "reference": "raw/page-1.json#/data/150/description"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "mixed_live",
+      "judgment": "unresolved",
+      "rationale": "The description advertises lighthearted drag bingo and hosts but does not establish or rule out a comedy performance.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Drag Bingo with Bianca Lynn Breeze & Renae Sance",
+          "reference": "raw/page-1.json#/data/150/name"
+        },
+        {
+          "field": "description",
+          "excerpt": "<p>Join us for a night of lighthearted fun for drag bingo hosted by the talented Bianca Lynn Breeze & Renae Sance! Pre-sale tickets available online only are $15 (which reserves […]</p>\\n",
+          "reference": "raw/page-1.json#/data/150/description"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_games_sports"
+      ],
+      "source_evidence": {
+        "show_id": 4562223,
+        "present_in_database": true,
+        "club_id": 435,
+        "source_performance_id": null,
+        "show_page_url": "https://www.madisoncomedy.com/event/dragbingo26",
+        "last_scraped_by": "json_ld",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 3179111,
+      "venue": "Jacques' Cabaret",
+      "title": "Karaoke",
+      "original_reference_label": {
+        "show_id": 3179111,
+        "group_index": 820,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "non_comedy",
+        "format": "activity",
+        "public_availability": "public",
+        "rationale": "The event description gives downstairs karaoke hours and a guest host; it offers a singing session rather than a comedy performance.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "Karaoke",
+            "reference": "raw/page-1.json#/data/219/name"
+          },
+          {
+            "field": "description",
+            "excerpt": "Karaoke Downstairs",
+            "reference": "raw/page-1.json#/data/219/description"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "non_comedy",
+      "format": "activity",
+      "judgment": "supported_non_comedy",
+      "rationale": "Description specifies downstairs karaoke, hours and a weekly guest host; the advertised activity is a singing session.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Karaoke",
+          "reference": "raw/page-1.json#/data/219/name"
+        },
+        {
+          "field": "description",
+          "excerpt": "Karaoke Downstairs (moved Downstairs ONLY on the nights of High Key) 9pm to Midnight Guest Host Weekly No Cover",
+          "reference": "raw/page-1.json#/data/219/description"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_karaoke"
+      ],
+      "source_evidence": {
+        "show_id": 3179111,
+        "present_in_database": true,
+        "club_id": 10966,
+        "source_performance_id": null,
+        "show_page_url": "https://events.timely.fun/fwq8raf8/agenda/event/karaoke-5/20261013210000",
+        "last_scraped_by": "timely",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 4189445,
+      "venue": "Harvelle's Long Beach",
+      "title": "Kraken Karaoke",
+      "original_reference_label": {
+        "show_id": 4189445,
+        "group_index": 658,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "unknown",
+        "format": "activity",
+        "public_availability": "unknown",
+        "rationale": "The title identifies karaoke, but there is no event description to establish whether this occurrence includes an additional comedy act.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "Kraken Karaoke",
+            "reference": "raw/page-1.json#/data/326/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "activity",
+      "judgment": "unresolved",
+      "rationale": "Karaoke title has no event detail establishing the full programme.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Kraken Karaoke",
+          "reference": "raw/page-1.json#/data/326/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_karaoke"
+      ],
+      "source_evidence": {
+        "show_id": 4189445,
+        "present_in_database": true,
+        "club_id": 476,
+        "source_performance_id": null,
+        "show_page_url": "https://longbeach.harvelles.com/shows/380463",
+        "last_scraped_by": "seatengine",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 7155359,
+      "venue": "Dharma Bums",
+      "title": "River Guild Monthly Sewing Circle",
+      "original_reference_label": {
+        "show_id": 7155359,
+        "group_index": 441,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "unknown",
+        "format": "social_activity",
+        "public_availability": "unknown",
+        "rationale": "The title suggests a meetup, sewing circle, social hour, community night or dining special. Programme details are missing; do not infer comedy from the club.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "River Guild Monthly Sewing Circle",
+            "reference": "raw/page-1.json#/data/353/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "activity",
+      "judgment": "unresolved",
+      "rationale": "Sewing-circle title suggests unrelated activity but no detail resolves a possible mixed programme.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "River Guild Monthly Sewing Circle",
+          "reference": "raw/page-1.json#/data/353/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_unrelated_activity",
+        "missing_lineup",
+        "rule_unrelated_activity_sewing_circle"
+      ],
+      "source_evidence": {
+        "show_id": 7155359,
+        "present_in_database": true,
+        "club_id": 628,
+        "source_performance_id": null,
+        "show_page_url": "https://services.seatengine.com/api/v1/venues/633/shows/388507",
+        "last_scraped_by": "seatengine",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 7444729,
+      "venue": "Dead Crow Comedy",
+      "title": "Meeser Eddie's Funtime Trivia",
+      "original_reference_label": {
+        "show_id": 7444729,
+        "group_index": 410,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "unknown",
+        "format": "activity",
+        "public_availability": "unknown",
+        "rationale": "The title bills a game or trivia event. No event description establishes whether a comedy host or performance is included; the initial non-comedy suspicion is unresolved.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "Meeser Eddie's Funtime Trivia",
+            "reference": "raw/page-1.json#/data/397/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "activity",
+      "judgment": "unresolved",
+      "rationale": "Trivia title has no description resolving same-event comedy.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Meeser Eddie's Funtime Trivia",
+          "reference": "raw/page-1.json#/data/397/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_games_sports"
+      ],
+      "source_evidence": {
+        "show_id": 7444729,
+        "present_in_database": true,
+        "club_id": 288,
+        "source_performance_id": null,
+        "show_page_url": "http://deadcrowcomedy.com/shows/389268",
+        "last_scraped_by": "seatengine",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 3214719,
+      "venue": "Lyric Hyperion Theater & Cafe",
+      "title": "The Lyric Sessions: Music Open Mic",
+      "original_reference_label": {
+        "show_id": 3214719,
+        "group_index": 986,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "non_comedy",
+        "format": "live_performance",
+        "public_availability": "public",
+        "rationale": "The event explicitly scopes its open mic to performing musicians.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "The Lyric Sessions: Music Open Mic",
+            "reference": "raw/page-1.json#/data/414/name"
+          },
+          {
+            "field": "description",
+            "excerpt": "An open mic for performing musicians!",
+            "reference": "raw/page-1.json#/data/414/description"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "non_comedy",
+      "format": "live_performance",
+      "judgment": "supported_non_comedy",
+      "rationale": "The description explicitly restricts the open mic to performing musicians.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "The Lyric Sessions: Music Open Mic",
+          "reference": "raw/page-1.json#/data/414/name"
+        },
+        {
+          "field": "description",
+          "excerpt": "An open mic for performing musicians!",
+          "reference": "raw/page-1.json#/data/414/description"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_music_performance"
+      ],
+      "source_evidence": {
+        "show_id": 3214719,
+        "present_in_database": true,
+        "club_id": 8824,
+        "source_performance_id": null,
+        "show_page_url": "https://www.eventbrite.com/e/the-lyric-sessions-music-open-mic-tickets-1992383893860",
+        "last_scraped_by": "eventbrite",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 1094628,
+      "venue": "Sports Drink",
+      "title": "Tropical Trivia with Sean Bahama at SPORTS DRINK (Wednesday, 7:30p)",
+      "original_reference_label": {
+        "show_id": 1094628,
+        "group_index": 1383,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "unknown",
+        "format": "activity",
+        "public_availability": "unknown",
+        "rationale": "The title bills a game or trivia event. No event description establishes whether a comedy host or performance is included; the initial non-comedy suspicion is unresolved.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "Tropical Trivia with Sean Bahama at SPORTS DRINK (Wednesday, 7:30p)",
+            "reference": "raw/page-1.json#/data/490/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "activity",
+      "judgment": "unresolved",
+      "rationale": "Trivia billing and host name do not establish or exclude comedy in this event.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Tropical Trivia with Sean Bahama at SPORTS DRINK (Wednesday, 7:30p)",
+          "reference": "raw/page-1.json#/data/490/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_games_sports"
+      ],
+      "source_evidence": {
+        "show_id": 1094628,
+        "present_in_database": true,
+        "club_id": 653,
+        "source_performance_id": null,
+        "show_page_url": "https://event.tixologi.com/event/13533/tickets",
+        "last_scraped_by": "sports_drink",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 7129453,
+      "venue": "Laugh Camp Comedy Club",
+      "title": "Interactive Music Trivia from Music Mayhem - No tickets or reservations needed.",
+      "original_reference_label": {
+        "show_id": 7129453,
+        "group_index": 869,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "unknown",
+        "format": "activity",
+        "public_availability": "unknown",
+        "rationale": "The title bills a game or trivia event. No event description establishes whether a comedy host or performance is included; the initial non-comedy suspicion is unresolved.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "Interactive Music Trivia from Music Mayhem - No tickets or reservations needed.",
+            "reference": "raw/page-2.json#/data/86/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "activity",
+      "judgment": "unresolved",
+      "rationale": "Interactive music trivia is advertised, but the absent description leaves same-event comedy unresolved.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Interactive Music Trivia from Music Mayhem - No tickets or reservations needed.",
+          "reference": "raw/page-2.json#/data/86/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_games_sports"
+      ],
+      "source_evidence": {
+        "show_id": 7129453,
+        "present_in_database": true,
+        "club_id": 114,
+        "source_performance_id": null,
+        "show_page_url": "https://www.camp-bar.net/shows/388490",
+        "last_scraped_by": "seatengine",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 5404829,
+      "venue": "Harvelle's Santa Monica",
+      "title": "COME SING WITH THE BAND - LIVE BAND KARAOKE",
+      "original_reference_label": {
+        "show_id": 5404829,
+        "group_index": 664,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "unknown",
+        "format": "activity",
+        "public_availability": "unknown",
+        "rationale": "The title identifies karaoke, but there is no event description to establish whether this occurrence includes an additional comedy act.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "COME SING WITH THE BAND - LIVE BAND KARAOKE",
+            "reference": "raw/page-2.json#/data/162/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "activity",
+      "judgment": "unresolved",
+      "rationale": "Live-band karaoke billing is a strong music signal, but no preserved description resolves possible additional comedy.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "COME SING WITH THE BAND - LIVE BAND KARAOKE",
+          "reference": "raw/page-2.json#/data/162/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_karaoke",
+        "rule_event_format_music_performance"
+      ],
+      "source_evidence": {
+        "show_id": 5404829,
+        "present_in_database": true,
+        "club_id": 475,
+        "source_performance_id": null,
+        "show_page_url": "https://santamonica.harvelles.com/shows/383725",
+        "last_scraped_by": "seatengine",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 8131238,
+      "venue": "Peak Improv Theater",
+      "title": "Corporate Mixer - Learn How Improv Can Help Your Business!",
+      "original_reference_label": {
+        "show_id": 8131238,
+        "group_index": 1199,
+        "selection": "flagged",
+        "triage_category": "class_workshop_or_mixer_review",
+        "genre": "unknown",
+        "format": "mixer",
+        "public_availability": "unknown",
+        "rationale": "The description promotes a business networking mixer and corporate improv training; it does not promise a live comedy audience performance. Comedy branding does not settle the event genre.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "Corporate Mixer - Learn How Improv Can Help Your Business!",
+            "reference": "raw/page-2.json#/data/180/name"
+          },
+          {
+            "field": "description",
+            "excerpt": "The Peak Improv Theater is a thriving community founded by professional comedians who are not only funny but can help your business thrive, too! If your company is looking for a way to build trust, listening skills, and team cooperation, a private improv workshop for your group is the perfect way to develop essential tools in a safe and fun environment.Our educators have over 30 years of combined experience leading corporate training workshops that can help your team more eff",
+            "reference": "raw/page-2.json#/data/180/description"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "mixer",
+      "judgment": "supported_non_audience_format",
+      "rationale": "The actual description invites businesses to meet educators over food and drinks and learn about workshops. Networking format is supported, not a non-comedy genre conclusion.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Corporate Mixer - Learn How Improv Can Help Your Business!",
+          "reference": "raw/page-2.json#/data/180/name"
+        },
+        {
+          "field": "description",
+          "excerpt": "The Peak Improv Theater is a thriving community founded by professional comedians who are not only funny but can help your business thrive, too! If your company is looking for a way to build trust, listening skills, and team cooperation, a private improv workshop for your group is the perfect way to develop essential tools in a safe and fun environment.Our educators have over 30 years of combined experience leading corporate training workshops that can help your team more effectively work together and communicate. Not only that, but they'd love to meet you in this laidback corporate mixer. Come enjoy free food & drinks, all while you learn about the power of saying \"yes... and\"!SIGN UP HERE",
+          "reference": "raw/page-2.json#/data/180/description"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "audience_format_exclude",
+        "insufficient_event_evidence",
+        "missing_lineup",
+        "rule_audience_format_mixer"
+      ],
+      "source_evidence": {
+        "show_id": 8131238,
+        "present_in_database": true,
+        "club_id": 11318,
+        "source_performance_id": null,
+        "show_page_url": "https://peakimprov.com/events-2-1/corporate-mixer-learn-how-improv-can-help-your-business-1",
+        "last_scraped_by": "squarespace",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 6483869,
+      "venue": "Mic Drop Comedy Plano",
+      "title": "APPARITION EXPEDITION WALKING TOUR - LIMITED EVENT",
+      "original_reference_label": {
+        "show_id": 6483869,
+        "group_index": 1052,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "unknown",
+        "format": "tour",
+        "public_availability": "unknown",
+        "rationale": "The event title identifies a walking/ghost/history tour, but the API has no description confirming whether comedic narration or a comedy segment is included.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "APPARITION EXPEDITION WALKING TOUR - LIMITED EVENT",
+            "reference": "raw/page-2.json#/data/254/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "tour",
+      "judgment": "unresolved",
+      "rationale": "Walking-tour billing without a description does not resolve whether comic narration or a comedy segment occurs.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "APPARITION EXPEDITION WALKING TOUR - LIMITED EVENT",
+          "reference": "raw/page-2.json#/data/254/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_sightseeing_tour"
+      ],
+      "source_evidence": {
+        "show_id": 6483869,
+        "present_in_database": true,
+        "club_id": 119,
+        "source_performance_id": null,
+        "show_page_url": "https://micdropcomedyplano.com/shows/386736",
+        "last_scraped_by": "seatengine",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 6483870,
+      "venue": "Mic Drop Comedy Plano",
+      "title": "APPARITION EXPEDITION WALKING TOUR - LIMITED EVENT",
+      "original_reference_label": {
+        "show_id": 6483870,
+        "group_index": 1052,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "unknown",
+        "format": "tour",
+        "public_availability": "unknown",
+        "rationale": "The event title identifies a walking/ghost/history tour, but the API has no description confirming whether comedic narration or a comedy segment is included.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "APPARITION EXPEDITION WALKING TOUR - LIMITED EVENT",
+            "reference": "raw/page-2.json#/data/309/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "tour",
+      "judgment": "unresolved",
+      "rationale": "Walking-tour billing without a description does not resolve whether comic narration or a comedy segment occurs.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "APPARITION EXPEDITION WALKING TOUR - LIMITED EVENT",
+          "reference": "raw/page-2.json#/data/309/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_sightseeing_tour"
+      ],
+      "source_evidence": {
+        "show_id": 6483870,
+        "present_in_database": true,
+        "club_id": 119,
+        "source_performance_id": null,
+        "show_page_url": "https://micdropcomedyplano.com/shows/386743",
+        "last_scraped_by": "seatengine",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 6483871,
+      "venue": "Mic Drop Comedy Plano",
+      "title": "APPARITION EXPEDITION WALKING TOUR - LIMITED EVENT",
+      "original_reference_label": {
+        "show_id": 6483871,
+        "group_index": 1052,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "unknown",
+        "format": "tour",
+        "public_availability": "unknown",
+        "rationale": "The event title identifies a walking/ghost/history tour, but the API has no description confirming whether comedic narration or a comedy segment is included.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "APPARITION EXPEDITION WALKING TOUR - LIMITED EVENT",
+            "reference": "raw/page-2.json#/data/375/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "tour",
+      "judgment": "unresolved",
+      "rationale": "Walking-tour billing without a description does not resolve whether comic narration or a comedy segment occurs.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "APPARITION EXPEDITION WALKING TOUR - LIMITED EVENT",
+          "reference": "raw/page-2.json#/data/375/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_sightseeing_tour"
+      ],
+      "source_evidence": {
+        "show_id": 6483871,
+        "present_in_database": true,
+        "club_id": 119,
+        "source_performance_id": null,
+        "show_page_url": "https://micdropcomedyplano.com/shows/386742",
+        "last_scraped_by": "seatengine",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 6483873,
+      "venue": "Mic Drop Comedy Plano",
+      "title": "APPARITION EXPEDITION WALKING TOUR - LIMITED EVENT",
+      "original_reference_label": {
+        "show_id": 6483873,
+        "group_index": 1052,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "unknown",
+        "format": "tour",
+        "public_availability": "unknown",
+        "rationale": "The event title identifies a walking/ghost/history tour, but the API has no description confirming whether comedic narration or a comedy segment is included.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "APPARITION EXPEDITION WALKING TOUR - LIMITED EVENT",
+            "reference": "raw/page-2.json#/data/444/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "tour",
+      "judgment": "unresolved",
+      "rationale": "Walking-tour billing without a description does not resolve whether comic narration or a comedy segment occurs.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "APPARITION EXPEDITION WALKING TOUR - LIMITED EVENT",
+          "reference": "raw/page-2.json#/data/444/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_sightseeing_tour"
+      ],
+      "source_evidence": {
+        "show_id": 6483873,
+        "present_in_database": true,
+        "club_id": 119,
+        "source_performance_id": null,
+        "show_page_url": "https://micdropcomedyplano.com/shows/386741",
+        "last_scraped_by": "seatengine",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 6483874,
+      "venue": "Mic Drop Comedy Plano",
+      "title": "APPARITION EXPEDITION WALKING TOUR - LIMITED EVENT",
+      "original_reference_label": {
+        "show_id": 6483874,
+        "group_index": 1052,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "unknown",
+        "format": "tour",
+        "public_availability": "unknown",
+        "rationale": "The event title identifies a walking/ghost/history tour, but the API has no description confirming whether comedic narration or a comedy segment is included.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "APPARITION EXPEDITION WALKING TOUR - LIMITED EVENT",
+            "reference": "raw/page-3.json#/data/274/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "tour",
+      "judgment": "unresolved",
+      "rationale": "Walking-tour billing without a description does not resolve whether comic narration or a comedy segment occurs.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "APPARITION EXPEDITION WALKING TOUR - LIMITED EVENT",
+          "reference": "raw/page-3.json#/data/274/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_sightseeing_tour"
+      ],
+      "source_evidence": {
+        "show_id": 6483874,
+        "present_in_database": true,
+        "club_id": 119,
+        "source_performance_id": null,
+        "show_page_url": "https://micdropcomedyplano.com/shows/386737",
+        "last_scraped_by": "seatengine",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 6483875,
+      "venue": "Mic Drop Comedy Plano",
+      "title": "APPARITION EXPEDITION WALKING TOUR - LIMITED EVENT",
+      "original_reference_label": {
+        "show_id": 6483875,
+        "group_index": 1052,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "unknown",
+        "format": "tour",
+        "public_availability": "unknown",
+        "rationale": "The event title identifies a walking/ghost/history tour, but the API has no description confirming whether comedic narration or a comedy segment is included.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "APPARITION EXPEDITION WALKING TOUR - LIMITED EVENT",
+            "reference": "raw/page-3.json#/data/345/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "tour",
+      "judgment": "unresolved",
+      "rationale": "Walking-tour billing without a description does not resolve whether comic narration or a comedy segment occurs.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "APPARITION EXPEDITION WALKING TOUR - LIMITED EVENT",
+          "reference": "raw/page-3.json#/data/345/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_sightseeing_tour"
+      ],
+      "source_evidence": {
+        "show_id": 6483875,
+        "present_in_database": true,
+        "club_id": 119,
+        "source_performance_id": null,
+        "show_page_url": "https://micdropcomedyplano.com/shows/386740",
+        "last_scraped_by": "seatengine",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 6483878,
+      "venue": "Mic Drop Comedy Plano",
+      "title": "APPARITION EXPEDITION WALKING TOUR - LIMITED EVENT",
+      "original_reference_label": {
+        "show_id": 6483878,
+        "group_index": 1052,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "unknown",
+        "format": "tour",
+        "public_availability": "unknown",
+        "rationale": "The event title identifies a walking/ghost/history tour, but the API has no description confirming whether comedic narration or a comedy segment is included.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "APPARITION EXPEDITION WALKING TOUR - LIMITED EVENT",
+            "reference": "raw/page-4.json#/data/58/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "tour",
+      "judgment": "unresolved",
+      "rationale": "Walking-tour billing without a description does not resolve whether comic narration or a comedy segment occurs.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "APPARITION EXPEDITION WALKING TOUR - LIMITED EVENT",
+          "reference": "raw/page-4.json#/data/58/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_sightseeing_tour"
+      ],
+      "source_evidence": {
+        "show_id": 6483878,
+        "present_in_database": true,
+        "club_id": 119,
+        "source_performance_id": null,
+        "show_page_url": "https://micdropcomedyplano.com/shows/386738",
+        "last_scraped_by": "seatengine",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 6781738,
+      "venue": "American Theatre",
+      "title": "The Addams Family - 7pm - Classic Movie Nights!",
+      "original_reference_label": {
+        "show_id": 6781738,
+        "group_index": 29,
+        "selection": "flagged",
+        "triage_category": "screening_not_live_comedy",
+        "genre": "comedy",
+        "format": "screening",
+        "public_availability": "public",
+        "rationale": "The description explicitly calls the 1991 Addams Family a black comedy film. Comedy genre and movie-screening format are independent.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "The Addams Family - 7pm - Classic Movie Nights!",
+            "reference": "raw/page-2.json#/data/257/name"
+          },
+          {
+            "field": "description",
+            "excerpt": "The 1991 American supernatural black comedy film",
+            "reference": "raw/page-2.json#/data/257/description"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "comedy",
+      "format": "screening",
+      "judgment": "comedy_format_withheld",
+      "rationale": "Description explicitly identifies a black comedy film; screening policy exclusion must not count as non-comedy removal.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "The Addams Family - 7pm - Classic Movie Nights!",
+          "reference": "raw/page-2.json#/data/257/name"
+        },
+        {
+          "field": "description",
+          "excerpt": "You Frightened Me. Do It Again! The 1991 American supernatural black comedy film based on the comic strip characters created by Charles Addams. Directed by Barry Sonnenfeld - Starring Anjelica Huston, Raul Julia and Christopher Lloyd. A bizarre, macabre, aristocratic family who reconnect with someone whom they believe to be a long-lost relative, Gomez's brother Fester Addams. No Refunds / No Exchanges | Please note: You Frightened Me. Do It Again! The 1991 American supernatural black comedy film based on the comic strip characters created by Charles Addams. Directed by Barry Sonnenfeld - Starring Anjelica Huston, Raul Julia and Christopher Lloyd. A bizarre, macabre, aristocratic family who reconnect with someone whom they believe to be a long-lost relative, Gomez's brother Fester Addams. No Refunds / No Exchanges",
+          "reference": "raw/page-2.json#/data/257/description"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "audience_format_exclude",
+        "insufficient_event_evidence",
+        "missing_lineup",
+        "rule_audience_format_screening"
+      ],
+      "source_evidence": {
+        "show_id": 6781738,
+        "present_in_database": true,
+        "club_id": 27642,
+        "source_performance_id": null,
+        "show_page_url": "https://www.ticketmaster.com/the-addams-family-7pm-classic-movie-hampton-virginia-10-15-2026/event/0100651BD3EDDD2B",
+        "last_scraped_by": "ticketmaster_national",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 3214767,
+      "venue": "Lyric Hyperion Theater & Cafe",
+      "title": "Don’t Be Yourself! - Weekly Character Comedy Open Mic",
+      "original_reference_label": {
+        "show_id": 3214767,
+        "genre": "unknown",
+        "selection": "unreviewed",
+        "rationale": "Not reviewed; publication does not prove comedy."
+      },
+      "genre": "comedy",
+      "format": "live_performance",
+      "judgment": "live_comedy_withheld",
+      "rationale": "Title explicitly bills a weekly Character Comedy Open Mic, with matching performer slots in the description. Do not treat the imperative show name as denial of comedy.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Don’t Be Yourself! - Weekly Character Comedy Open Mic",
+          "reference": "raw/page-2.json#/data/419/name"
+        },
+        {
+          "field": "description",
+          "excerpt": "CHARACTER MIC. 10 spots. 5 min. Bucket draw. Wigs & costumes if you want! 1 cafe item min. Free to attend!",
+          "reference": "raw/page-2.json#/data/419/description"
+        }
+      ],
+      "baseline_decision": "accept",
+      "candidate_decision": "review",
+      "candidate_reason_codes": [
+        "invalid_event_evidence",
+        "missing_lineup"
+      ],
+      "source_evidence": {
+        "show_id": 3214767,
+        "present_in_database": true,
+        "club_id": 8824,
+        "source_performance_id": null,
+        "show_page_url": "https://www.eventbrite.com/e/dont-be-yourself-weekly-character-comedy-open-mic-tickets-1992384009205",
+        "last_scraped_by": "eventbrite",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 6085247,
+      "venue": "East Village Stand Up Comedy",
+      "title": "Live at the Barbershop NYC: Hottest Stand Up Comedy Show in NYC! BYOB!",
+      "original_reference_label": {
+        "show_id": 6085247,
+        "genre": "unknown",
+        "selection": "unreviewed",
+        "rationale": "Not reviewed; publication does not prove comedy."
+      },
+      "genre": "comedy",
+      "format": "live_performance",
+      "judgment": "live_comedy_withheld",
+      "rationale": "Title and event-specific description both bill a stand-up comedy show inside a barbershop.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Live at the Barbershop NYC: Hottest Stand Up Comedy Show in NYC! BYOB!",
+          "reference": "raw/page-2.json#/data/428/name"
+        },
+        {
+          "field": "description",
+          "excerpt": "A NYC stand up comedy show inside a real East Village barbershop with secret lineups, surprise drop-ins, and incredible energy.",
+          "reference": "raw/page-2.json#/data/428/description"
+        }
+      ],
+      "baseline_decision": "accept",
+      "candidate_decision": "review",
+      "candidate_reason_codes": [
+        "insufficient_event_evidence",
+        "missing_lineup"
+      ],
+      "source_evidence": {
+        "show_id": 6085247,
+        "present_in_database": true,
+        "club_id": 16053,
+        "source_performance_id": null,
+        "show_page_url": "https://www.eventbrite.com/e/live-at-the-barbershop-nyc-hottest-stand-up-comedy-show-in-nyc-byob-tickets-1999037392654",
+        "last_scraped_by": "eventbrite",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 6394652,
+      "venue": "Deaf Puppy Comedy Club",
+      "title": "Trivia/Skills Competition w/Jacob Goss",
+      "original_reference_label": {
+        "show_id": 6394652,
+        "group_index": 415,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "unknown",
+        "format": "activity",
+        "public_availability": "unknown",
+        "rationale": "The title bills a game or trivia event. No event description establishes whether a comedy host or performance is included; the initial non-comedy suspicion is unresolved.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "Trivia/Skills Competition w/Jacob Goss",
+            "reference": "raw/page-2.json#/data/471/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "activity",
+      "judgment": "unresolved",
+      "rationale": "Trivia/skills competition title has no detail resolving possible comedy hosting.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Trivia/Skills Competition w/Jacob Goss",
+          "reference": "raw/page-2.json#/data/471/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_games_sports"
+      ],
+      "source_evidence": {
+        "show_id": 6394652,
+        "present_in_database": true,
+        "club_id": 551,
+        "source_performance_id": null,
+        "show_page_url": "http://www.deafpuppyclub.com/shows/386261",
+        "last_scraped_by": "seatengine",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 7852401,
+      "venue": "Dade County Comedy",
+      "title": "Laughs at the Library Comedy Show",
+      "original_reference_label": {
+        "show_id": 7852401,
+        "genre": "unknown",
+        "selection": "unreviewed",
+        "rationale": "Not reviewed; publication does not prove comedy."
+      },
+      "genre": "comedy",
+      "format": "live_performance",
+      "judgment": "live_comedy_withheld",
+      "rationale": "Description bills a specific Thursday comedy show at the Library Speakeasy with a host and admission information. Location wording does not erase the comedy show.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Laughs at the Library Comedy Show",
+          "reference": "raw/page-2.json#/data/484/name"
+        },
+        {
+          "field": "description",
+          "excerpt": "A trendy new comedy show at the hottest speakeasy in Miami!Located at the magestic Library Speakeasy!Thursdays at 9PM!An exclusive experience in the heart of Miami.Great Food and Drink Options!Free parking on site! Free Entry!VIP options available!Hosted by Miami's Best Comedian Raul Hernandez!Giveaways throughout the night!See you there!Mature Audience Only!A major Miami Attraction!#MiamiComedyShow #MiamiComedyClub #ComedyShownearme #ComedyClubnearme #TheLibrarySpeakeasy #Comedyshowmiami #comedyclubmiami #Comedyshow #thingstodoinmiami #stufftodoinmiami #WestMiami #Coralway #thingstodonearfiu #Datenight #miamidatenight #singlesmiami #miamisingles #miaminightlife #miamisocial #socialmiami #comedy #miamilaughs #laughsmiami #comedyshowinmiami #comedyclubinmiami #thursdaynight #thursday #liveentertainment #miamiliveentertainment #kendallevents #eventsinmiami #miamistandup #miamicomedy #comedyshowthisweek #miamiattractions #attractions #attractionsinmiami #trendymiami #miamitrending #trendyinMiamiA fun Thursday night in Miami!",
+          "reference": "raw/page-2.json#/data/484/description"
+        }
+      ],
+      "baseline_decision": "accept",
+      "candidate_decision": "review",
+      "candidate_reason_codes": [
+        "insufficient_event_evidence",
+        "missing_lineup"
+      ],
+      "source_evidence": {
+        "show_id": 7852401,
+        "present_in_database": true,
+        "club_id": 11432,
+        "source_performance_id": null,
+        "show_page_url": "https://www.dadecountycomedy.com/miami-comedy-shows/laughs-at-the-library-comedy-show-october-15",
+        "last_scraped_by": "squarespace",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 7978575,
+      "venue": "The Upstairs Comedy Club Los Angeles",
+      "title": "THE UPSTAIRS COMEDY SHOWCASE",
+      "original_reference_label": {
+        "show_id": 7978575,
+        "genre": "unknown",
+        "selection": "unreviewed",
+        "rationale": "Not reviewed; publication does not prove comedy."
+      },
+      "genre": "comedy",
+      "format": "live_performance",
+      "judgment": "live_comedy_withheld",
+      "rationale": "The event title explicitly advertises a COMEDY SHOWCASE. It does not mention instruction or uncertain format.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "THE UPSTAIRS COMEDY SHOWCASE",
+          "reference": "raw/page-3.json#/data/118/name"
+        }
+      ],
+      "baseline_decision": "accept",
+      "candidate_decision": "review",
+      "candidate_reason_codes": [
+        "audience_format_review",
+        "invalid_event_evidence",
+        "missing_lineup",
+        "rule_audience_format_ambiguous"
+      ],
+      "source_evidence": {
+        "show_id": 7978575,
+        "present_in_database": true,
+        "club_id": 8822,
+        "source_performance_id": null,
+        "show_page_url": "https://www.tixr.com/groups/theupstairsla/events/the-upstairs-comedy-showcase-210099",
+        "last_scraped_by": "tixr",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 7978576,
+      "venue": "The Upstairs Comedy Club Los Angeles",
+      "title": "THE UPSTAIRS COMEDY SHOWCASE",
+      "original_reference_label": {
+        "show_id": 7978576,
+        "genre": "unknown",
+        "selection": "unreviewed",
+        "rationale": "Not reviewed; publication does not prove comedy."
+      },
+      "genre": "comedy",
+      "format": "live_performance",
+      "judgment": "live_comedy_withheld",
+      "rationale": "The event title explicitly advertises a COMEDY SHOWCASE. It does not mention instruction or uncertain format.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "THE UPSTAIRS COMEDY SHOWCASE",
+          "reference": "raw/page-4.json#/data/432/name"
+        }
+      ],
+      "baseline_decision": "accept",
+      "candidate_decision": "review",
+      "candidate_reason_codes": [
+        "audience_format_review",
+        "invalid_event_evidence",
+        "missing_lineup",
+        "rule_audience_format_ambiguous"
+      ],
+      "source_evidence": {
+        "show_id": 7978576,
+        "present_in_database": true,
+        "club_id": 8822,
+        "source_performance_id": null,
+        "show_page_url": "https://www.tixr.com/groups/theupstairsla/events/the-upstairs-comedy-showcase-210100",
+        "last_scraped_by": "tixr",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 7666049,
+      "venue": "Whiplash Comedy",
+      "title": "CLOSED FOR PRIVATE EVENT",
+      "original_reference_label": {
+        "show_id": 7666049,
+        "group_index": 2086,
+        "selection": "flagged",
+        "triage_category": "promotion_or_unavailable_event",
+        "genre": "unknown",
+        "format": "closure",
+        "public_availability": "non_public",
+        "rationale": "The title explicitly announces closure for a private event. It is unavailable as a public show; genre remains unspecified.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "CLOSED FOR PRIVATE EVENT",
+            "reference": "raw/page-3.json#/data/294/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "closure",
+      "judgment": "supported_non_public",
+      "rationale": "Closed for private event explicitly says this occurrence is unavailable to the public; genre remains unknown.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "CLOSED FOR PRIVATE EVENT",
+          "reference": "raw/page-3.json#/data/294/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_public_event",
+        "missing_lineup",
+        "rule_non_public_private_event_closure"
+      ],
+      "source_evidence": {
+        "show_id": 7666049,
+        "present_in_database": true,
+        "club_id": 1347,
+        "source_performance_id": null,
+        "show_page_url": "https://whiplashcomedy.com/shows/389887",
+        "last_scraped_by": "seatengine",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 7666050,
+      "venue": "Whiplash Comedy",
+      "title": "CLOSED FOR PRIVATE EVENT",
+      "original_reference_label": {
+        "show_id": 7666050,
+        "group_index": 2086,
+        "selection": "flagged",
+        "triage_category": "promotion_or_unavailable_event",
+        "genre": "unknown",
+        "format": "closure",
+        "public_availability": "non_public",
+        "rationale": "The title explicitly announces closure for a private event. It is unavailable as a public show; genre remains unspecified.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "CLOSED FOR PRIVATE EVENT",
+            "reference": "raw/page-5.json#/data/324/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "closure",
+      "judgment": "supported_non_public",
+      "rationale": "Closed for private event explicitly says this occurrence is unavailable to the public; genre remains unknown.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "CLOSED FOR PRIVATE EVENT",
+          "reference": "raw/page-5.json#/data/324/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_public_event",
+        "missing_lineup",
+        "rule_non_public_private_event_closure"
+      ],
+      "source_evidence": {
+        "show_id": 7666050,
+        "present_in_database": true,
+        "club_id": 1347,
+        "source_performance_id": null,
+        "show_page_url": "https://whiplashcomedy.com/shows/389884",
+        "last_scraped_by": "seatengine",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 7758349,
+      "venue": "The Rockwell",
+      "title": "Foamflower EP Release Show",
+      "original_reference_label": {
+        "show_id": 7758349,
+        "group_index": 1839,
+        "selection": "flagged",
+        "triage_category": "strong_non_comedy_flag",
+        "genre": "non_comedy",
+        "format": "live_performance",
+        "public_availability": "public",
+        "rationale": "The detailed event billing is an indie pop/rock band EP-release concert, including the band history and album release.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "Foamflower EP Release Show",
+            "reference": "raw/page-3.json#/data/299/name"
+          },
+          {
+            "field": "description",
+            "excerpt": "a curated night of Indie Pop/Rock",
+            "reference": "raw/page-3.json#/data/299/description"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "non_comedy",
+      "format": "live_performance",
+      "judgment": "supported_non_comedy",
+      "rationale": "The full event programme is an indie pop/rock EP-release concert with a band and music; this is event billing, not only biography.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Foamflower EP Release Show",
+          "reference": "raw/page-3.json#/data/299/name"
+        },
+        {
+          "field": "description",
+          "excerpt": "Foamflower EP Release Show Join us at The Rockwell for a curated night of Indie Pop/Rock, featuring Foamflower’s EP release, and special guests! Foamflower has been a band for almost four years. Starting in February of 2023, the group met and started performing under the band name “Knee Socks.” Three years and three drummers later, foamflower is celebrating their success throwing an album release party, with their new album “Without a Reason” coming out this October. They are so thankful for everyone that has supported them all this time, and can’t wait to share their music. SOCIAL MEDIA: @foamflower.band Presented by The Rockwell Timeline: DOORS: 7:00 PM SHOW: 8:00 PM Age Limit: This event is 21+ ID: Valid ID required for Alcohol Consumption/Entry Start Time: Performances will begin no later than 15 minutes after stated show time. Refund Policy: All sales are final. No Refunds. ADA Accessibility: The Rockwell is partially ADA Accessible with an elevator and restrooms in saloon wide enough for wheelchair use.",
+          "reference": "raw/page-3.json#/data/299/description"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_music_performance"
+      ],
+      "source_evidence": {
+        "show_id": 7758349,
+        "present_in_database": true,
+        "club_id": 150,
+        "source_performance_id": null,
+        "show_page_url": "https://therockwell.org/calendar/foamflower-ep-release",
+        "last_scraped_by": "the_events_calendar",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 6028959,
+      "venue": "East Village Stand Up Comedy",
+      "title": "Live at the Barbershop Houston: Stand Up Comedy in a Real Barbershop · BYOB",
+      "original_reference_label": {
+        "show_id": 6028959,
+        "genre": "unknown",
+        "selection": "unreviewed",
+        "rationale": "Not reviewed; publication does not prove comedy."
+      },
+      "genre": "comedy",
+      "format": "live_performance",
+      "judgment": "live_comedy_withheld",
+      "rationale": "Title and description explicitly advertise a stand-up comedy show inside a Houston barbershop.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Live at the Barbershop Houston: Stand Up Comedy in a Real Barbershop · BYOB",
+          "reference": "raw/page-4.json#/data/172/name"
+        },
+        {
+          "field": "description",
+          "excerpt": "Houston’s hottest stand up comedy show inside a real Heights barbershop with secret lineups, surprise drop-ins, and incredible energy. BYOB",
+          "reference": "raw/page-4.json#/data/172/description"
+        }
+      ],
+      "baseline_decision": "accept",
+      "candidate_decision": "review",
+      "candidate_reason_codes": [
+        "insufficient_event_evidence",
+        "missing_lineup"
+      ],
+      "source_evidence": {
+        "show_id": 6028959,
+        "present_in_database": true,
+        "club_id": 16053,
+        "source_performance_id": null,
+        "show_page_url": "https://www.eventbrite.com/e/live-at-the-barbershop-houston-stand-up-comedy-in-a-real-barbershop-byob-tickets-1998989703013",
+        "last_scraped_by": "eventbrite",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 6720036,
+      "venue": "Comix Roadhouse",
+      "title": "SUMMER ORLANDO'S DRAG BINGO",
+      "original_reference_label": {
+        "show_id": 6720036,
+        "group_index": 371,
+        "selection": "flagged",
+        "triage_category": "needs_more_evidence",
+        "genre": "comedy",
+        "format": "mixed_live",
+        "public_availability": "public",
+        "rationale": "The drag-bingo event specifically bills side-splitting comedic timing and a drag performance with audience interaction. This is same-event comedy evidence; unrelated venue comedy/karaoke footer text is not used.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "SUMMER ORLANDO'S DRAG BINGO",
+            "reference": "raw/page-4.json#/data/273/name"
+          },
+          {
+            "field": "description",
+            "excerpt": "side-splitting comedic timing and dynamic hosting",
+            "reference": "raw/page-4.json#/data/273/description"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "comedy",
+      "format": "mixed_live",
+      "judgment": "live_comedy_withheld",
+      "rationale": "Frozen reference review identifies same-event comedic performance/hosting in the drag-bingo billing. Retain this comedy label; ignore unrelated venue footer promotions. Title-only rejection drops the reviewed mixed-comedy event.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "SUMMER ORLANDO'S DRAG BINGO",
+          "reference": "raw/page-4.json#/data/273/name"
+        },
+        {
+          "field": "description",
+          "excerpt": "Join us for an unforgettable evening at COMIX UNCENSORED Presents DRAG BINGO starring the sensational SUMMER ORLANDO—Connecticut’s premier theatre-drag queen and illusionist! With a reputation for Broadway-quality costumes, live singing, side-splitting comedic timing and dynamic hosting, Summer Orlando has made history as the first male actor to portray Dorothy in a licensed production of The Wizard of Oz and has been hand-picked by Disney to appear in Hocus Pocus 2 for her show-stopping impersonation of Winifred Sanderson. This lively event blends the classic bingo game with the full spectacle of a drag-queen performance: think dazzling outfits, audience interaction, prizes, and performance flair. Whether you’re celebrating with friends or simply looking for a fun night out, DRAG BINGO with Summer Orlando promises big laughs, big numbers, and big fun—no bingo experience necessary, just bring your spirit and be ready to shout “BINGO!” in style. Each Guest Receives 1 Game Card And 1 Dabber. * *THIS SHOW IS 21+** Comix Roadhouse brings that same anything-goes energy to the table: Connecticut Magazine named it the state's Best Casino Casual Dining pick for 2026, and OpenTable diners voted it a 2026 Diners' Choice favorite — proof this is as much a destination as it is a stage. MAKE A FULL NIGHT OF IT AT COMIX ROADHOUSE DINNER & A SHOW Arrive Early And Enjoy Dinner Before The Show CHECK OUT THE ROADHOUSE MENU MAKE A ROADHOUSE RESERVATION THURSDAY NIGHT AT THE ROADHOUSE Start The Night Early With Line Dancing And Stay For Comedy And Karaoke LINE DANCING — THURSDAYS @ 6:30 HEADLINER PREVIEW SHOW — THURSDAYS @ 8:00 KARAOKE — THURSDAYS @ 9:15 WEEKEND NIGHTLIFE The Party Continues In The Roadhouse After The Comedy Show LIVE BANDS — FRIDAYS & SATURDAYS @ 9:15 EXPLORE MORE COMEDY HEADLINER SHOWS COMEDY CLUB CALENDAR 21+ | $10 FOOD-BEV MIN A 15.00% SERVICE FEE will be applied to your order.",
+          "reference": "raw/page-4.json#/data/273/description"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_games_sports"
+      ],
+      "source_evidence": {
+        "show_id": 6720036,
+        "present_in_database": true,
+        "club_id": 11484,
+        "source_performance_id": null,
+        "show_page_url": "https://www.comixroadhouse.com/comics/summer-orlando-drag-bingo-101626",
+        "last_scraped_by": "comix_roadhouse",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 7243042,
+      "venue": "Sunset Strip Comedy Club",
+      "title": "Sunset Strip After Dark Comedy Showcase",
+      "original_reference_label": {
+        "show_id": 7243042,
+        "genre": "unknown",
+        "selection": "unreviewed",
+        "rationale": "Not reviewed; publication does not prove comedy."
+      },
+      "genre": "comedy",
+      "format": "live_performance",
+      "judgment": "live_comedy_withheld",
+      "rationale": "Comedy Showcase explicitly identifies the event; no title evidence makes the audience format ambiguous.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Sunset Strip After Dark Comedy Showcase",
+          "reference": "raw/page-4.json#/data/424/name"
+        }
+      ],
+      "baseline_decision": "accept",
+      "candidate_decision": "review",
+      "candidate_reason_codes": [
+        "audience_format_review",
+        "invalid_event_evidence",
+        "missing_lineup",
+        "rule_audience_format_ambiguous"
+      ],
+      "source_evidence": {
+        "show_id": 7243042,
+        "present_in_database": true,
+        "club_id": 175,
+        "source_performance_id": null,
+        "show_page_url": "https://squadup.com/events/sunset-strip-after-dark-comedy-showcase-112",
+        "last_scraped_by": "squadup",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 7159607,
+      "venue": "Fort Lauderdale Improv",
+      "title": "Stand Up Comedy Workshop",
+      "original_reference_label": {
+        "show_id": 7159607,
+        "group_index": 559,
+        "selection": "flagged",
+        "triage_category": "class_workshop_or_mixer_review",
+        "genre": "comedy",
+        "format": "training",
+        "public_availability": "unknown",
+        "rationale": "The event title explicitly bills comedy or improv instruction. This is comedy-related training, not evidence of a public audience show.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "Stand Up Comedy Workshop",
+            "reference": "raw/page-4.json#/data/477/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "comedy",
+      "format": "training",
+      "judgment": "comedy_format_withheld",
+      "rationale": "Stand Up Comedy Workshop explicitly bills instruction; a review hold still withholds comedy-related content and is not a true non-comedy removal.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Stand Up Comedy Workshop",
+          "reference": "raw/page-4.json#/data/477/name"
+        }
+      ],
+      "baseline_decision": "accept",
+      "candidate_decision": "review",
+      "candidate_reason_codes": [
+        "affirmative_event_comedy",
+        "audience_format_review",
+        "missing_lineup",
+        "rule_audience_content_comedy_instruction",
+        "rule_audience_format_ambiguous",
+        "rule_comedy_format_live_comedy"
+      ],
+      "source_evidence": {
+        "show_id": 7159607,
+        "present_in_database": true,
+        "club_id": 53,
+        "source_performance_id": null,
+        "show_page_url": "https://www.improvftl.com/shows/388576",
+        "last_scraped_by": "seatengine_classic",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 6990836,
+      "venue": "Mic Drop Comedy",
+      "title": "ADVANCED STAND UP COMEDY CLASS",
+      "original_reference_label": {
+        "show_id": 6990836,
+        "group_index": 1029,
+        "selection": "flagged",
+        "triage_category": "class_workshop_or_mixer_review",
+        "genre": "comedy",
+        "format": "training",
+        "public_availability": "unknown",
+        "rationale": "The event title explicitly bills comedy or improv instruction. This is comedy-related training, not evidence of a public audience show.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "ADVANCED STAND UP COMEDY CLASS",
+            "reference": "raw/page-5.json#/data/54/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "comedy",
+      "format": "training",
+      "judgment": "comedy_format_withheld",
+      "rationale": "Advanced stand-up comedy class explicitly bills comedy instruction, separately from an audience performance.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "ADVANCED STAND UP COMEDY CLASS",
+          "reference": "raw/page-5.json#/data/54/name"
+        }
+      ],
+      "baseline_decision": "accept",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "affirmative_event_comedy",
+        "audience_format_exclude",
+        "missing_lineup",
+        "rule_audience_content_comedy_instruction",
+        "rule_audience_format_instruction",
+        "rule_comedy_format_live_comedy"
+      ],
+      "source_evidence": {
+        "show_id": 6990836,
+        "present_in_database": true,
+        "club_id": 486,
+        "source_performance_id": null,
+        "show_page_url": "http://www.micdropcomedy.com/shows/387927",
+        "last_scraped_by": "seatengine",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 7761511,
+      "venue": "Big Laugh Comedy Club",
+      "title": "FREE Intro To Improv Class",
+      "original_reference_label": {
+        "show_id": 7761511,
+        "group_index": 110,
+        "selection": "flagged",
+        "triage_category": "class_workshop_or_mixer_review",
+        "genre": "comedy",
+        "format": "training",
+        "public_availability": "unknown",
+        "rationale": "The event-specific title and description identify comedy/improv instruction or exercises. The class occurrence is separate from a future showcase; training format is retained independently of comedy genre.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "FREE Intro To Improv Class",
+            "reference": "raw/page-5.json#/data/56/name"
+          },
+          {
+            "field": "description",
+            "excerpt": "Free Saturday Improv Class2 hours. 30 spots. 100% fun.Taking an improv class is like a workout for your confidence and creativity. With no script and no pressure, you’ll learn to say “Yes, and…” to new ideas, think on your feet, and adapt when life throws curveballs. Along the way, you’ll sharpen your communication, strengthen your listening skills, and discover how freeing it feels to let go of perfection.And yes—you’ll laugh. A lot.What You’ll Do:Hour 1: Build the Foundatio",
+            "reference": "raw/page-5.json#/data/56/description"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "comedy",
+      "format": "training",
+      "judgment": "comedy_format_withheld",
+      "rationale": "The event title and curriculum describe improv instruction and short-form games; training is a separate format from live audience comedy.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "FREE Intro To Improv Class",
+          "reference": "raw/page-5.json#/data/56/name"
+        },
+        {
+          "field": "description",
+          "excerpt": "Free Saturday Improv Class2 hours. 30 spots. 100% fun.Taking an improv class is like a workout for your confidence and creativity. With no script and no pressure, you’ll learn to say “Yes, and…” to new ideas, think on your feet, and adapt when life throws curveballs. Along the way, you’ll sharpen your communication, strengthen your listening skills, and discover how freeing it feels to let go of perfection.And yes—you’ll laugh. A lot.What You’ll Do:Hour 1: Build the FoundationDiscover the “Yes, and…” mindset, play warm-up games, and unlock tools to collaborate, support, and create without fear of being wrong.Hour 2: Play the GamesJump into classic short-form improv games like Professor Know-It-All, Freeze and Justify, Conducted Story, and more. You’ll put your new skills into action, connect with others, and surprise yourself with what you create.By the end, you’ll walk out feeling lighter, braver, and more creative—with stories (and friends) you’ll keep long after class ends.Who’s Teaching:Your guide is Kevin Small, a nationally recognized improviser and teacher.Featured on HBO’s Sketch Pad 2Former Training Director & Performer at Four Day Weekend (one of the most respected improv institutions in the country)Performed for 12+ years with ACME Comedy’s Main Company in Los Angeles, where he wrote and performed sketch comedy alongside stars like Bryan Cranston, Mayim Bialik, Wendi McLendon-Covey, Joel McHale, and Neil Flynn.Kevin brings decades of stage and teaching experience, a supportive style, and a passion for helping people discover their creative voice.By the end, you’ll walk out feeling lighter, braver, and more creative—with stories (and friends) you’ll keep long after class ends.Why Join?✔ Only 30 spots available — keeps it intimate, supportive, and fun✔ No experience needed (improv isn’t about being “funny”)✔ Build confidence and flexibility in just 2 hours✔ 100% FREEReady to jump in? Say “Yes, and…”—and claim your spot before they’re gone!Garage Parking OptionsAvailable for parking on weekdays and weekends - check ratesCity Center Garage #2 - 400 Jones StreetThe Tower Garage - 400 Taylor StreetStreet Parking OptionsDowntown parking meters are free every night after 6pm and on weekends! Ticket Info- First come, first serve GA and Preferred seating- There are no refunds - This event is all ages, valid ID required- 2 Drink Minimum Per Person (Includes non-acoholic options, sodas, and teas)- If you don't show up 20 MINUTES after the scheduled show time, you will forfeit your tickets- No heckling during the show, if you can't play nicely you will be asked to leave - No backpacks or other large bags allowed in venue- No animals allowed in venue- Make sure to have fun and be respectful during the show Grab your tickets before you are stuck wishing you had. Get them now!",
+          "reference": "raw/page-5.json#/data/56/description"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "affirmative_event_comedy",
+        "audience_format_exclude",
+        "missing_lineup",
+        "rule_audience_content_comedy_instruction",
+        "rule_audience_format_instruction"
+      ],
+      "source_evidence": {
+        "show_id": 7761511,
+        "present_in_database": true,
+        "club_id": 16114,
+        "source_performance_id": null,
+        "show_page_url": "https://fortworth.blcomedy.com/events/free-intro-to-improv-class-oct-17",
+        "last_scraped_by": "json_ld",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 4019380,
+      "venue": "Endgames Training Center - South",
+      "title": "Endgames Drop-In Classes",
+      "original_reference_label": {
+        "show_id": 4019380,
+        "group_index": 496,
+        "selection": "flagged",
+        "triage_category": "class_workshop_or_mixer_review",
+        "genre": "comedy",
+        "format": "training",
+        "public_availability": "unknown",
+        "rationale": "The event-specific title and description identify comedy/improv instruction or exercises. The class occurrence is separate from a future showcase; training format is retained independently of comedy genre.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "Endgames Drop-In Classes",
+            "reference": "raw/page-5.json#/data/81/name"
+          },
+          {
+            "field": "description",
+            "excerpt": "Endgames Improv offers single-day improv classes for the novice to seasoned performers. Meet new improvisers or brush up on your skills.",
+            "reference": "raw/page-5.json#/data/81/description"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "comedy",
+      "format": "training",
+      "judgment": "comedy_format_withheld",
+      "rationale": "The description explicitly offers single-day improv classes; format exclusion must retain the comedy-related training label.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Endgames Drop-In Classes",
+          "reference": "raw/page-5.json#/data/81/name"
+        },
+        {
+          "field": "description",
+          "excerpt": "Endgames Improv offers single-day improv classes for the novice to seasoned performers. Meet new improvisers or brush up on your skills.",
+          "reference": "raw/page-5.json#/data/81/description"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "audience_format_exclude",
+        "insufficient_event_evidence",
+        "missing_lineup",
+        "rule_audience_format_instruction"
+      ],
+      "source_evidence": {
+        "show_id": 4019380,
+        "present_in_database": true,
+        "club_id": 11085,
+        "source_performance_id": null,
+        "show_page_url": "https://www.eventbrite.com/e/endgames-drop-in-classes-tickets-1993755220535",
+        "last_scraped_by": "eventbrite",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 6990837,
+      "venue": "Mic Drop Comedy",
+      "title": "INTRO TO STAND UP COMEDY CLASS",
+      "original_reference_label": {
+        "show_id": 6990837,
+        "group_index": 1034,
+        "selection": "flagged",
+        "triage_category": "class_workshop_or_mixer_review",
+        "genre": "comedy",
+        "format": "training",
+        "public_availability": "unknown",
+        "rationale": "The event title explicitly bills comedy or improv instruction. This is comedy-related training, not evidence of a public audience show.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "INTRO TO STAND UP COMEDY CLASS",
+            "reference": "raw/page-5.json#/data/84/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "comedy",
+      "format": "training",
+      "judgment": "comedy_format_withheld",
+      "rationale": "Introductory stand-up comedy class explicitly bills comedy instruction, separately from an audience performance.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "INTRO TO STAND UP COMEDY CLASS",
+          "reference": "raw/page-5.json#/data/84/name"
+        }
+      ],
+      "baseline_decision": "accept",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "affirmative_event_comedy",
+        "audience_format_exclude",
+        "missing_lineup",
+        "rule_audience_content_comedy_instruction",
+        "rule_audience_format_instruction",
+        "rule_comedy_format_live_comedy"
+      ],
+      "source_evidence": {
+        "show_id": 6990837,
+        "present_in_database": true,
+        "club_id": 486,
+        "source_performance_id": null,
+        "show_page_url": "http://www.micdropcomedy.com/shows/387921",
+        "last_scraped_by": "seatengine",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 3621437,
+      "venue": "Tacoma Comedy Club",
+      "title": "It's Bingo B**** - A Drag Bingo Event!",
+      "original_reference_label": {
+        "show_id": 3621437,
+        "group_index": 1474,
+        "selection": "flagged",
+        "triage_category": "needs_more_evidence",
+        "genre": "unknown",
+        "format": "mixed_live",
+        "public_availability": "unknown",
+        "rationale": "Drag, burlesque, bingo or variety billing alone does not establish or exclude comedy. Available details do not explicitly promise a comedy act or comedic performance.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "It's Bingo B**** - A Drag Bingo Event!",
+            "reference": "raw/page-5.json#/data/150/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "mixed_live",
+      "judgment": "unresolved",
+      "rationale": "Drag-bingo title without a description cannot resolve a possible comedy performance.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "It's Bingo B**** - A Drag Bingo Event!",
+          "reference": "raw/page-5.json#/data/150/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "explicit_non_comedy_event",
+        "missing_lineup",
+        "rule_event_format_games_sports"
+      ],
+      "source_evidence": {
+        "show_id": 3621437,
+        "present_in_database": true,
+        "club_id": 64,
+        "source_performance_id": null,
+        "show_page_url": "https://www.tacomacomedyclub.com/shows/379124",
+        "last_scraped_by": "seatengine_classic",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 2832229,
+      "venue": "Bergen Performing Arts Center",
+      "title": "An Evening With John Cusack (featuring Screening Of High Fidelity)",
+      "original_reference_label": {
+        "show_id": 2832229,
+        "group_index": 98,
+        "selection": "flagged",
+        "triage_category": "needs_more_evidence",
+        "genre": "unknown",
+        "format": "mixed_screening",
+        "public_availability": "unknown",
+        "rationale": "The title advertises an actor appearance with a screening. It does not describe the live segment or establish live comedy.",
+        "evidence": [
+          {
+            "field": "name",
+            "excerpt": "An Evening With John Cusack (featuring Screening Of High Fidelity)",
+            "reference": "raw/page-5.json#/data/248/name"
+          }
+        ],
+        "reviewer": "codex:/root/corpus_labels",
+        "reviewed_at": "2026-10-11T17:31:24.150535+00:00"
+      },
+      "genre": "unknown",
+      "format": "mixed_screening",
+      "judgment": "unresolved",
+      "rationale": "Actor appearance plus screening is a mixed bill. Without the live-segment description, a screening-only exclusion may lose comedy; requires review.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "An Evening With John Cusack (featuring Screening Of High Fidelity)",
+          "reference": "raw/page-5.json#/data/248/name"
+        }
+      ],
+      "baseline_decision": "review",
+      "candidate_decision": "reject",
+      "candidate_reason_codes": [
+        "audience_format_exclude",
+        "insufficient_event_evidence",
+        "missing_lineup",
+        "rule_audience_format_screening"
+      ],
+      "source_evidence": {
+        "show_id": 2832229,
+        "present_in_database": true,
+        "club_id": 4650,
+        "source_performance_id": null,
+        "show_page_url": "https://www.ticketmaster.com/an-evening-with-john-cusack-featuring-englewood-new-jersey-10-17-2026/event/000064CAC5776B2F",
+        "last_scraped_by": "ticketmaster_national",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 7679999,
+      "venue": "Makeshift Theater Akron",
+      "title": "\"Make 'Em Laugh\" Comedy Night",
+      "original_reference_label": {
+        "show_id": 7679999,
+        "genre": "unknown",
+        "selection": "unreviewed",
+        "rationale": "Not reviewed; publication does not prove comedy."
+      },
+      "genre": "comedy",
+      "format": "live_performance",
+      "judgment": "live_comedy_withheld",
+      "rationale": "The quoted show name followed by Comedy Night explicitly bills comedy; it is not negation or a biography credit.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "\"Make 'Em Laugh\" Comedy Night",
+          "reference": "raw/page-5.json#/data/326/name"
+        }
+      ],
+      "baseline_decision": "accept",
+      "candidate_decision": "review",
+      "candidate_reason_codes": [
+        "invalid_event_evidence",
+        "missing_lineup"
+      ],
+      "source_evidence": {
+        "show_id": 7679999,
+        "present_in_database": true,
+        "club_id": 8729,
+        "source_performance_id": null,
+        "show_page_url": "https://makeshift.booktix.com/dept/main/e/MEL",
+        "last_scraped_by": "booktix",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    },
+    {
+      "public_show_id": 6619318,
+      "venue": "East Village Stand Up Comedy",
+      "title": "Live at the Barbershop NYC: Hottest Stand Up Comedy Show in NYC! BYOB!",
+      "original_reference_label": {
+        "show_id": 6619318,
+        "genre": "unknown",
+        "selection": "unreviewed",
+        "rationale": "Not reviewed; publication does not prove comedy."
+      },
+      "genre": "comedy",
+      "format": "live_performance",
+      "judgment": "live_comedy_withheld",
+      "rationale": "Title and description explicitly advertise the NYC barbershop stand-up comedy show.",
+      "evidence": [
+        {
+          "field": "name",
+          "excerpt": "Live at the Barbershop NYC: Hottest Stand Up Comedy Show in NYC! BYOB!",
+          "reference": "raw/page-5.json#/data/348/name"
+        },
+        {
+          "field": "description",
+          "excerpt": "A NYC stand up comedy show inside a real East Village barbershop with secret lineups, surprise drop-ins, and great crowds.",
+          "reference": "raw/page-5.json#/data/348/description"
+        }
+      ],
+      "baseline_decision": "accept",
+      "candidate_decision": "review",
+      "candidate_reason_codes": [
+        "insufficient_event_evidence",
+        "missing_lineup"
+      ],
+      "source_evidence": {
+        "show_id": 6619318,
+        "present_in_database": true,
+        "club_id": 16053,
+        "source_performance_id": null,
+        "show_page_url": "https://www.eventbrite.com/e/live-at-the-barbershop-nyc-hottest-stand-up-comedy-show-in-nyc-byob-tickets-2000035591293",
+        "last_scraped_by": "eventbrite",
+        "scraped_by_organizer_id": null,
+        "publication_candidates": [],
+        "status": "unresolved"
+      }
+    }
+  ]
+}
