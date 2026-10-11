@@ -25,6 +25,8 @@ from laughtrack.core.comedy_eligibility_store import (
     verify_publication,
     link_published,
 )
+from laughtrack.core.comedy_eligibility_review import apply_review, baseline_identity_fingerprint
+from laughtrack.core.comedy_eligibility_review_store import load_review
 from laughtrack.core.entities.club.comedy_policy import SourceComedyPolicy
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
@@ -216,6 +218,7 @@ class EligibilityGate:
         prepared: list[tuple[Any, dict, StagedCandidate | None]] = []
         off_sources: dict[tuple, dict] = {}
         identity_snapshots = {}
+        review_scopes = {}
         # Staging commits before the independently fenced public write attempt.
         for show in shows:
             if getattr(show, "eligibility_source_id", None) is None and (
@@ -229,6 +232,7 @@ class EligibilityGate:
                 prepared.append((show, off_sources[source_key], None))
                 continue
             source = None
+            allow_shadow_fallback = False
             try:
                 with self.transaction() as conn:
                     with conn.cursor() as cursor:
@@ -265,9 +269,17 @@ class EligibilityGate:
                                 )
                             from laughtrack.core.comedy_eligibility_model import cached_decision
 
-                            decision = cached_decision(
-                                self.transaction, candidate_payload(show), decision, people, denied
-                            )
+                            baseline = baseline_identity_fingerprint(decision, people, denied)
+                            scope = (source["id"], event_key(show), fingerprint(candidate_payload(show)),
+                                     baseline, policy.version)
+                            review_scopes[id(show)] = scope
+                            review_state = load_review(cursor, *scope)
+                            decision, human_hold, human_present = apply_review(decision, review_state)
+                            allow_shadow_fallback = not human_present
+                            if not human_present:
+                                decision = cached_decision(
+                                    self.transaction, candidate_payload(show), decision, people, denied
+                                )
                             staged = stage_candidate(
                                 cursor,
                                 source_id=source["id"],
@@ -276,8 +288,10 @@ class EligibilityGate:
                                 payload=candidate_payload(show),
                                 decision=decision,
                                 gate_mode=mode,
+                                baseline_identity_fingerprint=baseline,
+                                review_version=review_state["review_version"],
                             )
-                            if mode == "enforce" and decision.decision != "accept":
+                            if human_hold or (mode == "enforce" and decision.decision != "accept"):
                                 outcome.withheld += 1
                                 outcome.reconciliation_safe = False
                                 continue
@@ -287,7 +301,7 @@ class EligibilityGate:
                 Logger.warn(f"Eligibility staging failed: {exc}")
                 # Recording failure may preserve shadow publication only under a
                 # NEW source fence proving it is still enabled and in shadow mode.
-                if source and source["comedy_gate_mode"] == "shadow":
+                if source and source["comedy_gate_mode"] == "shadow" and allow_shadow_fallback:
                     prepared.append((show, source, None))
                 else:
                     outcome.withheld += 1
@@ -302,9 +316,15 @@ class EligibilityGate:
                     conn = stack.enter_context(self.transaction())
                     cursor = stack.enter_context(conn.cursor())
                     # Acquire every source before candidates: no inverted lock order.
-                    current_sources = {
-                        sid: load_source(cursor, sid, lock=True) for sid in sorted({s["id"] for _, s, _ in prepared})
-                    }
+                    exclusive_sources = {s["id"] for _, s, staged in prepared
+                                         if staged is None and s["comedy_gate_mode"] == "shadow"}
+                    current_sources = {}
+                    for sid in sorted({s["id"] for _, s, _ in prepared}):
+                        if sid in exclusive_sources:
+                            # Review apply and staging lock source SHARE first. An
+                            # exclusive lock closes the no-candidate fallback race.
+                            cursor.execute("SELECT id FROM scraping_sources WHERE id=%s FOR UPDATE", (sid,))
+                        current_sources[sid] = load_source(cursor, sid, lock=sid not in exclusive_sources)
                     for show, source, staged in sorted(prepared, key=lambda x: (x[1]["id"], x[2].id if x[2] else 0)):
                         current = current_sources[source["id"]]
                         fresh = bool(
@@ -313,6 +333,9 @@ class EligibilityGate:
                             and current["comedy_policy_version"] == source["comedy_policy_version"]
                             and current["comedy_gate_mode"] == source["comedy_gate_mode"]
                         )
+                        if fresh and staged is None and source["comedy_gate_mode"] == "shadow":
+                            review = load_review(cursor, *review_scopes[id(show)])
+                            fresh = not review["review_version"] and not review.get("stale")
                         if fresh and (staged is None or verify_publication(cursor, staged)):
                             fenced_shows.append(show)
                             if staged:

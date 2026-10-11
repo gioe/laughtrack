@@ -177,6 +177,9 @@ model ScrapingSource {
 }
 
 model ComedyEventCandidate {
+  reviewVersion         Int                      @default(0) @map("review_version")
+  observations          ComedyEventObservation[]
+  reviews               ComedyEventReview[]
   observationGeneration BigInt                   @default(1) @map("observation_generation")
   id                    Int                      @id @default(autoincrement())
   sourceId              Int                      @map("source_id")
@@ -195,6 +198,8 @@ model ComedyEventCandidate {
 }
 
 model ComedyEventDecision {
+  observations        ComedyEventObservation[]
+  reviews             ComedyEventReview[]
   id                  Int                      @id @default(autoincrement())
   candidateId         Int                      @map("candidate_id")
   payloadFingerprint  String                   @map("payload_fingerprint")
@@ -1404,4 +1409,70 @@ model ComedyModelCache {
   owner      ComedyModelAttempt @relation(fields: [ownerToken], references: [token], onDelete: Restrict)
 
   @@map("comedy_model_cache")
+}
+
+model ComedyEventObservation {
+  candidateId                 Int                  @map("candidate_id")
+  generation                  BigInt
+  decisionId                  Int                  @map("decision_id")
+  baselineIdentityFingerprint String               @map("baseline_identity_fingerprint")
+  observedAt                  DateTime             @default(dbgenerated("clock_timestamp()")) @map("observed_at") @db.Timestamptz
+  candidate                   ComedyEventCandidate @relation(fields: [candidateId], references: [id], onDelete: Restrict)
+  decision                    ComedyEventDecision  @relation(fields: [candidateId, decisionId], references: [candidateId, id], onDelete: Restrict)
+  reviews                     ComedyEventReview[]
+
+  @@id([candidateId, generation])
+  @@unique([candidateId, generation, decisionId])
+  @@map("comedy_event_observations")
+}
+
+model ComedyReviewPreview {
+  id          String                 @id
+  actor       String
+  action      String
+  reason      String
+  items       Json
+  tokenDigest String                 @map("token_digest")
+  createdAt   DateTime               @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz
+  expiresAt   DateTime               @map("expires_at") @db.Timestamptz
+  operation   ComedyReviewOperation?
+
+  @@map("comedy_review_previews")
+}
+
+model ComedyReviewOperation {
+  idempotencyKey String              @id @map("idempotency_key")
+  previewId      String              @unique @map("preview_id")
+  actor          String
+  tokenDigest    String              @map("token_digest")
+  result         Json
+  createdAt      DateTime            @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz
+  preview        ComedyReviewPreview @relation(fields: [previewId], references: [id], onDelete: Restrict)
+  reviews        ComedyEventReview[]
+
+  @@map("comedy_review_operations")
+}
+
+model ComedyEventReview {
+  id                    Int                    @id @default(autoincrement())
+  candidateId           Int                    @map("candidate_id")
+  observationGeneration BigInt                 @map("observation_generation")
+  decisionId            Int                    @map("decision_id")
+  reviewVersion         Int                    @map("review_version")
+  payloadFingerprint    String                 @map("payload_fingerprint")
+  identityFingerprint   String                 @map("identity_fingerprint")
+  policyVersion         Int                    @map("policy_version")
+  actor                 String
+  reason                String
+  action                String
+  operationKey          String                 @map("operation_key")
+  createdAt             DateTime               @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz
+  candidate             ComedyEventCandidate   @relation(fields: [candidateId], references: [id], onDelete: Restrict)
+  observation           ComedyEventObservation @relation(fields: [candidateId, observationGeneration, decisionId], references: [candidateId, generation, decisionId], onDelete: Restrict)
+  decision              ComedyEventDecision    @relation(fields: [candidateId, decisionId], references: [candidateId, id], onDelete: Restrict)
+  operation             ComedyReviewOperation  @relation(fields: [operationKey], references: [idempotencyKey], onDelete: Restrict)
+
+  @@unique([candidateId, reviewVersion])
+  @@index([operationKey], map: "comedy_event_reviews_operation_idx")
+  @@map("comedy_event_reviews")
 }

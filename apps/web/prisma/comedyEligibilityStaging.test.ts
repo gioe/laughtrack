@@ -67,6 +67,18 @@ beforeEach(async () => {
         ).toBeGreaterThanOrEqual(rows.length);
     }
     await db.exec(migration);
+    await db.exec(
+        readFileSync(
+            resolve(
+                migrations,
+                readdirSync(migrations).find((n) =>
+                    n.endsWith("_add_comedy_event_reviews"),
+                )!,
+                "migration.sql",
+            ),
+            "utf8",
+        ),
+    );
 });
 afterEach(async () => {
     await db.close();
@@ -120,6 +132,7 @@ it("reuses candidates and revisions while retaining changed identity evidence", 
                 revision,
                 1,
                 2,
+                0,
             ])
         ).rows[0],
     ).toMatchObject({ decision: "accept", gate_mode: "enforce" });
@@ -235,6 +248,7 @@ it("fences older staged decisions while allowing a freshly staged payload revers
                 da,
                 1,
                 a.observation_generation,
+                0,
             ])
         ).rows,
     ).toEqual([]);
@@ -247,6 +261,7 @@ it("fences older staged decisions while allowing a freshly staged payload revers
                 dbb,
                 1,
                 b.observation_generation,
+                0,
             ])
         ).rows[0].decision,
     ).toBe("reject");
@@ -272,6 +287,7 @@ it("fences older staged decisions while allowing a freshly staged payload revers
                 reused,
                 1,
                 c.observation_generation,
+                0,
             ])
         ).rows[0].decision,
     ).toBe("accept");
@@ -284,6 +300,7 @@ it("fences older staged decisions while allowing a freshly staged payload revers
                 dbb,
                 1,
                 b.observation_generation,
+                0,
             ])
         ).rows,
     ).toEqual([]);

@@ -13,7 +13,7 @@ def test_contract_1(monkeypatch):
     }
     monkeypatch.setattr(store, "load_source", lambda *args, **kwargs: source)
     rows = iter(
-        [{"id": 10, "observation_generation": 1}, {"id": 20}, {"id": 10, "observation_generation": 2}, None, {"id": 20}]
+        [{"id": 10, "observation_generation": 1, "review_version": 0}, {"id": 20}, {"id": 10, "observation_generation": 2, "review_version": 0}, None, {"id": 20}]
     )
     monkeypatch.setattr(store, "_row", lambda cursor: next(rows))
 
@@ -84,6 +84,7 @@ def _gate_environment(monkeypatch, mode="enforce"):
         fail_fence=False,
         after_stage=None,
         generation=0,
+        review_version=0,
     )
 
     class Cursor:
@@ -130,7 +131,7 @@ def _gate_environment(monkeypatch, mode="enforce"):
         if state.after_stage:
             state.after_stage()
         return StagedCandidate(
-            10, len(state.staged), 7, kwargs["event_key"], kwargs["decision"].policy_version, mode, state.generation
+            10, len(state.staged), 7, kwargs["event_key"], kwargs["decision"].policy_version, mode, state.generation, kwargs.get("review_version", 0)
         )
 
     def verify(cursor, candidate):
@@ -139,8 +140,10 @@ def _gate_environment(monkeypatch, mode="enforce"):
             and state.source["comedy_gate_mode"] == candidate.gate_mode
             and state.source["comedy_policy_version"] == candidate.policy_version
             and candidate.observation_generation == state.generation
+            and candidate.review_version == state.review_version
         )
 
+    monkeypatch.setattr(gate, "load_review", lambda *args: {"review_version": 0, "review": None, "stale": False})
     monkeypatch.setattr(gate, "load_source", load)
     monkeypatch.setattr(gate, "stage_candidate", stage)
     monkeypatch.setattr(gate, "verify_publication", verify)

@@ -21,7 +21,7 @@ INSERT INTO comedy_event_candidates(source_id,event_key,club_id) VALUES (%s,%s,%
 ON CONFLICT(source_id,event_key) DO UPDATE SET last_seen_at=GREATEST(comedy_event_candidates.last_seen_at,now()),
  observation_generation=comedy_event_candidates.observation_generation+1
 WHERE comedy_event_candidates.club_id=EXCLUDED.club_id
-RETURNING id,observation_generation
+RETURNING id,observation_generation,review_version
 """
 INSERT_DECISION_SQL = """
 INSERT INTO comedy_event_decisions(candidate_id,payload_fingerprint,identity_fingerprint,
@@ -38,8 +38,12 @@ VERIFY_CANDIDATE_SQL = """
 SELECT d.decision,d.gate_mode FROM comedy_event_candidates c
 JOIN comedy_event_decisions d ON d.candidate_id=c.id
 WHERE c.id=%s AND c.source_id=%s AND c.event_key=%s AND d.id=%s AND d.policy_version=%s
- AND c.observation_generation=%s
+ AND c.observation_generation=%s AND c.review_version=%s
 FOR UPDATE OF c
+"""
+INSERT_OBSERVATION_SQL = """
+INSERT INTO comedy_event_observations(candidate_id,generation,decision_id,baseline_identity_fingerprint)
+VALUES(%s,%s,%s,%s)
 """
 LINK_PUBLICATION_SQL = """
 INSERT INTO comedy_event_publications(candidate_id,decision_id,show_id)
@@ -61,6 +65,7 @@ class StagedCandidate:
     policy_version: int
     gate_mode: str
     observation_generation: int = 1
+    review_version: int = 0
 
 
 def canonical_json(value: Any) -> str:
@@ -88,7 +93,8 @@ def load_source(cursor: Any, source_id: int, lock: bool = False) -> dict | None:
 
 def stage_candidate(cursor: Any, *, source_id: int, event_key: str, club_id: int,
                     payload: dict, decision: Any, gate_mode: str,
-                    identity_fingerprint: str = "") -> StagedCandidate:
+                    identity_fingerprint: str = "", baseline_identity_fingerprint: str = "",
+                    review_version: int | None = None) -> StagedCandidate:
     evidence = decision.to_dict() if hasattr(decision, "to_dict") else dict(decision)
     source = load_source(cursor, source_id, lock=True)
     version = evidence["policy_version"]
@@ -107,6 +113,8 @@ def stage_candidate(cursor: Any, *, source_id: int, event_key: str, club_id: int
     candidate = _row(cursor)
     if candidate is None:
         raise ValueError("Candidate identity changed physical venue; requires review")
+    if review_version is not None and candidate["review_version"] != review_version:
+        raise ValueError("Human review changed during staging")
     key = (candidate["id"], payload_digest, identity_digest, version, evidence["classifier_version"])
     cursor.execute(INSERT_DECISION_SQL, (*key, gate_mode, evidence["decision"], payload_json, evidence_json))
     revision = _row(cursor)
@@ -115,7 +123,8 @@ def stage_candidate(cursor: Any, *, source_id: int, event_key: str, club_id: int
         revision = _row(cursor)
     if revision is None:
         raise RuntimeError("Concurrent staging decision unavailable; retry transaction")
-    return StagedCandidate(candidate["id"], revision["id"], source_id, event_key, version, gate_mode, candidate["observation_generation"])
+    cursor.execute(INSERT_OBSERVATION_SQL, (candidate["id"], candidate["observation_generation"], revision["id"], baseline_identity_fingerprint or identity_digest))
+    return StagedCandidate(candidate["id"], revision["id"], source_id, event_key, version, gate_mode, candidate["observation_generation"], candidate["review_version"])
 
 
 def verify_publication(cursor: Any, staged: StagedCandidate) -> bool:
@@ -125,7 +134,7 @@ def verify_publication(cursor: Any, staged: StagedCandidate) -> bool:
             or source["comedy_gate_mode"] != staged.gate_mode):
         return False
     cursor.execute(VERIFY_CANDIDATE_SQL, (staged.id, staged.source_id, staged.event_key,
-                                        staged.decision_id, staged.policy_version, staged.observation_generation))
+                                        staged.decision_id, staged.policy_version, staged.observation_generation, staged.review_version))
     revision = _row(cursor)
     return bool(revision and revision["gate_mode"] == staged.gate_mode
                 and (staged.gate_mode == "shadow" or revision["decision"] == "accept"))

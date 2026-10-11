@@ -27,14 +27,15 @@ from laughtrack.core.comedy_eligibility_store import load_source
 from laughtrack.core.entities.club.comedy_policy import SourceComedyPolicy
 
 SELECT_REVIEWS = """
-SELECT recent.source_id,recent.payload,recent.evidence FROM (
- SELECT DISTINCT ON (c.id) c.id,c.source_id,d.payload,d.evidence,d.decision,d.created_at
- FROM comedy_event_candidates c JOIN comedy_event_decisions d ON d.candidate_id=c.id
- JOIN scraping_sources ss ON ss.id=c.source_id
- WHERE ss.enabled AND ss.comedy_gate_mode IN ('shadow','enforce')
+SELECT c.source_id,d.payload,d.evidence
+FROM comedy_event_candidates c
+JOIN comedy_event_observations o ON o.candidate_id=c.id AND o.generation=c.observation_generation
+JOIN comedy_event_decisions d ON d.candidate_id=c.id AND d.id=o.decision_id
+JOIN scraping_sources ss ON ss.id=c.source_id
+WHERE ss.enabled AND ss.comedy_gate_mode IN ('shadow','enforce')
+ AND c.review_version=0 AND d.decision='review'
  AND (%s IS NULL OR c.id=%s)
- ORDER BY c.id,d.created_at DESC,d.id DESC
-) recent WHERE recent.decision='review' ORDER BY recent.id LIMIT %s
+ORDER BY c.id LIMIT %s
 """
 
 
