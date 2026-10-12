@@ -21,7 +21,10 @@ from sql.show_queries import ShowQueries
 
 from laughtrack.foundation.models.operation_result import DatabaseOperationResult
 from laughtrack.utilities.domain.show.classifier import apply_show_type
-from laughtrack.utilities.domain.show.headliner import is_title_shaped_performer_name
+from laughtrack.utilities.domain.show.headliner import (
+    extract_explicit_headliner_from_title,
+    is_title_shaped_performer_name,
+)
 from laughtrack.utilities.domain.show.utils import ShowUtils
 from laughtrack.utilities.domain.show.validator import ShowValidator
 from laughtrack.foundation.infrastructure.database.operation import DatabaseOperationLogger
@@ -1150,6 +1153,41 @@ class ShowHandler(BaseDatabaseHandler[Show]):
                 if novel_comedians:
                     show.lineup.extend(novel_comedians)
 
+    def _reconcile_decorated_lineup_entries(self, shows: List[Show], matches: Dict) -> None:
+        """Reuse a known identity before decorated source names reach persistence.
+
+        Containment alone is insufficient: Chris Rock Jr. must not become Chris
+        Rock. Require an explicit headliner decoration and exactly one matching
+        known UUID. This also collapses historical title-shaped identities that
+        title enrichment may have added alongside their real performer.
+        """
+        for show in shows:
+            reconciled = []
+            seen_uuids = set()
+            for performer in show.lineup:
+                headliner = extract_explicit_headliner_from_title(performer.name)
+                if headliner:
+                    target = " ".join(headliner.split()).casefold()
+                    candidates = {
+                        known.uuid: known
+                        for known in (
+                            matches.get(performer.name, []) + matches.get(show.name, [])
+                        )
+                        if known.uuid and " ".join(known.name.split()).casefold() == target
+                    }
+                    if len(candidates) == 1:
+                        canonical = next(iter(candidates.values()))
+                        if performer.uuid != canonical.uuid:
+                            Logger.info(
+                                f"lineup_identity: '{performer.name}' resolves to "
+                                f"'{canonical.name}' ({canonical.uuid})"
+                            )
+                        performer = canonical
+                if performer.uuid not in seen_uuids:
+                    reconciled.append(performer)
+                    seen_uuids.add(performer.uuid)
+            show.lineup = reconciled
+
     def _remove_title_shaped_lineup_entries(self, shows: List[Show]) -> None:
         """Strip event-title values before they can become comedian rows."""
         for show in shows:
@@ -1264,14 +1302,22 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             # Get current lineups from database
             db_lineups = self.lineup_handler.get_lineup(show_ids)
 
-            # Get all comedians from show names in one batch
+            # Reuse the batched identity lookup for source performer names too:
+            # a decorated talent can arrive under an unrelated show title.
             show_names = [(show.name,) for show in shows]
+            show_names.extend(
+                (performer.name,)
+                for show in shows
+                for performer in show.lineup
+                if extract_explicit_headliner_from_title(performer.name)
+            )
             show_name_comedians_map = self.lineup_handler.get_comedians_from_show_names(show_names)
 
             # Remove source fields that repeat a decorated event title before
             # adding credible existing comedians found within that title.
             self._remove_title_shaped_lineup_entries(shows)
             self._process_comedian_additions(shows, show_name_comedians_map)
+            self._reconcile_decorated_lineup_entries(shows, show_name_comedians_map)
             self._seed_headliners_from_empty_lineup_titles(shows)
 
             # Split multi-comedian lineup entries (e.g. "X & Y") into individual items

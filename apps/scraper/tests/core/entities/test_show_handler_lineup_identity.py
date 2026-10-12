@@ -3,6 +3,8 @@
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
+import pytest
+
 from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.show.handler import ShowHandler
 
@@ -62,3 +64,103 @@ def test_existing_canonical_replaces_decorated_title_without_inventing_unknown_i
     ]
     persisted_shows = handler.lineup_handler.batch_update_lineups.call_args.args[0]
     assert persisted_shows == [carie_show, unknown_show]
+
+
+@pytest.mark.parametrize("source_name", [
+    "Steve Marshall Comedy", "STEVE MARSHALL COMEDY", "Steve Marshall Comedy Special",
+    "Steve Marshall LIVE at Snappers",
+])
+@pytest.mark.parametrize("title_is_source", [True, False])
+def test_decorated_source_resolves_before_both_persistence_steps(source_name, title_is_source):
+    canonical = Comedian("Steve Marshall", uuid="existing-steve")
+    show = _show(1, source_name if title_is_source else "Thursday Headliners")
+    show.lineup = [Comedian(source_name)]
+    handler = _handler({source_name: [canonical]})
+
+    handler.update_show_lineups([show])
+
+    assert show.lineup == [canonical]
+    inserted = handler.comedian_handler.insert_comedians.call_args.args[0]
+    assert [(c.name, c.uuid) for c in inserted] == [("Steve Marshall", "existing-steve")]
+    persisted = handler.lineup_handler.batch_update_lineups.call_args.args[0]
+    assert persisted[0].lineup == [canonical]
+    queried = handler.lineup_handler.get_comedians_from_show_names.call_args.args[0]
+    assert (source_name,) in queried
+
+
+def test_historical_decorated_identity_from_title_matching_is_collapsed():
+    canonical = Comedian("Steve Marshall", uuid="existing-steve")
+    polluted = Comedian("Steve Marshall Comedy", uuid="historical-duplicate")
+    show = _show(1, "Steve Marshall Comedy at Snappers")
+    show.lineup = []
+    handler = _handler({show.name: [canonical, polluted]})
+    handler.update_show_lineups([show])
+    assert show.lineup == [canonical]
+    assert handler.comedian_handler.insert_comedians.call_args.args[0] == [canonical]
+
+
+@pytest.mark.parametrize("source_name, known_name", [
+    ("Chris Rock Jr.", "Chris Rock"),
+    ("Chris Rockwell Comedy", "Chris Rock"),
+    ("Chris Rock Jr. Comedy", "Chris Rock"),
+    ("Steve Marshall and Jane Smith", "Steve Marshall"),
+    ("Steve Marshall & Jane Smith Comedy", "Steve Marshall"),
+])
+def test_containment_without_unambiguous_decoration_does_not_replace(source_name, known_name):
+    source = Comedian(source_name, uuid="source-person")
+    show = _show(1, "Thursday Headliners")
+    show.lineup = [source]
+    handler = _handler({})
+    handler._reconcile_decorated_lineup_entries(
+        [show], {source_name: [Comedian(known_name, uuid="different-person")]}
+    )
+    assert show.lineup == [source]
+
+
+def test_ambiguous_known_identities_do_not_choose_arbitrary_parent():
+    show = _show(1, "Steve Marshall Comedy")
+    source = show.lineup[0]
+    handler = _handler({})
+    handler._reconcile_decorated_lineup_entries([show], {show.name: [
+        Comedian("Steve Marshall", uuid="steve-one"),
+        Comedian("Steve Marshall", uuid="steve-two"),
+    ]})
+    assert show.lineup == [source]
+
+
+def test_unknown_decorated_performer_is_not_replaced_by_guessed_identity():
+    show = _show(1, "Unknown Person Comedy")
+    source = show.lineup[0]
+    handler = _handler({})
+    handler._reconcile_decorated_lineup_entries([show], {})
+    assert show.lineup == [source]
+
+
+def test_multiple_real_performers_survive_and_repeated_canonical_is_deduplicated():
+    steve = Comedian("Steve Marshall", uuid="steve")
+    jane = Comedian("Jane Smith", uuid="jane")
+    show = _show(1, "Thursday Headliners")
+    show.lineup = [Comedian("Steve Marshall Comedy"), jane, steve]
+    handler = _handler({"Steve Marshall Comedy": [steve]})
+    handler.update_show_lineups([show])
+    assert show.lineup == [steve, jane]
+
+
+def test_disabled_title_inference_still_reconciles_only_supplied_performers():
+    steve = Comedian("Steve Marshall", uuid="steve")
+    unrelated = Comedian("Jane Smith", uuid="jane")
+    show = _show(1, "Jane Smith")
+    show.infer_lineup_from_title = False
+    show.lineup = [Comedian("Steve Marshall Comedy")]
+    handler = _handler({show.name: [unrelated], "Steve Marshall Comedy": [steve]})
+    handler.update_show_lineups([show])
+    assert show.lineup == [steve]
+
+
+def test_disabled_title_inference_keeps_empty_lineup_empty():
+    show = _show(1, "Steve Marshall Comedy")
+    show.infer_lineup_from_title = False
+    show.lineup = []
+    handler = _handler({show.name: [Comedian("Steve Marshall", uuid="steve")]})
+    handler.update_show_lineups([show])
+    assert show.lineup == []
