@@ -50,12 +50,16 @@ _GENERIC_TITLE_RE = re.compile(
 def extract_lineup_names(description_html: str, title: Optional[str] = None) -> List[str]:
     """Extract lineup names from Crowdwork event description HTML."""
     lines = _description_lines(description_html)
-    names: List[str] = _names_from_title(strip_nonperformer_context(title or ""))
+    title = strip_nonperformer_context(title or "")
+    names: List[str] = _names_from_title(title)
     in_lineup_section = False
 
     section_has_names = False
     for line in lines:
+        original_line = line
         line = strip_nonperformer_context(line)
+        if original_line and not line:
+            continue
         # An empty HTML paragraph or double <br> ends a populated cast list.
         # Do not scan the prose after it for inline "with/featuring" phrases.
         if in_lineup_section and not line:

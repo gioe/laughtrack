@@ -305,3 +305,18 @@ def test_explicit_opening_team_label_preserves_named_ensemble():
 def test_credit_context_is_not_a_lineup(description, expected):
     from laughtrack.scrapers.implementations.api.crowdwork.utils import extract_lineup_names
     assert extract_lineup_names(description) == expected
+
+
+@pytest.mark.parametrize("title,expected", [
+    ("Writers of John Oliver and Friends", []),
+    ("As seen on John Oliver and Friends", []),
+    ("Jane Smith and Friends", ["Jane Smith"]),
+])
+def test_credit_context_applies_to_title_fallback(title, expected):
+    from laughtrack.scrapers.implementations.api.crowdwork.utils import extract_lineup_names
+    assert extract_lineup_names("", title) == expected
+
+
+def test_credit_line_does_not_end_explicit_cast_section():
+    from laughtrack.scrapers.implementations.api.crowdwork.utils import extract_lineup_names
+    assert extract_lineup_names("<p>Cast:<br>Jane Smith<br>As seen on John Oliver<br>John Jones</p>") == ["Jane Smith", "John Jones"]
