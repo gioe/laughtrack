@@ -554,3 +554,19 @@ def test_audited_event_and_workshop_names(name):
 ])
 def test_title_rules_preserve_person_stage_and_ensemble_names(name):
     assert detect_false_positive(name) is None
+
+
+@pytest.mark.parametrize("name", [
+    "/or queer performers", "/or trans", "  /OR TRANS  ",
+    "\t/Or queer performers\n", "/or", "/or\tperformers",
+])
+def test_leading_or_fragments_are_rejected(name):
+    assert detect_false_positive(name) == "leading_or_fragment"
+
+
+@pytest.mark.parametrize("name", [
+    "Robin Tran", "Trans Sam", "Queer Jane", "Or Adams", "/Orlando",
+    "Mae Martin", "fae lily", "Blue Man Group",
+])
+def test_fragment_rule_preserves_names_and_identity_words(name):
+    assert detect_false_positive(name) is None

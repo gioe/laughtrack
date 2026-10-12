@@ -947,3 +947,25 @@ def test_event_title_ingestion_guard(pre_filtered, valid_names):
         discovery.assert_not_called()
     assert logger.warn.call_count == len(rejected)
     assert all("event_title_pattern" in call.args[0] for call in logger.warn.call_args_list)
+
+
+@pytest.mark.parametrize("pre_filtered", [False, True])
+@pytest.mark.parametrize("valid_names", [[], ["Robin Tran", "Trans Sam", "Queer Jane", "Mae Martin"]])
+def test_leading_or_fragments_never_reach_persistence(pre_filtered, valid_names):
+    handler = _make_handler()
+    rejected = ["/or queer performers", "/or trans", "  /OR TRANS  ", "\t/Or queer performers\n"]
+    candidates = [_make_stub(name) for name in rejected + valid_names]
+    handler.execute_batch_operation.return_value = []
+    with patch.object(handler, "_filter_denied_comedians", side_effect=lambda items: items), \
+         patch.object(handler, "_trigger_itunes_discovery_for_inserted") as discovery, \
+         patch.object(_comedian_handler_mod, "Logger") as logger:
+        assert handler.insert_comedians(candidates, pre_filtered=pre_filtered) == []
+    if valid_names:
+        assert handler.execute_batch_operation.call_args.args[1] == [
+            c.to_insert_tuple() for c in candidates if c.name in valid_names
+        ]
+    else:
+        handler.execute_batch_operation.assert_not_called()
+        discovery.assert_not_called()
+    assert logger.warn.call_count == len(rejected)
+    assert all("leading_or_fragment" in call.args[0] for call in logger.warn.call_args_list)

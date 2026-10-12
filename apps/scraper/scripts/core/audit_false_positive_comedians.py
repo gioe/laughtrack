@@ -68,6 +68,7 @@ from laughtrack.core.entities.comedian.false_positive_detector import (  # noqa:
     PLACEHOLDER_SUBSTRINGS,
     STRUCTURAL_KEYWORDS,
     TITLE_PATTERNS,
+    LEADING_OR_FRAGMENT_PATTERN,
 )
 
 def _sql_literal(value: str) -> str:
@@ -95,7 +96,10 @@ _STRUCTURAL_KEYWORD_CONDITIONS = "\n        OR ".join(
 _TITLE_PATTERN_CONDITIONS = " OR ".join(
     f"lower(trim(c.name)) ~ {_sql_literal(pattern)}" for pattern in TITLE_PATTERNS
 )
-_STRUCTURAL_PATTERN_CONDITIONS = f"c.name LIKE '%***%' OR {_TITLE_PATTERN_CONDITIONS}"
+_LEADING_OR_FRAGMENT_CONDITION = (
+    f"lower(c.name) ~ {_sql_literal(LEADING_OR_FRAGMENT_PATTERN)}"
+)
+_STRUCTURAL_PATTERN_CONDITIONS = f"{_LEADING_OR_FRAGMENT_CONDITION} OR c.name LIKE '%***%' OR {_TITLE_PATTERN_CONDITIONS}"
 
 AUDIT_QUERY = f"""
 WITH placeholder_comedians AS (
@@ -142,6 +146,7 @@ WITH structural_comedians AS (
         c.uuid,
         c.name,
         CASE
+            WHEN {_LEADING_OR_FRAGMENT_CONDITION} THEN 'leading_or_fragment'
             WHEN c.name LIKE '%|%' THEN 'pipe_in_name'
             WHEN length(trim(c.name)) > 60 THEN 'length_gt_60'
             WHEN c.name LIKE '%***%' THEN 'decoration_pattern'
@@ -173,7 +178,7 @@ SELECT
 FROM structural_comedians sc
 LEFT JOIN lineup_items li ON li.comedian_id = sc.uuid
 GROUP BY sc.uuid, sc.name, sc.structural_reason
-HAVING COUNT(li.show_id) > 0
+HAVING COUNT(li.show_id) > 0 OR sc.structural_reason = 'leading_or_fragment'
 ORDER BY lineup_count DESC, comedian_name;
 """
 

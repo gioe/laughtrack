@@ -75,3 +75,29 @@ def test_rule_sql_literals_preserve_apostrophes_and_backslashes():
     with sqlite3.connect(":memory:") as connection:
         result = connection.execute(f"SELECT {audit._sql_literal(pattern)}").fetchone()[0]
     assert result == pattern
+
+
+@pytest.mark.parametrize("name, rejected", [
+    ("/or queer performers", True), ("/or trans", True),
+    ("  /OR TRANS  ", True), ("\t/Or queer performers\n", True),
+    ("/or", True), ("/or\tperformers", True),
+    ("Robin Tran", False), ("Trans Sam", False), ("Queer Jane", False),
+    ("/Orlando", False), ("Or Adams", False),
+])
+def test_leading_or_fragment_audit_parity(name, rejected):
+    predicate = audit._LEADING_OR_FRAGMENT_CONDITION.replace(" ~ ", " REGEXP ")
+    with sqlite3.connect(":memory:") as connection:
+        connection.create_function("regexp", 2, lambda pattern, value: bool(re.search(pattern, value)))
+        result = connection.execute(
+            f"SELECT ({predicate}) FROM (SELECT ? AS name) c", (name,)
+        ).fetchone()[0]
+    assert bool(result) is rejected
+    assert (detect_false_positive(name) == "leading_or_fragment") is rejected
+
+
+def test_leading_or_fragment_reaches_audit_paths_including_zero_lineups():
+    for query in (audit.STRUCTURAL_AUDIT_QUERY, audit.DELETABLE_UUIDS_QUERY,
+                  audit.CSV_DETAIL_QUERY, audit.MERGE_CANDIDATES_QUERY):
+        assert audit._LEADING_OR_FRAGMENT_CONDITION in query
+    assert "THEN 'leading_or_fragment'" in audit.STRUCTURAL_AUDIT_QUERY
+    assert "HAVING COUNT(li.show_id) > 0 OR sc.structural_reason = 'leading_or_fragment'" in audit.STRUCTURAL_AUDIT_QUERY

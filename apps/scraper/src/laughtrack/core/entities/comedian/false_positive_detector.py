@@ -18,6 +18,7 @@ Detection criteria (any one match → false positive):
   9. Starts with a digit — event titles like '5th ANNUAL ...', '90 Day Fiance: ...'
  10. Starts with '@' — social handles, not names
  11. Explicit event subtitles, theatrical titles, workshops, and schedule fragments
+ 12. Leading /or conjunction fragments from descriptions
 
 Note: an all-caps rule was considered but omitted. ComedianUtils.normalize_name()
 already title-cases fully-upper input before insertion, so the rule is dead code
@@ -220,6 +221,10 @@ TITLE_PATTERNS: tuple[str, ...] = (
     r"\s+on\s+(january|february|march|april|may|june|july|august|september|october|november|december)\s*[0-9]{1,2}(st|nd|rd|th)?\s*$",
 )
 
+# Shared with the SQL audit; match the fragment structure, not identity words.
+# Keep Python/PostgreSQL compatible and include whitespace before the prefix.
+LEADING_OR_FRAGMENT_PATTERN = r"^\s*/or($|\s)"
+
 _MIN_NAME_LENGTH = 4
 _MAX_NAME_LENGTH = 60
 
@@ -241,6 +246,9 @@ def detect_false_positive(name: str) -> Optional[str]:
     """
     stripped = name.strip()
     lower = stripped.lower()
+
+    if re.search(LEADING_OR_FRAGMENT_PATTERN, lower):
+        return "leading_or_fragment"
 
     if lower in PLACEHOLDER_NAMES:
         return "placeholder_name"
