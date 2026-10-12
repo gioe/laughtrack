@@ -1,0 +1,113 @@
+{
+  "before": [
+    {
+      "id": 767126,
+      "uuid": "aae535f676afae53721bb708fe3c48bd",
+      "name": "Secret Headliner",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1649281,
+      "uuid": "56cfdc00a908b3e08dd30f7de843e385",
+      "name": "Top Secret Headliner",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1685152,
+      "uuid": "8b0e7325c2b7ac37211b0e775bfce2c8",
+      "name": "Surprise Guest!",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2304564,
+      "uuid": "8cb2259787bb2ff9ddd5fa42d0f3a3f9",
+      "name": "Surprise Guests!",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2430722,
+      "uuid": "f9b1e6214047c390478dec6ad882b555",
+      "name": "Surprise Headliner",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    }
+  ],
+  "impact": [
+    {
+      "id": 767126,
+      "links": 73,
+      "upcoming": 19,
+      "show_names": [
+        "Certified Fresh Secret Headliner Show",
+        "JAM Comedy Presents: 3rd World Comedy Nish's Secret Headliner Show",
+        "Secret Headliner Show",
+        "Secret Headliner and Friends",
+        "The 30/30 Series ft. SECRET HEADLINER and Juan Nicolon (Hosted by Samantha Santos)",
+        "Top Secret Headliner"
+      ]
+    },
+    {
+      "id": 1649281,
+      "links": 1,
+      "upcoming": 0,
+      "show_names": [
+        "Top Secret Headliner"
+      ]
+    },
+    {
+      "id": 1685152,
+      "links": 12,
+      "upcoming": 1,
+      "show_names": [
+        "Ahren Belisle, Derek Gaines, Neko White, Calise Hawkins + Surprise Guest!",
+        "Dean Edwards, Neko White, Derek Gaines + Surprise Guest!",
+        "Dean Edwards, Santi Espinosa, Tom Cassidy + Surprise Guest!",
+        "Elon Gold, Esther Povitsky, Mike Britt, Liz Glazer + Surprise Guest!",
+        "Gastor Almonte, Kevin Dombrowski, Brandon Barrera + Surprise Guest!",
+        "Improv Presents: MONDERAYS with Deray Davis, Clayton Thomas, Lance Woods, West Side, Jugo, Boo Kapone, Da Herm, Surprise Guest, & more",
+        "Improv Presents: MONDERAYS with Deray Davis, Kanisha Buss, Secret Service Sam, Mario Hodge, Surprise Guest, & more",
+        "Isiah Kelly, Santi Espinosa, Max Antonucci, Anthony Moore + Surprise Guest!",
+        "Jamie Wolf, Ashley Austin Morris, Jatty Robinson + Surprise Guest!",
+        "Kaneez Surka, Jatty Robinson, Maximilian Spinelli, Kunal C. Arora + Surprise Guest!",
+        "Plant Mob ft. Craig Robinson, Dan Mintz, Mary Lynn Rajskub, Whitmer Thomas, Hormoz Rashidi, Secret Surprise Guest, Kyle Tomlin, and more TBA",
+        "Sarah Cooper, Rell Battle, Charles McBee + Surprise Guest!"
+      ]
+    },
+    {
+      "id": 2304564,
+      "links": 6,
+      "upcoming": 6,
+      "show_names": [
+        "JOE GORGA \"PLUS\" SURPRISE GUESTS - SPECIAL EVENT - 10/16-10/17"
+      ]
+    },
+    {
+      "id": 2430722,
+      "links": 1,
+      "upcoming": 0,
+      "show_names": [
+        "Surprise Headliner"
+      ]
+    }
+  ],
+  "parity_cases": 197
+}

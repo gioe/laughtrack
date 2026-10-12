@@ -1,0 +1,851 @@
+{
+  "task": 4171,
+  "canonical_rows_audited_before": 9888,
+  "canonical_rows_visible_after": 9883,
+  "suppressed": 5,
+  "lineup_links_preserved": 93,
+  "upcoming_lineup_links_preserved": 26,
+  "python_postgresql_parity_cases": 197,
+  "targeted_tests_passed": 298,
+  "dry_run": "Forward, replay, exact full-row and relation rollback, rollback replay all passed; transaction rolled back before apply.",
+  "production": "Five rows hidden and migration ledger committed atomically. Final audit found no remaining active whole-label placeholders.",
+  "other_detector_findings_preserved": [
+    {
+      "id": 2220432,
+      "uuid": "8e9910d487a61269e3897fd51257dca9",
+      "name": "Emily Lehr &amp; the Foxglove Fellows",
+      "visible": true,
+      "parent_comedian_id": null,
+      "total_shows": 0,
+      "reason": "event_title_pattern"
+    },
+    {
+      "id": 2290805,
+      "uuid": "ffd1c1f0eb645d5a496ced1211a8010e",
+      "name": "Father Frank &amp; Under The Canopy",
+      "visible": true,
+      "parent_comedian_id": null,
+      "total_shows": 0,
+      "reason": "event_title_pattern"
+    },
+    {
+      "id": 1508295,
+      "uuid": "1bc0862959c7384241f7fa3534940a8d",
+      "name": "Raynes and David Wimbish &amp; The Collection",
+      "visible": true,
+      "parent_comedian_id": null,
+      "total_shows": 0,
+      "reason": "event_title_pattern"
+    }
+  ],
+  "broader_candidates_for_review": [
+    {
+      "id": 2638713,
+      "name": "Adrienne Iapalucci & More!",
+      "uuid": "5200cd1fafb871abdf627ae6fb13c4ba",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 0
+    },
+    {
+      "id": 222191,
+      "name": "Alan Moreau",
+      "uuid": "e24055187512529f01c9ca6c9664147a",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 6
+    },
+    {
+      "id": 2548497,
+      "name": "Albert Moreno",
+      "uuid": "d332a8d170884ead7f5e14952eab9b15",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 2018267,
+      "name": "And Then We...Podcast Live!",
+      "uuid": "bc6a553293e98498901651153d9d2ccb",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 2
+    },
+    {
+      "id": 1306712,
+      "name": "Anthony Amorello",
+      "uuid": "28451cd6e4b21d6fabed46add9b309e5",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 4
+    },
+    {
+      "id": 1103632,
+      "name": "Blippi Live!",
+      "uuid": "6b02f1f143fb4b6176d939224ef263d9",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 1702596,
+      "name": "Brendan Sagalow & More!",
+      "uuid": "6cf334e180faf83cd41c4ff586127e69",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 0
+    },
+    {
+      "id": 2466612,
+      "name": "Brian McFadden!",
+      "uuid": "36617219503123a513d74747dcdb578b",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 3
+    },
+    {
+      "id": 1787912,
+      "name": "Cara Amore",
+      "uuid": "e9568662929ce887e4fb0ea25708bab3",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 2024851,
+      "name": "Closed Happy Halloween!",
+      "uuid": "1d65e337996b3e0342e806be4a09f816",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 2352283,
+      "name": "Comedy Moms - Leave the Turkeys at Home!",
+      "uuid": "20f3790041af7ca88011176be230b31a",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 1938215,
+      "name": "ComedySportz - Haley's Comet!",
+      "uuid": "34e56ec94afc8b981e9f5d9580a455b1",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 2386975,
+      "name": "ComedySportz - Halloween Edition!!",
+      "uuid": "4d0ad0ce9ac52f5d98c6d0334523b488",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 2386976,
+      "name": "ComedySportz - It's not Football",
+      "uuid": "58bfa0473c8d924139d4e51f9aa5a500",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 1938217,
+      "name": "ComedySportz - Kris Cross Apple... Picking?",
+      "uuid": "aae5db22aa030553b51349e85b52b8be",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 1533138,
+      "name": "ComedySportz - The Great 8/8!",
+      "uuid": "840ab1c6164fb2d853e267f2363303b5",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 1621043,
+      "name": "Daniel Lattimore",
+      "uuid": "7e901af24a75f55036602d4d295af044",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 0
+    },
+    {
+      "id": 2658327,
+      "name": "Feliz Navidudes!",
+      "uuid": "17d0a71a196cc9231fa2ecb81e46a1ac",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 2591018,
+      "name": "Football",
+      "uuid": "37b4e2d82900d5e94b8da524fbeb33c0",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 14612,
+      "name": "Granville Bazemore",
+      "uuid": "a3b23df5786f00839dda5bbd5288ccea",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 2
+    },
+    {
+      "id": 2290471,
+      "name": "Halloween Spooktacular!",
+      "uuid": "0ddbd4df890519edd062d80ddef4a158",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 6
+    },
+    {
+      "id": 223615,
+      "name": "Hooter Moreno",
+      "uuid": "2938ab0b13f852f422f5c2ae58ae21c2",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 0
+    },
+    {
+      "id": 1621810,
+      "name": "I Killed Andy Breitbart",
+      "uuid": "6c0f3ea6b87de3060594c9d7515df38a",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 8
+    },
+    {
+      "id": 2028954,
+      "name": "It's a Date!",
+      "uuid": "642318df7ea0e338122590d7aa496f4b",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 319367,
+      "name": "Jay Moreno",
+      "uuid": "7a06bc04308a41df3a8773230e47a674",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 8
+    },
+    {
+      "id": 835068,
+      "name": "Jimmy Dunsmore",
+      "uuid": "735f84584683286dc76ea3cc9c327400",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 1946284,
+      "name": "Kevin Nealon - Special Ticket Deal!",
+      "uuid": "e383fa0f8ed306126b03a4d5004e0708",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 4
+    },
+    {
+      "id": 2165891,
+      "name": "Knock Knock You There?",
+      "uuid": "b82a606745194c47090c926fbab83772",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 4
+    },
+    {
+      "id": 2322436,
+      "name": "Kyle & Tucker LIVE!",
+      "uuid": "5f41b56cb2b5d731417e23fd6a007729",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 234767,
+      "name": "Larry Wilmore",
+      "uuid": "9e54a82d4b8cd8c4c8c04a5446d9cb2b",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 14
+    },
+    {
+      "id": 1574932,
+      "name": "Last Laugh FINALS!",
+      "uuid": "2cb528d477f2ed94fcd5d0100dfe5780",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 2321216,
+      "name": "Laura's Holiday Spectacular!",
+      "uuid": "ae1bce7dc0d2cccd3022ec11e965335a",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 234745,
+      "name": "Learnmore Jonasi",
+      "uuid": "094365ca22dcf70a9eeec6c9d8a3a5fc",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 40
+    },
+    {
+      "id": 2028630,
+      "name": "Lena Screamish!",
+      "uuid": "64da4b943a070a34103b59148dc54ac1",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 1738291,
+      "name": "Local Headliner Series - Cheri Hardman",
+      "uuid": "11f7e67b1fdfa320570de65fe8c3acee",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 1738287,
+      "name": "Local Headliner Series - Tyler Smith",
+      "uuid": "11aa3dadf93607e0f52b893ec19ebb12",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 2587767,
+      "name": "Loose w/ guests Lauren Raff",
+      "uuid": "ad20640be9ada6ca800088a8ed972d03",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 1192484,
+      "name": "Los Tios!",
+      "uuid": "d68a162eb4d346742d3d4c3730ac92cf",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 6
+    },
+    {
+      "id": 1956095,
+      "name": "Lovers *new date announced*",
+      "uuid": "184fa2d38cb8e300d8a34aea23cbb07b",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 23338,
+      "name": "Manolo Moreno",
+      "uuid": "1cdc511c421fc950ce6cd974aff6ebb0",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 0
+    },
+    {
+      "id": 223583,
+      "name": "Martin Moreno",
+      "uuid": "06b91cb87b37e5ba057d5a48948d4a63",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 23
+    },
+    {
+      "id": 2147694,
+      "name": "McGarnackle Unleashed!",
+      "uuid": "f14bfe7893b7de55e150d56ef71836e6",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 0
+    },
+    {
+      "id": 2235990,
+      "name": "Mead! Warrenton",
+      "uuid": "d758904a3204159a0ae2e920a9bc6a16",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 1996308,
+      "name": "Meghan Hanley & More!",
+      "uuid": "dc0fc9a078b4a1c09d6d819e3ca4f5a0",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 0
+    },
+    {
+      "id": 1456063,
+      "name": "Mike Britt & More!",
+      "uuid": "81033a44f5d214cb43748dd5632d7584",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 0
+    },
+    {
+      "id": 1431418,
+      "name": "Mike Densmore",
+      "uuid": "deb98c1e92eb43e8fe59e7de93147f0e",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 3
+    },
+    {
+      "id": 1669462,
+      "name": "Mike Paramore",
+      "uuid": "3be2987f9cabe99bc4f4fbbf8ad822a9",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 12
+    },
+    {
+      "id": 1337,
+      "name": "Molly Densmore",
+      "uuid": "15254422774c1a4078efb8b3e3020d2e",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 9
+    },
+    {
+      "id": 1635068,
+      "name": "Neko White & More!",
+      "uuid": "4603577cfd2c07e9a87ceb2197bbe021",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 0
+    },
+    {
+      "id": 1813615,
+      "name": "Noe Noel Double Header! 09/20/26",
+      "uuid": "bf2fc03da4a6d6dcf36cb52a5c669cf5",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 1048246,
+      "name": "Nore Davis & More!",
+      "uuid": "4eae0a9863c8925763e02017e2e5537c",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 0
+    },
+    {
+      "id": 1317294,
+      "name": "Officer Kevin Eudy Live Naples, Florida!",
+      "uuid": "423600dffec3cb94e5bc5d1647a8c9e5",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 2386978,
+      "name": "Offsite Road Show!",
+      "uuid": "479c426089035e25fc56eca98c90f9a7",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 1406442,
+      "name": "On Cinema Live!",
+      "uuid": "6fd108eb8478a4b347f8143d03824d59",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 3
+    },
+    {
+      "id": 1366811,
+      "name": "Oscar Aydin & More!",
+      "uuid": "6cee8cce4826b5acbb841235f3ba4059",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 0
+    },
+    {
+      "id": 2097923,
+      "name": "PANIC! at the CABARET",
+      "uuid": "649dffaa88df1afa3444079f04404b3d",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 1997745,
+      "name": "Phil Duckett & More!",
+      "uuid": "3dc75fca93801360df5bdb4cc5e82bea",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 0
+    },
+    {
+      "id": 14044,
+      "name": "Piers Moreton",
+      "uuid": "c50c49a574f9567c208f853e166c8b84",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 10
+    },
+    {
+      "id": 2396007,
+      "name": "Pranit More",
+      "uuid": "4b8f50ca3122edcf4645d4cfbb3a094b",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 1385825,
+      "name": "Promo Tickets! Rachel Scanlon!",
+      "uuid": "f676be1a8c4b850bde548141e2b4cbbf",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 4
+    },
+    {
+      "id": 1093382,
+      "name": "Puppet Up!",
+      "uuid": "93a4a23e05ccf3837c6b79768d31c8c1",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 10
+    },
+    {
+      "id": 2414737,
+      "name": "Rad Pies! Columbia",
+      "uuid": "1428919a7378a48cabd83618364d2978",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 2466587,
+      "name": "Ring Ceremony! Knicks Vs Philly!",
+      "uuid": "a8a5b544aa0aeaaab7fd33a292ab034d",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 461490,
+      "name": "Robbie Bevmore",
+      "uuid": "e23c30546b072d49a08d624267e7a79c",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 2681999,
+      "name": "Ron Morey",
+      "uuid": "13e792dd14a474769f208072225a9771",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 2
+    },
+    {
+      "id": 2678959,
+      "name": "Ryan Dacalos & More!",
+      "uuid": "9004462ab69e719773433a80f98d0402",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 467011,
+      "name": "SELF HELP ME w Jenny Yang!",
+      "uuid": "924633c182661e17891c85d6faf7d4e1",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 1657803,
+      "name": "SOLD OUT!! Rolonda Watts",
+      "uuid": "9bee82769387526cbb4e11b7f92bbe7c",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 1548376,
+      "name": "SOLD OUT!!! Michael Che",
+      "uuid": "b6358b8fe347573e50d8f5f21bbbd5a7",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 969399,
+      "name": "Seattle's Funniest - Finals!",
+      "uuid": "22fab1ec41530c5416510dd8af758a31",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 714087,
+      "name": "Shanda Sung Returns!",
+      "uuid": "dae1dd59ad47a413fd4c13b7473964ff",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 4
+    },
+    {
+      "id": 458233,
+      "name": "Shane Torres Live!",
+      "uuid": "8b34ca9f6d9bf660f2acf2fd8ab68ec5",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 0
+    },
+    {
+      "id": 265899,
+      "name": "Shane Torres Returns!",
+      "uuid": "8c0f6916e9775a78187b31900fd735cb",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 4
+    },
+    {
+      "id": 223503,
+      "name": "Sommore",
+      "uuid": "aae4b37240140d73f26d8313e161bf60",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 105
+    },
+    {
+      "id": 160828,
+      "name": "Sorry!",
+      "uuid": "73cf0e388971ee4ec34e8daedd0d36cc",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 2
+    },
+    {
+      "id": 1330428,
+      "name": "Sorry, we\u2019re closed!",
+      "uuid": "8d5ad3957683d4e848a5b46265b23ae3",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 2
+    },
+    {
+      "id": 860578,
+      "name": "Special Thanks to\u2026",
+      "uuid": "f0b5dd429e347bda93e09a2af8a5dace",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 2
+    },
+    {
+      "id": 2460442,
+      "name": "Stood Up Live!",
+      "uuid": "aa9f1656388682d4fc763ba4e3dbf752",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 606903,
+      "name": "Sunday Night Special w Cap!",
+      "uuid": "6024f8ba7ec18aa95f6c176c139521ac",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 4
+    },
+    {
+      "id": 81878,
+      "name": "Surprise Confident Guest",
+      "uuid": "38d50a92def6e4e03ec21c970479f32c",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 0
+    },
+    {
+      "id": 1361808,
+      "name": "THE NO HEADLINERS TOUR",
+      "uuid": "aa630e800ff162226711426f85ed9357",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 1090908,
+      "name": "THESE GUYS!",
+      "uuid": "8802bd594ecfff20a88650a99a3de29b",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 1416429,
+      "name": "Talk Soup in Santa Rosa - Headline Comedy!",
+      "uuid": "101a5ebcaa42b4e4322087b174ee127b",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 1338127,
+      "name": "Talk Soup in Santa Rosa!",
+      "uuid": "b8a9bd7a786d24c2c519738474275db1",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 1231596,
+      "name": "The -Poet Vs Poet- Slam!",
+      "uuid": "bedee9a9ab83f50f095abe8a9d861be8",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 1194309,
+      "name": "The Birthday Roast Of Mandoman!!",
+      "uuid": "cbf063598c0fad301ae96833f9845fee",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 1214474,
+      "name": "The Hall at Live! Casino & Hotel Maryland",
+      "uuid": "b850569959ad97f5d5c6aad79644b299",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 714100,
+      "name": "The Incomparable Ryan Singer!",
+      "uuid": "df47362c853e4e30f0d6c166487b6182",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 4
+    },
+    {
+      "id": 1253654,
+      "name": "The Monologue Show!",
+      "uuid": "7a30a7249822478c703fc743e7fbfd83",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 0
+    },
+    {
+      "id": 1235369,
+      "name": "The Return of Interrogated!",
+      "uuid": "d4ab0e419cbc1637c7e517479867557d",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 1103991,
+      "name": "The Wild Kratts Live!",
+      "uuid": "d59326f37a2439497c577bf8538b60ad",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 0
+    },
+    {
+      "id": 1698193,
+      "name": "Thundergong!",
+      "uuid": "3a6396245562ea89d52d162a03b728e0",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 2
+    },
+    {
+      "id": 2101928,
+      "name": "Tio Vic Turning The Big 60!",
+      "uuid": "fb8428163e32df9b6800f5419ac66d44",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 1124217,
+      "name": "Tom Co-Headliners",
+      "uuid": "1a5731846d54ca56ef1f85d3eaf11d36",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 2662991,
+      "name": "UNHINGED Thanksgiving Edition! Ritu Tirthani",
+      "uuid": "5be7fa171cf6be9a17a41068c8d0dc21",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 2628921,
+      "name": "Valentine's Spectacular!",
+      "uuid": "f74ea905a9c742a17c20a4150889cd8b",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 2
+    },
+    {
+      "id": 1899935,
+      "name": "WHAT'S NEXT?",
+      "uuid": "34307d0ea649cf49114ec8572263dafb",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 1829861,
+      "name": "Wait\u2026 This was for Children?!",
+      "uuid": "dee20a8fb4738045da7a978069a4678a",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 2120896,
+      "name": "What's Your Favorite Scary Movie?",
+      "uuid": "a38fed79fd932ba10cfeff34bed4dfde",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 2024850,
+      "name": "You're Next! A Halloween Roast",
+      "uuid": "fc4b557f716d1708b5f696660b59d335",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    },
+    {
+      "id": 2040953,
+      "name": "do some scenes on our stage!",
+      "uuid": "de307c81f4ff5fafc9975532d05386b0",
+      "visible": true,
+      "parent_comedian_id": null,
+      "lineups": 1
+    }
+  ]
+}

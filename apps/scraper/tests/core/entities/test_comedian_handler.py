@@ -761,6 +761,13 @@ class TestFilterFalsePositiveComedians:
         assert result[0].name == "Dave Chappelle"
         mock_logger.warn.assert_not_called()
 
+    def test_decorated_placeholders_rejected_without_dropping_named_guests(self):
+        handler = _make_handler()
+        names = ["Special Guests!", "Surprise Guests!", "Secret Headliner", "Christopher Guest", "Brian McFadden!"]
+        with patch.object(_comedian_handler_mod, "Logger"):
+            result = handler._filter_false_positive_comedians([_make_stub(name) for name in names])
+        assert [c.name for c in result] == ["Christopher Guest", "Brian McFadden!"]
+
     def test_placeholder_name_rejected(self):
         handler = _make_handler()
         comedians = [_make_stub("TBA")]

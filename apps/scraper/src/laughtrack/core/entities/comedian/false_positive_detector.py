@@ -6,7 +6,7 @@ Importable by:
 - audit_false_positive_comedians.py — builds SQL query fragments from these constants
 
 Detection criteria (any one match → false positive):
-  1. Exact match against PLACEHOLDER_NAMES (case-insensitive)
+  1. Whole-label match against PLACEHOLDER_NAMES (case-insensitive, allowing decorative punctuation)
   1b. Exact match against GENERIC_SINGLE_TOKEN_NAMES (case-insensitive)
   2. Substring match against PLACEHOLDER_SUBSTRINGS (open mic, cancellation status)
   3. Substring match against STRUCTURAL_KEYWORDS (showcase, variety, improv, etc.)
@@ -29,7 +29,7 @@ in the normal path — and historical all-caps rows in the DB include real comed
 import re
 from typing import Optional
 
-# Exact-match placeholder names (checked case-insensitively against stripped input)
+# Whole-label placeholders; matching tolerates whitespace and edge decoration below.
 PLACEHOLDER_NAMES: frozenset[str] = frozenset({
     "tba",
     "tbd",
@@ -38,8 +38,15 @@ PLACEHOLDER_NAMES: frozenset[str] = frozenset({
     "special guest",
     "special guests",
     "surprise guest",
+    "surprise guests",
+    "secret guest",
+    "secret guests",
+    "secret headliner",
+    "top secret headliner",
+    "surprise headliner",
     "surprise act",
     "mystery guest",
+    "mystery guests",
     "comedy show",
     "various artists",
     "headliner",
@@ -89,6 +96,15 @@ PLACEHOLDER_NAMES: frozenset[str] = frozenset({
     "paranormal",
     "sketch",
 })
+
+# Shared Python/PostgreSQL regex. Only decorate a complete known placeholder:
+# punctuation in a real name (Brian McFadden!) or an extra named performer is
+# not sufficient. Keep internal punctuation intact and allow variable whitespace.
+PLACEHOLDER_NAME_PATTERN = (
+    r"^[\s!?.…]*("
+    + "|".join(r"\s+".join(re.escape(word) for word in name.split()) for name in sorted(PLACEHOLDER_NAMES))
+    + r")[\s!?.…]*$"
+)
 
 # Generic title/category fragments commonly produced when a scraper splits an
 # event title instead of extracting a real lineup entry.
@@ -250,7 +266,7 @@ def detect_false_positive(name: str) -> Optional[str]:
     if re.search(LEADING_OR_FRAGMENT_PATTERN, lower):
         return "leading_or_fragment"
 
-    if lower in PLACEHOLDER_NAMES:
+    if re.search(PLACEHOLDER_NAME_PATTERN, lower):
         return "placeholder_name"
 
     if lower in GENERIC_SINGLE_TOKEN_NAMES:

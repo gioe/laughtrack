@@ -101,3 +101,32 @@ def test_leading_or_fragment_reaches_audit_paths_including_zero_lineups():
         assert audit._LEADING_OR_FRAGMENT_CONDITION in query
     assert "THEN 'leading_or_fragment'" in audit.STRUCTURAL_AUDIT_QUERY
     assert "HAVING COUNT(li.show_id) > 0 OR sc.structural_reason = 'leading_or_fragment'" in audit.STRUCTURAL_AUDIT_QUERY
+
+
+@pytest.mark.parametrize("name, rejected", [
+    ("Special Guests!", True), ("  SPECIAL   GUESTS!!!  ", True),
+    ("Surprise Guest!", True), ("Surprise Guests!", True),
+    ("Secret Headliner", True), ("Top Secret Headliner", True),
+    ("Surprise Headliner", True), ("Mystery Guests…", True),
+    ("TBA...", True), ("And More?!", True), ("Guest\tComedian!", True),
+    ("Christopher Guest", False), ("Brian McFadden!", False),
+    ("Special Guest Jane Smith", False), ("Jane Smith Special Guests!", False),
+    ("Pavlov’s Surprise Party", False), ("Secret Headliner Jones", False),
+    ("O'Brien", False), ("Jean-Luc Moreau", False),
+])
+def test_placeholder_decoration_audit_parity(name, rejected):
+    predicate = audit._PLACEHOLDER_NAME_CONDITION.replace(" ~ ", " REGEXP ")
+    with sqlite3.connect(":memory:") as connection:
+        connection.create_function("regexp", 2, lambda pattern, value: bool(re.search(pattern, value)))
+        result = connection.execute(
+            f"SELECT ({predicate}) FROM (SELECT ? AS name) c", (name,)
+        ).fetchone()[0]
+    assert bool(result) is rejected
+    assert (detect_false_positive(name) == "placeholder_name") is rejected
+
+
+def test_placeholder_pattern_reaches_every_audit_path_and_zero_lineups():
+    for query in (audit.AUDIT_QUERY, audit.CLUB_IMPACT_QUERY, audit.DELETABLE_UUIDS_QUERY,
+                  audit.CSV_DETAIL_QUERY, audit.MERGE_CANDIDATES_QUERY):
+        assert audit._PLACEHOLDER_NAME_CONDITION in query
+    assert "HAVING COUNT(li.show_id) > 0" not in audit.AUDIT_QUERY

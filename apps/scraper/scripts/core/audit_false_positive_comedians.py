@@ -13,7 +13,7 @@ Output columns:
     sample_show_ids — up to 5 show IDs where the comedian appears (for targeted re-scraping)
 
 Placeholder detection criteria (OR):
-  1. Name matches a known placeholder string (case-insensitive): TBA, TBD, To Be Announced,
+  1. Name matches a complete known placeholder (case-insensitive; whitespace and edge !?.… allowed): TBA, TBD, To Be Announced,
      Special Guest, Surprise Guest, Surprise Act, Mystery Guest, Comedy Show, Various Artists,
      Headliner, Featured Comedian, Local Comedian, Guest Comedian, Open Mic, Host, MC,
      Emcee, Opener, Headliner TBD, Lineup TBA, More TBA, Plus More, And More, And Special Guests
@@ -64,7 +64,7 @@ load_dotenv(_root / ".env")
 
 from laughtrack.infrastructure.database.connection import get_connection, get_transaction  # noqa: E402
 from laughtrack.core.entities.comedian.false_positive_detector import (  # noqa: E402
-    PLACEHOLDER_NAMES,
+    PLACEHOLDER_NAME_PATTERN,
     PLACEHOLDER_SUBSTRINGS,
     STRUCTURAL_KEYWORDS,
     TITLE_PATTERNS,
@@ -78,7 +78,7 @@ def _sql_literal(value: str) -> str:
 
 # Build SQL fragments from the shared Python constants so detection criteria
 # are defined in exactly one place (false_positive_detector.py).
-_PLACEHOLDER_NAMES = ",\n    ".join(_sql_literal(n) for n in sorted(PLACEHOLDER_NAMES))
+_PLACEHOLDER_NAME_CONDITION = f"lower(c.name) ~ {_sql_literal(PLACEHOLDER_NAME_PATTERN)}"
 
 _PLACEHOLDER_SUBSTRINGS = PLACEHOLDER_SUBSTRINGS
 
@@ -109,9 +109,7 @@ WITH placeholder_comedians AS (
     FROM comedians c
     WHERE
         -- Known placeholder strings (case-insensitive)
-        lower(c.name) = ANY(ARRAY[
-            {_PLACEHOLDER_NAMES}
-        ])
+        {_PLACEHOLDER_NAME_CONDITION}
         OR
         -- Placeholder substrings (e.g. "KRACKPOTS Open Mic Night")
         {_PLACEHOLDER_SUBSTRING_CONDITIONS}
@@ -136,7 +134,6 @@ SELECT
 FROM placeholder_comedians pc
 LEFT JOIN lineup_items li ON li.comedian_id = pc.uuid
 GROUP BY pc.uuid, pc.name
-HAVING COUNT(li.show_id) > 0
 ORDER BY lineup_count DESC, comedian_name;
 """
 
@@ -187,9 +184,7 @@ WITH placeholder_comedians AS (
     SELECT c.uuid
     FROM comedians c
     WHERE
-        lower(c.name) = ANY(ARRAY[
-            {_PLACEHOLDER_NAMES}
-        ])
+        {_PLACEHOLDER_NAME_CONDITION}
         OR {_PLACEHOLDER_SUBSTRING_CONDITIONS}
         OR length(trim(c.name)) < 4
 )
@@ -212,9 +207,7 @@ SELECT DISTINCT c.uuid
 FROM comedians c
 WHERE
     -- Placeholder names
-    lower(c.name) = ANY(ARRAY[
-        {_PLACEHOLDER_NAMES}
-    ])
+    {_PLACEHOLDER_NAME_CONDITION}
     OR {_PLACEHOLDER_SUBSTRING_CONDITIONS}
     OR length(trim(c.name)) < 4
     -- Structural patterns
@@ -231,7 +224,7 @@ WITH identified_comedians AS (
         c.uuid,
         c.name,
         CASE
-            WHEN lower(c.name) = ANY(ARRAY[{_PLACEHOLDER_NAMES}]) THEN 'placeholder'
+            WHEN {_PLACEHOLDER_NAME_CONDITION} THEN 'placeholder'
             WHEN {_PLACEHOLDER_SUBSTRING_CONDITIONS} THEN 'placeholder'
             WHEN length(trim(c.name)) < 4 THEN 'short_name'
             WHEN c.name LIKE '%|%' THEN 'structural'
@@ -241,7 +234,7 @@ WITH identified_comedians AS (
         END AS detection_type
     FROM comedians c
     WHERE
-        lower(c.name) = ANY(ARRAY[{_PLACEHOLDER_NAMES}])
+        {_PLACEHOLDER_NAME_CONDITION}
         OR {_PLACEHOLDER_SUBSTRING_CONDITIONS}
         OR length(trim(c.name)) < 4
         OR c.name LIKE '%|%'
@@ -263,7 +256,7 @@ LEFT JOIN lineup_items li ON li.comedian_id = ic.uuid
 LEFT JOIN shows s ON s.id = li.show_id
 LEFT JOIN clubs cl ON cl.id = s.club_id
 GROUP BY ic.uuid, ic.name, ic.detection_type, cl.id, cl.name
-HAVING COUNT(li.show_id) > 0
+HAVING COUNT(li.show_id) > 0 OR ic.detection_type = 'placeholder'
 ORDER BY ic.name, cl.name;
 """
 
@@ -275,7 +268,7 @@ WITH false_positives AS MATERIALIZED (
     SELECT c.uuid, c.name
     FROM comedians c
     WHERE
-        lower(c.name) = ANY(ARRAY[{_PLACEHOLDER_NAMES}])
+        {_PLACEHOLDER_NAME_CONDITION}
         OR {_PLACEHOLDER_SUBSTRING_CONDITIONS}
         OR length(trim(c.name)) < 4
         OR c.name LIKE '%|%'
@@ -287,7 +280,7 @@ real_comedians AS MATERIALIZED (
     SELECT c.uuid, c.name
     FROM comedians c
     WHERE NOT (
-        lower(c.name) = ANY(ARRAY[{_PLACEHOLDER_NAMES}])
+        {_PLACEHOLDER_NAME_CONDITION}
         OR {_PLACEHOLDER_SUBSTRING_CONDITIONS}
         OR length(trim(c.name)) < 4
         OR c.name LIKE '%|%'
