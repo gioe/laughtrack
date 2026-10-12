@@ -1,0 +1,27 @@
+{
+  "task": 4170,
+  "applied_to": "production",
+  "migration": "20261012003000_link_reviewed_decorated_comedians.sql",
+  "aliases_linked": 5,
+  "redundant_lineup_rows_removed": 13,
+  "unique_show_associations_lost": 0,
+  "upcoming_show_associations_preserved": 10,
+  "validation": [
+    "Guarded before-image matched all five identities and 13 child lineups; no child aliases, podcasts, favorites or episode appearances",
+    "Production dry run: forward repair and replay passed",
+    "Production dry run: rollback restored exact full identity and lineup rows; rollback replay passed",
+    "Dry-run transaction rolled back before applying",
+    "Production apply: parent full rows and lineup rows unchanged; all five parent links and zero child lineups verified",
+    "Production apply: replay unchanged; migration ledger inserted in same transaction",
+    "Post-apply read-only audit uses actual TASK-4169 reconciliation code"
+  ],
+  "post_audit": {
+    "code_commit": "1e79f51a6",
+    "canonical_count": 11585,
+    "visible_canonical_count": 9888,
+    "active_matches": 0,
+    "hidden_matches": 6,
+    "ambiguous_matches": 0
+  },
+  "scope_note": "Six already-hidden matches were outside this five-active-record cleanup."
+}

@@ -1,0 +1,174 @@
+[
+  {
+    "child": {
+      "id": 1123574,
+      "uuid": "7be484f40ef52ce4f4412c6da0544d8c",
+      "name": "Officer Eudy Comedy",
+      "parent_comedian_id": null,
+      "visible": true,
+      "total_shows": 1,
+      "sold_out_shows": 0,
+      "popularity": 0.1709
+    },
+    "parent": {
+      "id": 663282,
+      "uuid": "6756675d793142ef1ea80dd187707170",
+      "name": "Officer Eudy"
+    },
+    "lineups": [
+      {
+        "id": 244184,
+        "show_id": 2940753,
+        "comedian_id": "7be484f40ef52ce4f4412c6da0544d8c",
+        "role": null
+      }
+    ]
+  },
+  {
+    "child": {
+      "id": 1737394,
+      "uuid": "4c93bc789737ec17a87a94cda715d7b6",
+      "name": "Sureni Weerasekera at The Playground!",
+      "parent_comedian_id": null,
+      "visible": true,
+      "total_shows": 1,
+      "sold_out_shows": 0,
+      "popularity": 0.1774
+    },
+    "parent": {
+      "id": 15,
+      "uuid": "0cc3cf7952250ec55241ffb0667df02d",
+      "name": "Sureni Weerasekera"
+    },
+    "lineups": []
+  },
+  {
+    "child": {
+      "id": 1847300,
+      "uuid": "83839c8aa6b07baeb09416bb340e6873",
+      "name": "Smokey Suarez Live at Comedy In Harlem",
+      "parent_comedian_id": null,
+      "visible": true,
+      "total_shows": 2,
+      "sold_out_shows": 0,
+      "popularity": 0.1737
+    },
+    "parent": {
+      "id": 490654,
+      "uuid": "c94b18c37ff2e7ec565c3ec9d8be1dca",
+      "name": "Smokey Suarez"
+    },
+    "lineups": [
+      {
+        "id": 404887,
+        "show_id": 5471588,
+        "comedian_id": "83839c8aa6b07baeb09416bb340e6873",
+        "role": null
+      },
+      {
+        "id": 428157,
+        "show_id": 6044110,
+        "comedian_id": "83839c8aa6b07baeb09416bb340e6873",
+        "role": null
+      }
+    ]
+  },
+  {
+    "child": {
+      "id": 1923772,
+      "uuid": "6bc01d74ceaa1e8827a797aee07a2b4c",
+      "name": "Russ Nagel Comedy",
+      "parent_comedian_id": null,
+      "visible": true,
+      "total_shows": 5,
+      "sold_out_shows": 0,
+      "popularity": 0.4156
+    },
+    "parent": {
+      "id": 885094,
+      "uuid": "c11ec9b0719281382d09ffc941827170",
+      "name": "Russ Nagel"
+    },
+    "lineups": [
+      {
+        "id": 415279,
+        "show_id": 5733188,
+        "comedian_id": "6bc01d74ceaa1e8827a797aee07a2b4c",
+        "role": null
+      },
+      {
+        "id": 415281,
+        "show_id": 5733189,
+        "comedian_id": "6bc01d74ceaa1e8827a797aee07a2b4c",
+        "role": null
+      },
+      {
+        "id": 415283,
+        "show_id": 5733190,
+        "comedian_id": "6bc01d74ceaa1e8827a797aee07a2b4c",
+        "role": null
+      },
+      {
+        "id": 415285,
+        "show_id": 5733191,
+        "comedian_id": "6bc01d74ceaa1e8827a797aee07a2b4c",
+        "role": null
+      },
+      {
+        "id": 415287,
+        "show_id": 5733192,
+        "comedian_id": "6bc01d74ceaa1e8827a797aee07a2b4c",
+        "role": null
+      }
+    ]
+  },
+  {
+    "child": {
+      "id": 1923790,
+      "uuid": "dc5c989b75cb065c29c0d74bbf330716",
+      "name": "Kris Fried Comedy",
+      "parent_comedian_id": null,
+      "visible": true,
+      "total_shows": 5,
+      "sold_out_shows": 0,
+      "popularity": 0.4156
+    },
+    "parent": {
+      "id": 1123546,
+      "uuid": "b471f881cf4ce5f52b5a45586d082490",
+      "name": "Kris Fried"
+    },
+    "lineups": [
+      {
+        "id": 415265,
+        "show_id": 5733173,
+        "comedian_id": "dc5c989b75cb065c29c0d74bbf330716",
+        "role": null
+      },
+      {
+        "id": 415267,
+        "show_id": 5733174,
+        "comedian_id": "dc5c989b75cb065c29c0d74bbf330716",
+        "role": null
+      },
+      {
+        "id": 415269,
+        "show_id": 5733175,
+        "comedian_id": "dc5c989b75cb065c29c0d74bbf330716",
+        "role": null
+      },
+      {
+        "id": 415271,
+        "show_id": 5733176,
+        "comedian_id": "dc5c989b75cb065c29c0d74bbf330716",
+        "role": null
+      },
+      {
+        "id": 415273,
+        "show_id": 5733177,
+        "comedian_id": "dc5c989b75cb065c29c0d74bbf330716",
+        "role": null
+      }
+    ]
+  }
+]
