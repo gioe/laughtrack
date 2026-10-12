@@ -78,3 +78,11 @@ class TestLegitimateNamesStillPass:
     ])
     def test_legitimate_name_passes(self, name):
         assert _is_valid_lineup_name(name) is True
+
+
+def test_labeled_performers_survive_credit_removal():
+    from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
+    result = ShowFactoryUtils.create_lineup_from_labeled_description(
+        "<p>Comics performing: Jane Smith (as seen on Jimmy Kimmel Live!), John Jones</p>"
+    )
+    assert [c.name for c in result] == ["Jane Smith", "John Jones"]

@@ -293,3 +293,15 @@ def test_explicit_opening_team_label_preserves_named_ensemble():
             "cast of Sheryl, with the opening guest team, Denim, and another special mashup "
             "team of iO’s best up-and-coming improvisers.")
     assert extract_lineup_names(text) == ["Denim"]
+
+
+@pytest.mark.parametrize("description,expected", [
+    ("<p>As seen on a show with Jimmy Kimmel</p>", []),
+    ("<p>Credits include a show featuring John Oliver</p>", []),
+    ("<p>Writers of Jimmy Kimmel Live! Featuring Jane Smith</p>", ["Jane Smith"]),
+    ("<p>Featuring Jane Smith (as seen on Jimmy Kimmel Live!)</p>", ["Jane Smith"]),
+    ("<p>Cast:</p><p>Jane Smith</p><p>As seen on John Oliver</p>", ["Jane Smith"]),
+])
+def test_credit_context_is_not_a_lineup(description, expected):
+    from laughtrack.scrapers.implementations.api.crowdwork.utils import extract_lineup_names
+    assert extract_lineup_names(description) == expected

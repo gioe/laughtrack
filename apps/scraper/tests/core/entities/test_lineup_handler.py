@@ -1013,3 +1013,29 @@ class TestUpdateShowLineupsSeedsHeadlinerFromTitle:
             h.update_show_lineups([show])
 
         assert show.lineup == []
+
+
+@pytest.mark.parametrize("title,name,expected", [
+    ("Live from South High", "Live from", False),
+    ("Writers of Jimmy Kimmel Live!", "Jimmy Kimmel Live", False),
+    ("Writers of Jimmy Kimmel Live!", "Jimmy Kimmel", False),
+    ("Jane Smith - as seen on Jimmy Kimmel", "Jimmy Kimmel", False),
+    ("Jane Smith - credits include John Oliver and Seth Meyers", "Seth Meyers", False),
+    ("Writers of John Oliver featuring Jane Smith", "John Oliver", False),
+    ("Writers of John Oliver featuring Jane Smith", "Jane Smith", True),
+    ("Jane Smith (as seen on John Oliver)", "Jane Smith", True),
+    ("As seen on John Oliver; starring John Oliver", "John Oliver", True),
+    ("Jimmy Kimmel Live at Union Hall", "Jimmy Kimmel", False),
+    ("Jimmy Kimmel at Union Hall", "Jimmy Kimmel", True),
+    ("Jane Smith Live", "Jane Smith", True),
+])
+def test_credit_context_existing_name_matches(title, name, expected):
+    assert _lineup_handler_mod._is_credible_show_name_comedian_match(
+        title, {"name": name, "visible": True, "total_shows": 10}
+    ) is expected
+
+
+def test_blocked_canonical_is_not_reintroduced_by_valid_alias():
+    assert not _lineup_handler_mod._is_credible_show_name_comedian_match(
+        "Jane Smith", {"name": "Jimmy Kimmel Live", "match_name": "Jane Smith", "visible": True}
+    )

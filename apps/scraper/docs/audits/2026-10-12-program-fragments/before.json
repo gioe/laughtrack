@@ -1,0 +1,50 @@
+{
+  "before": [
+    {
+      "id": 2451732,
+      "uuid": "27853bd97517814ee2faf1ca08b35646",
+      "name": "Jimmy Kimmel Live",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2666168,
+      "uuid": "c57a278ad78e6ce807d36481c549d69f",
+      "name": "Live from",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    }
+  ],
+  "impact": [
+    {
+      "id": 2451732,
+      "links": 44,
+      "upcoming": 34,
+      "show_names": [
+        "Living Room Living Room",
+        "Writers of Jimmy Kimmel Live!"
+      ]
+    },
+    {
+      "id": 2666168,
+      "links": 11,
+      "upcoming": 8,
+      "show_names": [
+        "Delirious TV Taping - Live From Vegas Seen Around The World",
+        "Live From Deep Ellum!",
+        "Live From South High - Orlando Baxter",
+        "Live from South High",
+        "Live from the Belly Room",
+        "ORLANDO BAXTER: LIVE FROM SOUTH HIGH",
+        "Superstar Saturdays - Live From The Mainroom"
+      ]
+    }
+  ],
+  "parity_cases": 219
+}

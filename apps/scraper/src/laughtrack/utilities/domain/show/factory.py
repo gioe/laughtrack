@@ -9,6 +9,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from bs4 import BeautifulSoup
+from laughtrack.core.entities.comedian.false_positive_detector import strip_nonperformer_context
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.show.model import Show
@@ -356,6 +357,7 @@ class ShowFactoryUtils:
             blocks = [soup.get_text(" ", strip=True)]
 
         for block in blocks:
+            block = strip_nonperformer_context(block)
             match = _COMICS_PERFORMING_RE.fullmatch(block)
             if match is None:
                 match = _EN_ESCENA_RE.fullmatch(block)

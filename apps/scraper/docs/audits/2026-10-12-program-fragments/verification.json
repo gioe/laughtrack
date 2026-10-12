@@ -1,0 +1,18 @@
+{
+  "task": 4172,
+  "suppressed_ids": [
+    2451732,
+    2666168
+  ],
+  "lineup_links_preserved": 55,
+  "upcoming_links_preserved": 42,
+  "python_postgresql_parity_cases": 219,
+  "focused_tests_passed": 460,
+  "validation": [
+    "Dry-run forward, replay, exact full-row rollback and rollback replay passed",
+    "All original show and lineup rows preserved",
+    "Production suppression and migration ledger committed atomically",
+    "Post-commit read-only query confirms both hidden with TASK-4172 attribution and 44/11 lineup links"
+  ],
+  "scope": "English credit phrases and explicit reviewed program titles; structured performer fields still use name validation."
+}

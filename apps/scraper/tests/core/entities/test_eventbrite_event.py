@@ -185,3 +185,9 @@ def test_to_show_still_skips_non_comedy_dj_title():
         subcategory_id=None,
     )
     assert ev.to_show(make_club(), enhanced=False) is None
+
+
+def test_title_fallback_does_not_extract_credit_names():
+    event = EventbriteEvent(name="Example", event_url="https://example.com", start_date="2026-10-12T20:00:00Z")
+    assert event._extract_lineup_from_title("Credits include John Oliver and Seth Meyers") == []
+    assert [c.name for c in event._extract_lineup_from_title("Alice Smith & Bob Jones (as seen on Jimmy Kimmel Live!)")] == ["Alice Smith", "Bob Jones"]

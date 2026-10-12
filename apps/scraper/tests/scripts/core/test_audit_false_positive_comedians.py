@@ -130,3 +130,21 @@ def test_placeholder_pattern_reaches_every_audit_path_and_zero_lineups():
                   audit.CSV_DETAIL_QUERY, audit.MERGE_CANDIDATES_QUERY):
         assert audit._PLACEHOLDER_NAME_CONDITION in query
     assert "HAVING COUNT(li.show_id) > 0" not in audit.AUDIT_QUERY
+
+
+@pytest.mark.parametrize("name, reason", [
+    ("Live from", "placeholder_name"), ("LIVE AT!!!", "placeholder_name"),
+    ("Featuring", "placeholder_name"), ("With special guests…", "placeholder_name"),
+    ("Jimmy Kimmel Live!", "program_name"), ("  JIMMY  KIMMEL LIVE... ", "program_name"),
+    ("Jimmy Kimmel", None), ("Live Johnson", None), ("Olivia Live", None),
+    ("Jimmy Kimmel Lively", None),
+])
+def test_program_and_fragment_sql_parity(name, reason):
+    predicate = f"({audit._PLACEHOLDER_NAME_CONDITION}) OR ({audit._PROGRAM_NAME_CONDITION})"
+    with sqlite3.connect(":memory:") as connection:
+        connection.create_function("regexp", 2, lambda pattern, value: bool(re.search(pattern, value)))
+        result = connection.execute(
+            f"SELECT ({predicate.replace(' ~ ', ' REGEXP ')}) FROM (SELECT ? AS name) c", (name,)
+        ).fetchone()[0]
+    assert bool(result) is (reason is not None)
+    assert detect_false_positive(name) == reason

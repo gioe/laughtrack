@@ -6,6 +6,7 @@ import re
 from typing import Dict, List, Optional
 
 from bs4 import BeautifulSoup, NavigableString
+from laughtrack.core.entities.comedian.false_positive_detector import detect_false_positive, strip_nonperformer_context
 
 from laughtrack.core.entities.event.philly_improv import PhillyImprovShow
 
@@ -49,11 +50,12 @@ _GENERIC_TITLE_RE = re.compile(
 def extract_lineup_names(description_html: str, title: Optional[str] = None) -> List[str]:
     """Extract lineup names from Crowdwork event description HTML."""
     lines = _description_lines(description_html)
-    names: List[str] = _names_from_title(title)
+    names: List[str] = _names_from_title(strip_nonperformer_context(title or ""))
     in_lineup_section = False
 
     section_has_names = False
     for line in lines:
+        line = strip_nonperformer_context(line)
         # An empty HTML paragraph or double <br> ends a populated cast list.
         # Do not scan the prose after it for inline "with/featuring" phrases.
         if in_lineup_section and not line:
@@ -239,7 +241,7 @@ def _inline_feature_names(line: str) -> List[str]:
 
 
 def _looks_like_name(value: str, require_capitalized: bool = False) -> bool:
-    if not value or len(value) > 60:
+    if not value or len(value) > 60 or detect_false_positive(value):
         return False
     if require_capitalized and value[0].islower():
         return False

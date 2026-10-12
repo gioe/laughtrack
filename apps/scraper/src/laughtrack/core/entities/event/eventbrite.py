@@ -2,6 +2,7 @@
 Data model for scraped page data from Comic Strip Live (EventBrite integration).
 """
 
+from laughtrack.core.entities.comedian.false_positive_detector import strip_nonperformer_context
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
@@ -299,6 +300,7 @@ class EventbriteEvent(ShowConvertible):
         lineup = []
 
         try:
+            event_name = strip_nonperformer_context(event_name)
             # Simple extraction: look for names in the title
             # This is basic and could be improved with better parsing
             if " & " in event_name or " and " in event_name:

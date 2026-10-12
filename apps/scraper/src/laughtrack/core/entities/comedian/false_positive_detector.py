@@ -35,6 +35,11 @@ PLACEHOLDER_NAMES: frozenset[str] = frozenset({
     "tbd",
     "to be announced",
     "to be determined",
+    "live from",
+    "live at",
+    "featuring",
+    "with special guest",
+    "with special guests",
     "special guest",
     "special guests",
     "surprise guest",
@@ -105,6 +110,42 @@ PLACEHOLDER_NAME_PATTERN = (
     + "|".join(r"\s+".join(re.escape(word) for word in name.split()) for name in sorted(PLACEHOLDER_NAMES))
     + r")[\s!?.…]*$"
 )
+
+# Program identities are not performers, even when a host has a real name.
+NON_PERFORMER_PROGRAM_NAMES = frozenset({"jimmy kimmel live"})
+PROGRAM_NAME_PATTERN = (
+    r"(?<![a-z0-9])(?:"
+    + "|".join(r"\s+".join(re.escape(word) for word in name.split())
+               for name in sorted(NON_PERFORMER_PROGRAM_NAMES))
+    + r")(?![a-z0-9])"
+)
+PROGRAM_LABEL_PATTERN = r"^[\s!?.…]*(?:" + PROGRAM_NAME_PATTERN + r")[\s!?.…]*$"
+# Credit clauses end at a sentence/section boundary or an explicit billing marker.
+# Commas and 'with' may still belong to the credit list, so do not reset there.
+_CREDIT_CLAUSE_RE = re.compile(
+    r"\b(?:as\s+seen\s+on|credits?\s+include)\b"
+    r".*?(?=[.!?;\n)]|$)",
+    re.IGNORECASE,
+)
+
+_WRITER_CLAUSE_RE = re.compile(
+    r"\bwriters?\s+(?:of|for)\b"
+    r".*?(?=[.!?;\n)]|\b(?:featuring|starring|lineup|hosted\s+by)\b|$)",
+    re.IGNORECASE,
+)
+
+
+def strip_nonperformer_context(text: str) -> str:
+    """Remove credits/program mentions before inferring performers from prose.
+
+    Structured performer fields should use the name detector directly instead.
+    A later explicit billing clause stays available for extraction.
+    """
+    text = _CREDIT_CLAUSE_RE.sub("", text)
+    text = _WRITER_CLAUSE_RE.sub("", text)
+    text = re.sub(PROGRAM_NAME_PATTERN, "", text, flags=re.IGNORECASE)
+    return re.sub(r"\([\s.!?;]*\)", "", text).strip()
+
 
 # Generic title/category fragments commonly produced when a scraper splits an
 # event title instead of extracting a real lineup entry.
@@ -268,6 +309,9 @@ def detect_false_positive(name: str) -> Optional[str]:
 
     if re.search(PLACEHOLDER_NAME_PATTERN, lower):
         return "placeholder_name"
+
+    if re.search(PROGRAM_LABEL_PATTERN, lower):
+        return "program_name"
 
     if lower in GENERIC_SINGLE_TOKEN_NAMES:
         return f"generic_single_token:{lower!r}"

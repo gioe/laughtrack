@@ -6,7 +6,7 @@ from typing import Dict, List, Tuple
 from laughtrack.core.data.base_handler import BaseDatabaseHandler
 from sql.lineup_queries import LineupQueries
 
-from laughtrack.core.entities.comedian.false_positive_detector import detect_false_positive
+from laughtrack.core.entities.comedian.false_positive_detector import detect_false_positive, strip_nonperformer_context
 from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.show.model import Show
 from laughtrack.foundation.infrastructure.database.template import BatchTemplateGenerator
@@ -39,11 +39,11 @@ def _is_credible_show_name_comedian_match(show_name: str, row: dict) -> bool:
 
     comedian_name = row.get("match_name") or row.get("name")
     cleaned_name = (comedian_name or "").strip()
-    cleaned_show_name = (show_name or "").strip()
+    cleaned_show_name = strip_nonperformer_context(show_name or "")
     if not cleaned_name or not cleaned_show_name:
         return False
 
-    if detect_false_positive(cleaned_name):
+    if detect_false_positive(cleaned_name) or detect_false_positive(row.get("name") or ""):
         return False
 
     name_words = _NAME_WORD_RE.findall(cleaned_name)
