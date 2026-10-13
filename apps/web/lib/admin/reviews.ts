@@ -1,3 +1,10 @@
+import {
+    eventReviewFilters,
+    EventReviewConflict,
+    submitEventReview,
+} from "./eventReviews";
+import { listEventInbox, getEventInbox } from "./eventReviewAdapter";
+import { reviewDefinitions, type ReviewResult } from "./reviewTypes";
 import { createHash, randomUUID } from "node:crypto";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
@@ -14,7 +21,26 @@ type Row = Record<string, any>;
 export class ReviewConflict extends Error {}
 export const reviewFilters = z.object({
     workflow: z.enum(reviewWorkflows).default("comedian_identity"),
-    status: z.enum(["pending", "accepted", "rejected"]).default("pending"),
+    status: z
+        .enum([
+            "pending",
+            "accepted",
+            "rejected",
+            "all",
+            "review",
+            "accept",
+            "approve",
+            "reject",
+            "defer",
+            "stale_review",
+            "stale_policy",
+            "awaiting_observation",
+        ])
+        .optional(),
+    source: z.coerce.number().int().positive().max(2147483647).optional(),
+    mode: z.enum(["off", "shadow", "enforce"]).optional(),
+    after: z.coerce.number().int().nonnegative().max(2147483647).default(0),
+    ceiling: z.coerce.number().int().nonnegative().max(2147483647).optional(),
     q: z.string().trim().max(200).default(""),
     page: z.coerce.number().int().min(1).max(100000).default(1),
 });
@@ -23,7 +49,8 @@ export const reviewSubmission = z
         workflow: z.enum(reviewWorkflows),
         id: z.string().min(1).max(100),
         token: z.string().regex(/^[a-f0-9]{64}$/),
-        action: z.enum(["approve", "link", "reject"]),
+        action: z.enum(["approve", "link", "reject", "defer"]),
+        requestId: z.string().uuid().optional(),
         name: z.string().trim().min(1).max(200).optional(),
         targetId: z.number().int().positive().optional(),
         showIds: z.array(z.number().int().positive()).max(100).default([]),
@@ -77,7 +104,32 @@ export async function searchReviewComedians(q: string, tx: Tx = db) {
 export async function listReviews(
     input: z.input<typeof reviewFilters>,
 ): Promise<ReviewPage> {
-    const f = reviewFilters.parse(input);
+    const parsed = reviewFilters.parse(input);
+    const f = {
+        ...parsed,
+        status:
+            parsed.status ?? reviewDefinitions[parsed.workflow].defaultStatus,
+    };
+    if (
+        !reviewDefinitions[f.workflow].statuses.some(
+            (s) => s.value === f.status,
+        )
+    )
+        throw new ReviewConflict("Invalid status for this review type.");
+    if (f.workflow === "event_eligibility")
+        return listEventInbox(
+            {
+                q: f.q,
+                status: eventReviewFilters.shape.status.parse(
+                    f.status === "all" ? undefined : f.status,
+                ),
+                source: f.source,
+                mode: f.mode,
+                after: f.after,
+                ceiling: f.ceiling,
+            },
+            f.page,
+        );
     const offset = (f.page - 1) * 30;
     const rows =
         f.workflow === "comedian_identity"
@@ -123,6 +175,11 @@ export async function getReview(
     workflow: ReviewWorkflow,
     id: string,
 ): Promise<ReviewItem | null> {
+    if (workflow === "event_eligibility") {
+        if (!/^[1-9]\d*$/.test(id) || Number(id) > 2147483647)
+            throw new ReviewConflict("Invalid event ID.");
+        return getEventInbox(id);
+    }
     const row = await current(db, workflow, id);
     if (!row) return null;
     const history = await db.$queryRaw<
@@ -208,8 +265,57 @@ function comedianUuid(name: string) {
 export async function decideReview(
     input: z.input<typeof reviewSubmission>,
     actor: string,
-) {
+): Promise<ReviewResult> {
     const x = reviewSubmission.parse(input);
+    if (
+        !reviewDefinitions[x.workflow].actions.some((a) => a.value === x.action)
+    )
+        throw new ReviewConflict("Invalid action for this review type.");
+    if (x.workflow === "event_eligibility") {
+        if (
+            !x.requestId ||
+            !/^[1-9]\d*$/.test(x.id) ||
+            Number(x.id) > 2147483647
+        )
+            throw new ReviewConflict(
+                "A valid event and request ID are required.",
+            );
+        try {
+            const result = await submitEventReview(
+                {
+                    id: x.requestId,
+                    candidateId: Number(x.id),
+                    token: x.token,
+                    action: x.action as "approve" | "reject" | "defer",
+                    reason: x.reason,
+                },
+                actor,
+            );
+            return {
+                status: result.status,
+                notice:
+                    result.status === "pending"
+                        ? "Review submitted. The worker validates requests about every 15 minutes; scheduling can take longer. Publication is checked on the next scrape."
+                        : `Review request ${result.status}. Refresh the event to see its current state.`,
+            } satisfies ReviewResult;
+        } catch (error) {
+            if (error instanceof EventReviewConflict)
+                throw new ReviewConflict(error.message);
+            if (
+                error &&
+                typeof error === "object" &&
+                "code" in error &&
+                (error.code === "P2002" ||
+                    (error.code === "P2010" &&
+                        "meta" in error &&
+                        JSON.stringify(error.meta).includes("23505")))
+            )
+                throw new ReviewConflict(
+                    "A review was submitted concurrently. Refresh the event.",
+                );
+            throw error;
+        }
+    }
     return db.$transaction(async (tx) => {
         const before = await current(tx, x.workflow, x.id, true);
         if (

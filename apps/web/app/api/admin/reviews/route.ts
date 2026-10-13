@@ -75,7 +75,10 @@ export async function POST(req: NextRequest) {
         revalidatePath("/comedian", "layout");
         revalidatePath("/podcast", "layout");
         revalidatePath("/show", "layout");
-        return NextResponse.json(result);
+        return NextResponse.json(result, {
+            status:
+                "status" in result && result.status === "pending" ? 202 : 200,
+        });
     } catch (error) {
         return failure(error);
     }

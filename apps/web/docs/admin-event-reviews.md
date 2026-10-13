@@ -1,10 +1,8 @@
-# Admin event review
+# Event eligibility in Review inbox
 
-Open `/admin/event-reviews` from **Event Review** in the admin navigation. Only authenticated administrators can read the queue or submit decisions; the server derives the reviewer from the current database profile.
+Open **Admin → Review inbox** and choose **Event eligibility**. Event screening uses the same queue, evidence, decision controls, and history as comedian identity and podcast relationship reviews. `/admin/event-reviews` redirects here and preserves its filters and selected occurrence.
 
-The queue contains staged source-owned candidates, not the offline shows-search audit corpus. Search by event or venue, filter by source, mode or review state, and select one occurrence. Identical venue/source/title entries are grouped within each 50-occurrence page for navigation only. Reviewing one never grants authority to other occurrences or to an entire venue.
-
-Read the description, collected evidence, rule reasons and observed lineage before choosing **Approve as comedy**, **Reject from ingestion**, or **Defer — keep on hold**. A parent identity is not standalone proof of comedy. Enter a reason, preview the exact occurrence, and confirm. Source content is rendered as text; links allow only HTTP(S).
+Each occurrence is reviewed individually. Source ID, screening mode, status, and text filters narrow the queue. Cursor pagination keeps a stable upper boundary while browsing. A reason and confirmation are required for Approve event, Reject, or Defer. Submitted requests remain distinct from applied decisions; pending requests refresh automatically.
 
 ## Applying a review
 

@@ -1,19 +1,13 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import {
-    Check,
-    ChevronDown,
-    ExternalLink,
-    Link2,
-    RefreshCw,
-    Undo2,
-    X,
-} from "lucide-react";
+import { ChevronDown, ExternalLink, RefreshCw, Undo2 } from "lucide-react";
 import { adminRequest } from "../shared/adminRequest";
 import { AdminSearchField, AdminSelectField } from "../shared/AdminControls";
 import {
     workflowLabels,
+    reviewDefinitions,
+    type ReviewAction,
+    type ReviewResult,
     type ReviewItem,
     type ReviewPage,
     type ReviewStatus,
@@ -31,18 +25,44 @@ function sourceUrl(value: string | null) {
         return null;
     }
 }
-export default function ReviewWorkspace() {
-    const [workflow, setWorkflow] =
-        useState<ReviewWorkflow>("comedian_identity");
-    const [status, setStatus] = useState<ReviewStatus>("pending");
-    const [q, setQ] = useState("");
+export default function ReviewWorkspace({
+    initialFilters = {},
+}: {
+    initialFilters?: Record<string, string>;
+}) {
+    const initialWorkflow = Object.hasOwn(
+        reviewDefinitions,
+        initialFilters.workflow ?? "",
+    )
+        ? (initialFilters.workflow as ReviewWorkflow)
+        : "comedian_identity";
+    const [workflow, setWorkflow] = useState<ReviewWorkflow>(initialWorkflow);
+    const definition = reviewDefinitions[workflow];
+    const [status, setStatus] = useState<ReviewStatus>(
+        reviewDefinitions[initialWorkflow].statuses.some(
+            (s) => s.value === initialFilters.status,
+        )
+            ? (initialFilters.status as ReviewStatus)
+            : reviewDefinitions[initialWorkflow].defaultStatus,
+    );
+    const [q, setQ] = useState(initialFilters.q ?? "");
+    const [source, setSource] = useState(initialFilters.source ?? "");
+    const [mode, setMode] = useState(initialFilters.mode ?? "");
+    const [cursors, setCursors] = useState([Number(initialFilters.after) || 0]);
+    const [ceiling, setCeiling] = useState<number | undefined>(
+        Number(initialFilters.ceiling) || undefined,
+    );
+    const [confirmation, setConfirmation] = useState<ReviewAction | null>(null);
+    const requestIdentity = useRef<{ key: string; id: string } | null>(null);
     const [page, setPage] = useState(1);
     const [queue, setQueue] = useState<ReviewPage>({
         items: [],
         total: 0,
         page: 1,
     });
-    const [selected, setSelected] = useState<string | null>(null);
+    const [selected, setSelected] = useState<string | null>(
+        initialFilters.id ?? null,
+    );
     const [item, setItem] = useState<ReviewItem | null>(null);
     const [loading, setLoading] = useState(true);
     const [showQueue, setShowQueue] = useState(false);
@@ -58,6 +78,7 @@ export default function ReviewWorkspace() {
     const [matches, setMatches] = useState<{ id: number; name: string }[]>([]);
     const [target, setTarget] = useState<number | null>(null);
     const [showIds, setShowIds] = useState<number[]>([]);
+    const initialSelection = useRef<string | undefined>(initialFilters.id);
     const generation = useRef(0);
     const detailRef = useRef<HTMLHeadingElement>(null);
     useEffect(() => {
@@ -72,14 +93,27 @@ export default function ReviewWorkspace() {
                 q,
                 page: String(page),
             });
+            if (definition.sourceFilters) {
+                if (source) params.set("source", source);
+                if (mode) params.set("mode", mode);
+                params.set("after", String(cursors[page - 1] ?? 0));
+                if (ceiling !== undefined)
+                    params.set("ceiling", String(ceiling));
+            }
             adminRequest<ReviewPage>(`/api/admin/reviews?${params}`, {
                 signal: controller.signal,
             })
                 .then((result) => {
-                    if (n !== generation.current) return;
+                    if (controller.signal.aborted || n !== generation.current)
+                        return;
                     setQueue(result);
                     if (result.items.length === 0 && page > 1)
                         setPage(page - 1);
+                    if (initialSelection.current) {
+                        setSelected(initialSelection.current);
+                        initialSelection.current = undefined;
+                        return;
+                    }
                     setSelected((prev) =>
                         result.items.some((x) => x.id === prev)
                             ? prev
@@ -98,9 +132,22 @@ export default function ReviewWorkspace() {
             controller.abort();
             clearTimeout(timer);
         };
-    }, [workflow, status, q, page, refresh, skipped]);
+    }, [
+        workflow,
+        status,
+        q,
+        page,
+        refresh,
+        skipped,
+        source,
+        mode,
+        cursors,
+        ceiling,
+        definition.sourceFilters,
+    ]);
     useEffect(() => {
         setItem(null);
+        setConfirmation(null);
         setTarget(null);
         setShowIds([]);
         setReason("");
@@ -113,6 +160,7 @@ export default function ReviewWorkspace() {
             { signal: controller.signal },
         )
             .then((result) => {
+                if (controller.signal.aborted) return;
                 setItem(result);
                 setName(result.title);
                 setMatches(result.matches);
@@ -123,14 +171,16 @@ export default function ReviewWorkspace() {
         return () => controller.abort();
     }, [workflow, selected, refresh]);
     useEffect(() => {
-        if (workflow !== "comedian_identity" || !matchQuery.trim()) return;
+        if (!definition.identityFields || !matchQuery.trim()) return;
         const controller = new AbortController();
         const timer = setTimeout(() => {
             adminRequest<{ id: number; name: string }[]>(
                 `/api/admin/reviews?search=${encodeURIComponent(matchQuery)}`,
                 { signal: controller.signal },
             )
-                .then(setMatches)
+                .then((result) => {
+                    if (!controller.signal.aborted) setMatches(result);
+                })
                 .catch((e) => {
                     if (!controller.signal.aborted) setError(e.message);
                 });
@@ -139,7 +189,7 @@ export default function ReviewWorkspace() {
             controller.abort();
             clearTimeout(timer);
         };
-    }, [matchQuery, workflow]);
+    }, [matchQuery, workflow, definition.identityFields]);
     const next = useCallback(() => {
         if (!selected) return;
         const remaining = queue.items.filter(
@@ -149,53 +199,78 @@ export default function ReviewWorkspace() {
         setSelected(remaining[0]?.id ?? null);
         detailRef.current?.focus();
     }, [selected, queue.items, skipped]);
-    const decide = useCallback(
-        async (action: "approve" | "link" | "reject") => {
-            if (!item || busy) return;
-            setBusy(true);
-            setError("");
-            try {
-                const result = await adminRequest<{ decisionId: string }>(
-                    "/api/admin/reviews",
-                    {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            workflow,
-                            id: item.id,
-                            token: item.token,
-                            action,
-                            ...(workflow === "comedian_identity"
-                                ? {
-                                      name,
-                                      targetId: target ?? undefined,
-                                      showIds,
-                                  }
-                                : {}),
-                            reason:
-                                reason.trim() ||
-                                (action === "reject"
-                                    ? "Not supported by source evidence"
-                                    : "Reviewed source evidence"),
-                        }),
-                    },
-                );
-                setUndoId(result.decisionId);
-                setNotice(
+    const actions =
+        item?.actions ??
+        (item?.status === "pending"
+            ? definition.actions.map((a) => a.value)
+            : []);
+    useEffect(() => {
+        if (!item?.processing) return;
+        const timer = setInterval(() => setRefresh((v) => v + 1), 30000);
+        return () => clearInterval(timer);
+    }, [item?.processing]);
+    const decide = async (action: ReviewAction, confirmed = false) => {
+        if (
+            !item ||
+            busy ||
+            item.workflow !== workflow ||
+            !actions.includes(action)
+        )
+            return;
+        if (definition.reasonRequired && !reason.trim()) return;
+        if (definition.queued && !confirmed) {
+            setConfirmation(action);
+            return;
+        }
+        setBusy(true);
+        setError("");
+        const payload = {
+            workflow,
+            id: item.id,
+            token: item.token,
+            action,
+            ...(definition.identityFields
+                ? { name, targetId: target ?? undefined, showIds }
+                : {}),
+            reason:
+                reason.trim() ||
+                (action === "reject"
+                    ? "Not supported by source evidence"
+                    : "Reviewed source evidence"),
+        };
+        const key = JSON.stringify(payload);
+        if (definition.queued && requestIdentity.current?.key !== key)
+            requestIdentity.current = { key, id: crypto.randomUUID() };
+        try {
+            const result = await adminRequest<ReviewResult>(
+                "/api/admin/reviews",
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        ...payload,
+                        ...(definition.queued
+                            ? { requestId: requestIdentity.current!.id }
+                            : {}),
+                    }),
+                },
+            );
+            setUndoId(result.decisionId ?? null);
+            setNotice(
+                result.notice ??
                     `${item.title}: ${action === "reject" ? "rejected" : action === "link" ? "linked and validated" : "approved"}.`,
-                );
-                next();
-                setRefresh((v) => v + 1);
-            } catch (e) {
-                setError(
-                    e instanceof Error ? e.message : "Could not save decision.",
-                );
-            } finally {
-                setBusy(false);
-            }
-        },
-        [item, busy, workflow, name, target, showIds, reason, next],
-    );
+            );
+            setConfirmation(null);
+            next();
+            setRefresh((v) => v + 1);
+        } catch (e) {
+            setError(
+                e instanceof Error ? e.message : "Could not save decision.",
+            );
+        } finally {
+            setBusy(false);
+        }
+    };
     useEffect(() => {
         const onKey = (event: KeyboardEvent) => {
             if (event.altKey || event.ctrlKey || event.metaKey || busy) return;
@@ -232,6 +307,10 @@ export default function ReviewWorkspace() {
             setWorkflow(restored.workflow);
             setStatus("pending");
             setQ("");
+            setSource("");
+            setMode("");
+            setCursors([0]);
+            setCeiling(undefined);
             setPage(1);
             setSkipped([]);
             setSelected(restored.id);
@@ -243,7 +322,11 @@ export default function ReviewWorkspace() {
         }
     }
     const changeFilter = () => {
+        initialSelection.current = undefined;
         setPage(1);
+        setCursors([0]);
+        setCeiling(undefined);
+        setConfirmation(null);
         setSkipped([]);
         setSelected(null);
         setItem(null);
@@ -266,16 +349,15 @@ export default function ReviewWorkspace() {
                     onChange={(v) => {
                         changeFilter();
                         setWorkflow(v);
+                        setStatus(reviewDefinitions[v].defaultStatus);
+                        setSource("");
+                        setMode("");
                     }}
                 />
                 <AdminSelectField
                     label="Status"
                     value={status}
-                    options={[
-                        { value: "pending", label: "Needs review" },
-                        { value: "accepted", label: "Approved" },
-                        { value: "rejected", label: "Rejected" },
-                    ]}
+                    options={definition.statuses}
                     onChange={(v) => {
                         changeFilter();
                         setStatus(v);
@@ -284,7 +366,7 @@ export default function ReviewWorkspace() {
                 <AdminSearchField
                     label="Search queue"
                     value={q}
-                    placeholder="Search names or podcasts"
+                    placeholder="Search names, events or venues"
                     onChange={(v) => {
                         changeFilter();
                         setQ(v);
@@ -299,18 +381,43 @@ export default function ReviewWorkspace() {
                     <RefreshCw size={18} />
                 </button>
             </fieldset>
-            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                <span>Other review workflows:</span>
-                <Link
-                    className="text-copper underline"
-                    href="/admin/event-reviews"
+            {definition.sourceFilters && (
+                <fieldset
+                    disabled={busy}
+                    className="flex flex-wrap items-end gap-3 rounded-lg border border-strong bg-surface p-4"
                 >
-                    Show eligibility
-                </Link>
-                <Link className="text-copper underline" href="/admin/clubs">
-                    Club management
-                </Link>
-            </div>
+                    <label className="grid gap-1 font-semibold">
+                        Source ID
+                        <input
+                            className={field}
+                            type="number"
+                            min="1"
+                            value={source}
+                            onChange={(e) => {
+                                changeFilter();
+                                setSource(e.target.value);
+                            }}
+                        />
+                    </label>
+                    <AdminSelectField
+                        label="Screening mode"
+                        value={mode}
+                        options={[
+                            { value: "", label: "All modes" },
+                            { value: "off", label: "Off" },
+                            { value: "shadow", label: "Shadow" },
+                            { value: "enforce", label: "Enforce" },
+                        ]}
+                        onChange={(v) => {
+                            changeFilter();
+                            setMode(v);
+                        }}
+                    />
+                    <p className="text-sm text-muted-foreground">
+                        Each event occurrence is reviewed separately.
+                    </p>
+                </fieldset>
+            )}
             {error && (
                 <div
                     role="alert"
@@ -348,8 +455,9 @@ export default function ReviewWorkspace() {
                 >
                     <div className="flex items-center justify-between border-b border-strong p-4">
                         <strong>
-                            {queue.total}{" "}
-                            {status === "pending" ? "to review" : status}
+                            {queue.total === null
+                                ? `${queue.items.length} on this page`
+                                : `${queue.total} ${definition.statuses.find((s) => s.value === status)?.label ?? status}`}
                         </strong>
                         {loading && <span role="status">Loading…</span>}
                     </div>
@@ -397,7 +505,7 @@ export default function ReviewWorkspace() {
                         <div className="flex items-center justify-between gap-2 p-3">
                             <button
                                 className={button}
-                                disabled={page === 1 || busy}
+                                disabled={page === 1 || busy || loading}
                                 onClick={() => {
                                     setPage((v) => v - 1);
                                     setSkipped([]);
@@ -406,13 +514,27 @@ export default function ReviewWorkspace() {
                                 Previous
                             </button>
                             <span className="text-sm">
-                                {page} /{" "}
-                                {Math.max(1, Math.ceil(queue.total / 30))}
+                                {queue.total === null
+                                    ? `Page ${page}`
+                                    : `${page} / ${Math.max(1, Math.ceil(queue.total / 30))}`}
                             </span>
                             <button
                                 className={button}
-                                disabled={page * 30 >= queue.total || busy}
+                                disabled={
+                                    busy ||
+                                    loading ||
+                                    (queue.cursor
+                                        ? queue.cursor.next === null
+                                        : page * 30 >= (queue.total ?? 0))
+                                }
                                 onClick={() => {
+                                    if (queue.cursor) {
+                                        setCursors((prev) => [
+                                            ...prev.slice(0, page),
+                                            queue.cursor!.next!,
+                                        ]);
+                                        setCeiling(queue.cursor.ceiling);
+                                    }
                                     setPage((v) => v + 1);
                                     setSkipped([]);
                                 }}
@@ -442,7 +564,9 @@ export default function ReviewWorkspace() {
                             <header>
                                 <p className="text-sm font-semibold uppercase text-copper">
                                     {workflowLabels[item.workflow]} ·{" "}
-                                    {item.status}
+                                    {definition.statuses.find(
+                                        (s) => s.value === item.status,
+                                    )?.label ?? item.status}
                                 </p>
                                 <h2
                                     ref={detailRef}
@@ -455,7 +579,15 @@ export default function ReviewWorkspace() {
                                     {item.subtitle}
                                 </p>
                             </header>
-                            {workflow === "comedian_identity" &&
+                            {item.notice && (
+                                <p
+                                    role="status"
+                                    className="rounded-lg border border-strong bg-surface-elevated p-3 text-sm"
+                                >
+                                    {item.notice}
+                                </p>
+                            )}
+                            {definition.identityFields &&
                                 item.status === "pending" && (
                                     <div className="grid gap-4">
                                         <label className="grid gap-1 font-semibold">
@@ -609,72 +741,119 @@ export default function ReviewWorkspace() {
                                     ))}
                                 </div>
                             </div>
-                            {item.status === "pending" && (
+                            {actions.length > 0 && (
                                 <div className="sticky bottom-0 space-y-3 border-t border-strong bg-surface pt-4">
                                     <label className="grid gap-1 text-sm font-semibold">
                                         Decision note{" "}
                                         <span className="font-normal text-muted-foreground">
-                                            Optional — add context for future
-                                            reviews
+                                            {definition.reasonRequired
+                                                ? "Required — explain the evidence for this decision"
+                                                : "Optional — add context for future reviews"}
                                         </span>
                                         <input
                                             className={field}
                                             value={reason}
-                                            disabled={busy}
+                                            maxLength={2000}
+                                            required={definition.reasonRequired}
+                                            disabled={
+                                                busy || confirmation !== null
+                                            }
                                             placeholder="Why is this supported or not supported?"
                                             onChange={(e) =>
                                                 setReason(e.target.value)
                                             }
                                         />
                                     </label>
-                                    <div className="flex flex-wrap gap-2">
-                                        <button
-                                            className={`${button} flex items-center gap-2 border-copper bg-copper-dark text-white`}
-                                            disabled={
-                                                busy ||
-                                                !name.trim() ||
-                                                (workflow ===
-                                                    "comedian_identity" &&
-                                                    target !== null)
-                                            }
-                                            onClick={() => decide("approve")}
+                                    {confirmation ? (
+                                        <div
+                                            className="space-y-3 rounded-md border border-copper p-4"
+                                            aria-label="Confirm review"
                                         >
-                                            <Check size={18} />
-                                            {workflow === "comedian_identity"
-                                                ? "Approve new"
-                                                : "Approve relationship"}
-                                        </button>
-                                        {workflow === "comedian_identity" && (
+                                            <h3 className="font-semibold">
+                                                Confirm {confirmation} for this
+                                                occurrence
+                                            </h3>
+                                            <p>
+                                                {item.title} · {item.subtitle}
+                                            </p>
+                                            <p>{reason}</p>
+                                            <p className="text-sm text-muted-foreground">
+                                                The worker rechecks the evidence
+                                                before applying this decision.
+                                            </p>
                                             <button
-                                                className={`${button} flex items-center gap-2`}
-                                                disabled={busy || !target}
-                                                onClick={() => decide("link")}
+                                                className={button}
+                                                disabled={busy}
+                                                onClick={() =>
+                                                    decide(confirmation, true)
+                                                }
                                             >
-                                                <Link2 size={18} />
-                                                Link existing
+                                                Confirm review
+                                            </button>{" "}
+                                            <button
+                                                className={button}
+                                                disabled={busy}
+                                                onClick={() =>
+                                                    setConfirmation(null)
+                                                }
+                                            >
+                                                Edit decision
                                             </button>
-                                        )}
-                                        <button
-                                            className={`${button} flex items-center gap-2`}
-                                            disabled={busy}
-                                            onClick={() => decide("reject")}
-                                        >
-                                            <X size={18} />
-                                            Reject
-                                        </button>
-                                        <button
-                                            className={`${button} ml-auto flex items-center gap-2`}
-                                            disabled={busy}
-                                            onClick={next}
-                                        >
-                                            Skip <ChevronDown size={16} />
-                                        </button>
-                                    </div>
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-wrap gap-2">
+                                            {definition.actions
+                                                .filter((a) =>
+                                                    actions.includes(a.value),
+                                                )
+                                                .map((a) => (
+                                                    <button
+                                                        key={a.value}
+                                                        className={`${button} ${a.value === "approve" ? "border-copper bg-copper-dark text-white" : ""}`}
+                                                        disabled={
+                                                            busy ||
+                                                            (definition.reasonRequired &&
+                                                                !reason.trim()) ||
+                                                            (definition.identityFields &&
+                                                                ((a.value ===
+                                                                    "approve" &&
+                                                                    (!name.trim() ||
+                                                                        target !==
+                                                                            null)) ||
+                                                                    (a.value ===
+                                                                        "link" &&
+                                                                        !target)))
+                                                        }
+                                                        onClick={() =>
+                                                            decide(a.value)
+                                                        }
+                                                    >
+                                                        {a.label}
+                                                    </button>
+                                                ))}
+                                            <button
+                                                className={`${button} ml-auto flex items-center gap-2`}
+                                                disabled={busy}
+                                                onClick={next}
+                                            >
+                                                Skip <ChevronDown size={16} />
+                                            </button>
+                                        </div>
+                                    )}
                                     <p className="text-xs text-muted-foreground">
-                                        Skip keeps the item pending. Press J
-                                        outside a field to skip.
+                                        Skip leaves the decision unchanged.
+                                        Press J outside a field to skip.
                                     </p>
                                 </div>
+                            )}
+                            {actions.length === 0 && (
+                                <button
+                                    className={button}
+                                    disabled={busy}
+                                    onClick={next}
+                                >
+                                    Skip
+                                </button>
                             )}
                             {item.history.length > 0 && (
                                 <details>
@@ -689,6 +868,9 @@ export default function ReviewWorkspace() {
                                             >
                                                 <strong>
                                                     {h.action}
+                                                    {h.status
+                                                        ? ` · ${h.status}`
+                                                        : ""}
                                                     {h.undone
                                                         ? " · undone"
                                                         : ""}

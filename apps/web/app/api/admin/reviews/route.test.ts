@@ -83,3 +83,29 @@ it("uses the authenticated actor for valid decisions", async () => {
         "admin",
     );
 });
+
+it("returns 202 for queued event decisions with authenticated attribution", async () => {
+    mocks.decide.mockResolvedValue({
+        status: "pending",
+        notice: "Review submitted",
+    });
+    const body = {
+        workflow: "event_eligibility",
+        id: "1",
+        token: "a".repeat(64),
+        action: "defer",
+        reason: "Need evidence",
+        requestId: "10000000-0000-4000-8000-000000000001",
+    };
+    const response = await POST(
+        new NextRequest("http://localhost/api/admin/reviews", {
+            method: "POST",
+            body: JSON.stringify(body),
+        }),
+    );
+    expect(response.status).toBe(202);
+    expect(mocks.decide).toHaveBeenCalledWith(
+        expect.objectContaining(body),
+        "admin",
+    );
+});

@@ -146,3 +146,90 @@ it("paginates without bringing later candidates into the captured ceiling", asyn
     expect(second.items.map((r) => r.candidate_id)).toEqual([51, 52]);
     expect(second.next).toBeNull();
 });
+
+import { listReviews, getReview, decideReview } from "./reviews";
+it("adapts event evidence and queues an idempotent deferred decision through the shared inbox", async () => {
+    const page = await listReviews({ workflow: "event_eligibility" });
+    expect(page.total).toBeNull();
+    expect(page.cursor).toEqual({ ceiling: 1, next: null });
+    const detail = (await getReview("event_eligibility", "1"))!;
+    expect(detail.actions).toEqual(["approve", "reject", "defer"]);
+    expect(
+        detail.evidence.some((e) => e.title === "Lineup and parent identities"),
+    ).toBe(true);
+    const input = {
+        workflow: "event_eligibility" as const,
+        id: "1",
+        requestId: id,
+        token: detail.token,
+        action: "defer" as const,
+        reason: "Need venue evidence",
+    };
+    expect(await decideReview(input, "admin")).toMatchObject({
+        status: "pending",
+    });
+    expect(await decideReview(input, "admin")).toMatchObject({
+        status: "pending",
+    });
+    const pending = (await getReview("event_eligibility", "1"))!;
+    expect(pending.processing).toBe(true);
+    expect(pending.actions).toEqual([]);
+    expect(pending.history).toEqual(
+        expect.arrayContaining([
+            expect.objectContaining({
+                action: "defer",
+                actor: "admin",
+                status: "pending",
+            }),
+        ]),
+    );
+    expect(
+        (await pg.query("SELECT * FROM comedy_event_reviews")).rows,
+    ).toHaveLength(0);
+    expect(
+        (await pg.query("SELECT * FROM comedy_admin_review_requests")).rows,
+    ).toHaveLength(1);
+    await expect(
+        decideReview({ ...input, reason: "Changed reason" }, "admin"),
+    ).rejects.toThrow("different decision");
+});
+it("preserves event scope checks and rejects unsupported workflow actions", async () => {
+    const input = await submission();
+    const shared = {
+        workflow: "event_eligibility" as const,
+        id: "1",
+        requestId: id,
+        token: input.token,
+        action: input.action,
+        reason: input.reason,
+    };
+    await expect(
+        decideReview({ ...shared, action: "link" }, "admin"),
+    ).rejects.toThrow("Invalid action");
+    await expect(
+        decideReview({ ...shared, reason: " " }, "admin"),
+    ).rejects.toThrow();
+    await expect(
+        listReviews({ workflow: "event_eligibility", status: "pending" }),
+    ).rejects.toThrow("Invalid status");
+    await expect(
+        decideReview(
+            { ...shared, workflow: "podcast_association", action: "defer" },
+            "admin",
+        ),
+    ).rejects.toThrow("Invalid action");
+    for (const update of [
+        "UPDATE scraping_sources SET enabled=false",
+        "UPDATE scraping_sources SET comedy_gate_mode='off'",
+        "UPDATE scraping_sources SET comedy_policy_version=2",
+    ]) {
+        await pg.exec(update);
+        expect((await getReview("event_eligibility", "1"))!.actions).toEqual(
+            [],
+        );
+        await expect(decideReview(shared, "admin")).rejects.toThrow("changed");
+        await pg.exec(
+            "UPDATE scraping_sources SET enabled=true,comedy_gate_mode='enforce',comedy_policy_version=1",
+        );
+    }
+});

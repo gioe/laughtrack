@@ -120,3 +120,172 @@ it("never renders unsafe source schemes as links", async () => {
     await screen.findByText("Featuring Robin Tran");
     expect(screen.queryByRole("link", { name: /Open source/ })).toBeNull();
 });
+
+const eventItem = {
+    ...item,
+    id: "1",
+    workflow: "event_eligibility",
+    status: "review",
+    matches: [],
+    actions: ["approve", "reject", "defer"],
+    notice: "Shadow mode · automated flags alone do not withhold events.",
+    title: "Comedy Night",
+    subtitle: "Harvelles · November 1",
+    evidence: [
+        {
+            ...item.evidence[0],
+            showId: undefined,
+            context: "Explicit stand-up billing",
+        },
+    ],
+};
+function mockEvent(overrides = {}) {
+    mocks.request.mockImplementation(
+        async (url: string, init?: RequestInit) => {
+            if (init?.method === "POST")
+                return {
+                    status: "pending",
+                    notice: "Review submitted; awaiting worker validation.",
+                };
+            if (url.includes("id=")) return { ...eventItem, ...overrides };
+            return {
+                items: [{ ...eventItem, ...overrides }],
+                total: null,
+                page: 1,
+                cursor: { ceiling: 51, next: 50 },
+            };
+        },
+    );
+}
+it.each(["Approve event", "Reject", "Defer"])(
+    "requires a reason and confirmation for %s, reports queued rather than applied",
+    async (label) => {
+        mockEvent();
+        render(
+            <ReviewWorkspace
+                initialFilters={{ workflow: "event_eligibility" }}
+            />,
+        );
+        await screen.findByText("Explicit stand-up billing");
+        expect(
+            (screen.getByRole("button", { name: label }) as HTMLButtonElement)
+                .disabled,
+        ).toBe(true);
+        fireEvent.change(screen.getByLabelText(/Decision note/), {
+            target: { value: "Explicit venue comedy billing" },
+        });
+        fireEvent.click(screen.getByRole("button", { name: label }));
+        expect(
+            mocks.request.mock.calls.some(([, i]) => i?.method === "POST"),
+        ).toBe(false);
+        fireEvent.click(screen.getByRole("button", { name: "Confirm review" }));
+        await screen.findByText(
+            "Review submitted; awaiting worker validation.",
+        );
+        const call = mocks.request.mock.calls.find(
+            ([, i]) => i?.method === "POST",
+        )!;
+        expect(JSON.parse(call[1].body)).toMatchObject({
+            workflow: "event_eligibility",
+            id: "1",
+            token: "token",
+            reason: "Explicit venue comedy billing",
+            action: label === "Approve event" ? "approve" : label.toLowerCase(),
+            requestId: expect.any(String),
+        });
+        expect(
+            screen.queryByRole("button", { name: "Undo last decision" }),
+        ).toBeNull();
+    },
+);
+it("reuses the event request ID after a lost response", async () => {
+    mockEvent();
+    const implementation = mocks.request.getMockImplementation()!;
+    let posts = 0;
+    mocks.request.mockImplementation(async (url, init) => {
+        if (init?.method === "POST" && ++posts === 1)
+            throw Error("Connection lost");
+        return implementation(url, init);
+    });
+    render(
+        <ReviewWorkspace initialFilters={{ workflow: "event_eligibility" }} />,
+    );
+    await screen.findByText("Explicit stand-up billing");
+    fireEvent.change(screen.getByLabelText(/Decision note/), {
+        target: { value: "Explicit comedy" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Defer" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm review" }));
+    await screen.findByText("Connection lost");
+    fireEvent.click(screen.getByRole("button", { name: "Confirm review" }));
+    await screen.findByText("Review submitted; awaiting worker validation.");
+    const bodies = mocks.request.mock.calls
+        .filter(([, i]) => i?.method === "POST")
+        .map(([, i]) => JSON.parse(i.body));
+    expect(bodies).toHaveLength(2);
+    expect(bodies[1]).toEqual(bodies[0]);
+});
+it("uses stable event cursors and honors a selected legacy deep link", async () => {
+    mockEvent();
+    render(
+        <ReviewWorkspace
+            initialFilters={{
+                workflow: "event_eligibility",
+                id: "99",
+                source: "2",
+                mode: "shadow",
+            }}
+        />,
+    );
+    await screen.findByText("Explicit stand-up billing");
+    await waitFor(() =>
+        expect(
+            mocks.request.mock.calls.some(
+                ([u]) => u.includes("source=2") && u.includes("mode=shadow"),
+            ),
+        ).toBe(true),
+    );
+    expect(mocks.request.mock.calls.some(([u]) => u.includes("id=99"))).toBe(
+        true,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    await waitFor(() =>
+        expect(
+            mocks.request.mock.calls.some(
+                ([u]) => u.includes("after=50") && u.includes("ceiling=51"),
+            ),
+        ).toBe(true),
+    );
+});
+it("shows read-only event evidence without decision controls", async () => {
+    mockEvent({
+        actions: [],
+        processing: true,
+        notice: "Review submitted; awaiting worker validation.",
+    });
+    render(
+        <ReviewWorkspace initialFilters={{ workflow: "event_eligibility" }} />,
+    );
+    await screen.findByText("Explicit stand-up billing");
+    expect(screen.queryByRole("button", { name: "Approve event" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Defer" })).toBeNull();
+});
+it("uses the same evidence and action panel for podcast relationships", async () => {
+    mocks.request.mockImplementation(async (url, init) =>
+        init?.method === "POST"
+            ? { decisionId: "decision" }
+            : url.includes("id=")
+              ? { ...item, workflow: "podcast_association", matches: [] }
+              : { items: [item], total: 1, page: 1 },
+    );
+    render(
+        <ReviewWorkspace
+            initialFilters={{ workflow: "podcast_association" }}
+        />,
+    );
+    await screen.findByText("Featuring Robin Tran");
+    fireEvent.click(
+        screen.getByRole("button", { name: "Approve relationship" }),
+    );
+    await screen.findByRole("button", { name: "Undo last decision" });
+});

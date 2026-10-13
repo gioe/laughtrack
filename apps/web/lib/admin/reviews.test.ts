@@ -135,7 +135,7 @@ it("undo restores pending while retaining an attributed history", async () => {
         await decision("approve", { showIds: [1] }),
         "admin",
     );
-    await undoReview(decisionId, "admin");
+    await undoReview(decisionId!, "admin");
     expect((await getReview("comedian_identity", "candidate"))!.status).toBe(
         "pending",
     );
@@ -147,7 +147,7 @@ it("undo restores pending while retaining an attributed history", async () => {
     expect(
         (await getReview("comedian_identity", "candidate"))!.history[0].undone,
     ).toBe(true);
-    await expect(undoReview(decisionId, "admin")).rejects.toThrow(
+    await expect(undoReview(decisionId!, "admin")).rejects.toThrow(
         "cannot be undone",
     );
 });
@@ -159,16 +159,16 @@ it("undo does not remove pre-existing appearances", async () => {
         await decision("link", { targetId: 9, showIds: [1] }),
         "admin",
     );
-    await undoReview(decisionId, "admin");
+    await undoReview(decisionId!, "admin");
     expect((await pg.query("SELECT * FROM lineup_items")).rows).toHaveLength(1);
 });
 it("undo refuses later identity changes and another reviewer's request", async () => {
     const { decisionId } = await decideReview(await decision(), "admin");
-    await expect(undoReview(decisionId, "other")).rejects.toThrow(
+    await expect(undoReview(decisionId!, "other")).rejects.toThrow(
         "cannot be undone",
     );
     await pg.exec("UPDATE comedians SET name='Updated name'");
-    await expect(undoReview(decisionId, "admin")).rejects.toThrow("changed");
+    await expect(undoReview(decisionId!, "admin")).rejects.toThrow("changed");
 });
 it("podcast adapter approves only a relationship and supports undo", async () => {
     await pg.exec(
@@ -192,13 +192,13 @@ it("podcast adapter approves only a relationship and supports undo", async () =>
     expect(
         (await pg.query("SELECT identity_validated_at FROM comedians")).rows[0],
     ).toEqual({ identity_validated_at: null });
-    await undoReview(decisionId, "admin");
+    await undoReview(decisionId!, "admin");
     expect((await getReview(item.workflow, item.id))!.status).toBe("pending");
 });
 
 it("allows a reviewer to approve again after undoing creation", async () => {
     const { decisionId } = await decideReview(await decision(), "admin");
-    await undoReview(decisionId, "admin");
+    await undoReview(decisionId!, "admin");
     await decideReview(await decision(), "admin");
     expect((await pg.query("SELECT visible FROM comedians")).rows).toEqual([
         { visible: true },

@@ -23,9 +23,9 @@ describe("AdminNavigationMenu", () => {
         expect(screen.getByRole("navigation")).toBeTruthy();
         expect(
             screen
-                .getByRole("link", { name: /Event Review/ })
+                .getByRole("link", { name: /Review inbox/ })
                 .getAttribute("href"),
-        ).toBe("/admin/event-reviews");
+        ).toBe("/admin/reviews");
         expect(
             screen.getByRole("link", { name: /Podcasts/ }).getAttribute("href"),
         ).toBe("/admin/podcasts");
