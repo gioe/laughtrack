@@ -388,6 +388,9 @@ model ClubImageAsset {
 }
 
 model Comedian {
+  identityValidatedAt DateTime? @map("identity_validated_at") @db.Timestamptz
+  identityValidatedBy String? @map("identity_validated_by")
+  identityCandidates ComedianIdentityCandidate[]
   id                                   Int                               @id @default(autoincrement())
   name                                 String
   instagramAccount                     String?                           @map("instagram_account")
@@ -950,6 +953,7 @@ model SavedShow {
 }
 
 model Show {
+  identityEvidence ComedianIdentityEvidence[]
   comedyEventPublications   ComedyEventPublication[]
   // Explicit source cancellation retains the row and all historical references.
   isCancelled               Boolean                        @default(false) @map("is_cancelled")
@@ -1551,4 +1555,51 @@ model ComedyAdminReviewRequest {
 
   @@index([candidateId, createdAt], map: "comedy_admin_review_requests_candidate_idx")
   @@map("comedy_admin_review_requests")
+}
+
+model ComedianIdentityCandidate {
+  uuid String @id
+  name String
+  status String @default("pending")
+  version Int @default(0)
+  canonicalComedianId Int? @map("canonical_comedian_id")
+  canonicalComedian Comedian? @relation(fields: [canonicalComedianId], references: [id], onDelete: SetNull)
+  reviewedBy String? @map("reviewed_by")
+  reviewedAt DateTime? @map("reviewed_at") @db.Timestamptz
+  reason String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz
+  evidence ComedianIdentityEvidence[]
+  @@index([status, createdAt, uuid], map: "comedian_identity_candidates_queue")
+  @@map("comedian_identity_candidates")
+}
+model ComedianIdentityEvidence {
+  fingerprint String @id
+  candidateUuid String @map("candidate_uuid")
+  candidate ComedianIdentityCandidate @relation(fields: [candidateUuid], references: [uuid], onDelete: Cascade)
+  showId Int? @map("show_id")
+  show Show? @relation(fields: [showId], references: [id], onDelete: SetNull)
+  sourceUrl String @map("source_url")
+  sourceKey String @map("source_key")
+  extractionKind String @map("extraction_kind")
+  rawName String @map("raw_name")
+  context String
+  firstSeenAt DateTime @default(now()) @map("first_seen_at") @db.Timestamptz
+  lastSeenAt DateTime @default(now()) @map("last_seen_at") @db.Timestamptz
+  @@index([candidateUuid], map: "comedian_identity_evidence_candidate")
+  @@map("comedian_identity_evidence")
+}
+model AdminReviewDecision {
+  id String @id
+  workflow String
+  itemId String @map("item_id")
+  actor String
+  action String
+  reason String
+  before Json @map("before_json")
+  after Json @map("after_json")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  undoneAt DateTime? @map("undone_at") @db.Timestamptz
+  @@index([workflow,itemId,createdAt], map: "admin_review_decisions_item")
+  @@map("admin_review_decisions")
 }

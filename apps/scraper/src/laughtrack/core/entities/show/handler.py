@@ -1302,6 +1302,12 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             # Get current lineups from database
             db_lineups = self.lineup_handler.get_lineup(show_ids)
 
+            # Preserve source observations before decorated titles or structural
+            # heuristics discard them. This is evidence, not identity approval.
+            self.comedian_handler.stage_identity_candidates(
+                list({c for show in shows for c in show.lineup}), shows=shows
+            )
+
             # Reuse the batched identity lookup for source performer names too:
             # a decorated talent can arrive under an unrelated show title.
             show_names = [(show.name,) for show in shows]
@@ -1323,42 +1329,17 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             # Split multi-comedian lineup entries (e.g. "X & Y") into individual items
             self._expand_multi_comedian_lineups(shows)
 
-            # Insert any new comedians before updating lineup links.
-            # Determine denied and false-positive names first so we can strip them
-            # from show.lineup too — these comedians are never inserted, so their
-            # UUIDs would cause FK violations in batch_update_lineups if left in
-            # the lineup lists.
+            # Keep uncertain identities in staging. An extracted name is not a
+            # validated person, even when it already exists in the legacy table.
             all_comedians = list({comedian for show in shows for comedian in show.lineup})
-            comedians_inserted = 0
-            if all_comedians:
-                allowed_comedians = self.comedian_handler._filter_denied_comedians(all_comedians)
-                denied_names = {c.name for c in all_comedians} - {c.name for c in allowed_comedians}
-                if denied_names:
-                    for show in shows:
-                        show.lineup = [c for c in show.lineup if c.name not in denied_names]
-
-                # False-positive comedians are also filtered here so their UUIDs
-                # don't reach batch_update_lineups. Pass pre_filtered=True since
-                # we've already applied both deny-list and FP filters.
-                fp_allowed = self.comedian_handler._filter_false_positive_comedians(allowed_comedians)
-                fp_names = {c.name for c in allowed_comedians} - {c.name for c in fp_allowed}
-                if fp_names:
-                    for show in shows:
-                        show.lineup = [c for c in show.lineup if c.name not in fp_names]
-
-                inserted_rows = self.comedian_handler.insert_comedians(fp_allowed, pre_filtered=True) if fp_allowed else []
-                comedians_inserted = len(inserted_rows)
-                if comedians_inserted:
-                    self.lineup_handler.clear_show_name_comedian_cache()
-
-                # NOTE: comedian image sourcing is intentionally NOT done here.
-                # It is a separate, out-of-band responsibility — the standalone
-                # `scripts.core.source_comedian_images` job backfills every
-                # comedian with has_image=false (Wikidata → TMDb → Bunny CDN).
-                # Keeping it out of the scrape path avoids a per-comedian 5s
-                # rate-limit delay blocking persistence (national scrapes create
-                # thousands of new comedians), mirroring the separated
-                # popularity pipeline.
+            allowed = self.comedian_handler._filter_denied_comedians(all_comedians) if all_comedians else []
+            allowed = self.comedian_handler._filter_false_positive_comedians(allowed) if allowed else []
+            resolved = self.comedian_handler.stage_identity_candidates(allowed, shows=shows)
+            for show in shows:
+                reviewed = [resolved[c.uuid] for c in show.lineup if c.uuid in resolved]
+                show.lineup = list({c.uuid: c for c in [*reviewed, *db_lineups.get(show.id, [])]}.values())
+            self.lineup_handler.clear_show_name_comedian_cache()
+            comedians_inserted = 0  # Canonical creation belongs to admin approval.
 
             # Batch update all lineups at once
             lineup_items_added, _ = self.lineup_handler.batch_update_lineups(shows, db_lineups)

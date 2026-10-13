@@ -110,6 +110,7 @@ def _make_show_handler() -> ShowHandler:
     h.tag_handler = MagicMock()
     h.lineup_handler = MagicMock()
     h.comedian_handler = MagicMock()
+    h.comedian_handler.stage_identity_candidates.side_effect = lambda items, **kwargs: {c.uuid: c for c in items}
     return h
 
 
@@ -551,7 +552,7 @@ class TestUpdateShowsAndRelatedCallsLineup:
                 assert comedians_inserted == 3
                 assert lineup_items_added == 7
 
-    def test_update_show_lineups_clears_show_name_cache_after_comedian_insert(self):
+    def test_update_show_lineups_clears_cache_without_creating_comedians(self):
         h = _make_show_handler()
         comedian = _make_comedian_stub("Alice Smith", "uuid-alice")
         show = SimpleNamespace(
@@ -579,7 +580,7 @@ class TestUpdateShowsAndRelatedCallsLineup:
         ):
             result = h.update_show_lineups([show])
 
-        assert result == (1, 1)
+        assert result == (0, 1)
         h.lineup_handler.clear_show_name_comedian_cache.assert_called_once_with()
 
 

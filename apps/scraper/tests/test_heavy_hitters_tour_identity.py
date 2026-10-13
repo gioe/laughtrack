@@ -176,6 +176,7 @@ def test_repeat_ingestion_uses_real_hidden_name_filter_and_preserves_real_perfor
     handler.lineup_handler.get_comedians_from_show_names.return_value = {}
     handler.lineup_handler.batch_update_lineups.return_value = (4, 0)
     handler.comedian_handler = MagicMock()
+    handler.comedian_handler.stage_identity_candidates.side_effect = lambda items, **kwargs: {c.uuid: c for c in items}
     handler.comedian_handler._filter_denied_comedians.side_effect = comic_handler._filter_denied_comedians
     handler.comedian_handler._filter_false_positive_comedians.side_effect = list
     handler.comedian_handler.insert_comedians.return_value = []
@@ -203,6 +204,6 @@ def test_repeat_ingestion_uses_real_hidden_name_filter_and_preserves_real_perfor
             handler.comedian_handler.insert_comedians.assert_not_called()
         else:
             assert all(
-                c.name != "Heavy Hitters Tour" for c in handler.comedian_handler.insert_comedians.call_args.args[0]
+                c.name != "Heavy Hitters Tour" for c in handler.comedian_handler.stage_identity_candidates.call_args.args[0]
             )
     assert comic_handler.execute_with_cursor.call_count == 4

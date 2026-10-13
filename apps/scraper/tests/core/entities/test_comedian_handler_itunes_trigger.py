@@ -68,6 +68,7 @@ def _make_stub_comedian(name: str, uuid: str = "stub-uuid") -> Comedian:
 def _make_handler_with_inserted_row(inserted_row: dict) -> ComedianHandler:
     """Return a handler whose insert_comedians simulates one new comedian inserted."""
     handler = ComedianHandler.__new__(ComedianHandler)
+    handler.stage_identity_candidates = MagicMock(side_effect=lambda items: {c.uuid: c for c in items})
     handler.execute_with_cursor = MagicMock()
     handler.execute_batch_operation = MagicMock(return_value=[inserted_row])
 
@@ -203,6 +204,7 @@ class TestItunesTriggerOnInsert:
     def test_no_inserted_rows_skips_trigger(self, itunes_module):
         """When insert returns no rows (all existed), the adapter is not called."""
         handler = ComedianHandler.__new__(ComedianHandler)
+        handler.stage_identity_candidates = MagicMock(side_effect=lambda items: {c.uuid: c for c in items})
         handler.execute_with_cursor = MagicMock()
         handler.execute_batch_operation = MagicMock(return_value=[])
 

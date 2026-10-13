@@ -57,7 +57,7 @@ def _make_stub(name: str) -> Comedian:
     c = Comedian.__new__(Comedian)
     # Set defaults matching the dataclass definition
     c.name = name
-    c.uuid = None
+    c.uuid = name.lower()
     c.sold_out_shows = 0
     c.total_shows = 0
     c.instagram_followers = None
@@ -199,6 +199,7 @@ class TestComedianInsertTuple:
 def _make_handler() -> ComedianHandler:
     """Return a ComedianHandler with all DB methods replaced by MagicMocks."""
     handler = ComedianHandler.__new__(ComedianHandler)
+    handler.stage_identity_candidates = MagicMock(side_effect=lambda items: {c.uuid: c for c in items})
     handler.execute_with_cursor = MagicMock()
     handler.execute_batch_operation = MagicMock()
     return handler

@@ -58,7 +58,9 @@ class ComedianQueries:
     # counts, social accounts, and show stats for established comedians are preserved.
     BATCH_ADD_COMEDIANS = '''
         INSERT INTO comedians (uuid, name, sold_out_shows, total_shows)
-        VALUES %s
+        SELECT v.* FROM (VALUES %s) v(uuid,name,sold_out_shows,total_shows)
+        WHERE EXISTS(SELECT 1 FROM comedians c WHERE c.uuid=v.uuid
+          AND c.identity_validated_at IS NOT NULL AND c.visible AND c.parent_comedian_id IS NULL)
         ON CONFLICT (uuid) DO NOTHING
         RETURNING id, uuid, name
     '''

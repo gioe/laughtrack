@@ -106,10 +106,11 @@ def test_comedian_write_boundary_does_not_insert_cancelled_status_name():
     handler.execute_batch_operation.assert_not_called()
 
 
-def test_comedian_write_boundary_still_inserts_valid_name():
+def test_comedian_write_boundary_accepts_only_reviewed_valid_name():
     handler = ComedianHandler.__new__(ComedianHandler)
     handler.execute_with_cursor = MagicMock(return_value=[])
     handler.execute_batch_operation = MagicMock(return_value=[{"uuid": "uuid-real-comic"}])
+    handler.stage_identity_candidates = MagicMock(side_effect=lambda items: {c.uuid: c for c in items})
 
     result = handler.insert_comedians([_make_comedian("Real Comic")])
 

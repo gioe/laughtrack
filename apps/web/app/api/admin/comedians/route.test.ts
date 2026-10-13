@@ -631,6 +631,8 @@ describe("POST /api/admin/comedians", () => {
             data: {
                 name: "New Comic",
                 uuid: "a9c922c2baff2c5e9ac9b607ddb34c65",
+                identityValidatedAt: expect.any(Date),
+                identityValidatedBy: "profile-1",
             },
             select: expect.any(Object),
         });

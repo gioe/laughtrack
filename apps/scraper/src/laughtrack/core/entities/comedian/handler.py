@@ -391,6 +391,10 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
                     Logger.info("insert_comedians: all candidates were on the deny list; nothing inserted")
                     return []
 
+            resolved = self.stage_identity_candidates(comedians)
+            comedians = list({resolved[c.uuid].uuid: resolved[c.uuid] for c in comedians if c.uuid in resolved}.values())
+            if not comedians:
+                return []
             items = [comedian.to_insert_tuple() for comedian in comedians]
             template = BatchTemplateGenerator.generate_dynamic_template(items)
             results = self.execute_batch_operation(
@@ -422,6 +426,62 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         except Exception as e:
             Logger.error(f"Error inserting comedians: {str(e)}")
             raise
+
+    def stage_identity_candidates(self, comedians, *, shows=None):
+        """Persist idempotent candidate observations and resolve human-approved identities.
+
+        Rejected decisions survive repeated scrapes. No extraction heuristic can
+        create or validate a canonical comedian here. Existing unvalidated profiles
+        may be suggested in admin, but cannot produce new inferred lineup links.
+        """
+        import hashlib
+        candidates = {c.uuid: c for c in comedians if isinstance(c.uuid, str) and c.name}
+        if not candidates:
+            return {}
+        with self.transaction() as conn:
+            self.execute_batch_operation(
+                """INSERT INTO comedian_identity_candidates(uuid,name)
+                SELECT v.uuid,v.name FROM (VALUES %s) v(uuid,name)
+                WHERE NOT EXISTS(SELECT 1 FROM comedians c WHERE c.uuid=v.uuid
+                  AND c.visible AND c.parent_comedian_id IS NULL AND c.identity_validated_at IS NOT NULL)
+                AND NOT EXISTS(SELECT 1 FROM comedians c WHERE c.uuid=v.uuid AND NOT c.visible)
+                AND NOT EXISTS(SELECT 1 FROM comedian_deny_list d WHERE
+                  lower(btrim(regexp_replace(replace(d.name,chr(160),' '),'[[:space:]]+',' ','g')))=
+                  lower(btrim(regexp_replace(replace(v.name,chr(160),' '),'[[:space:]]+',' ','g'))))
+                ON CONFLICT(uuid) DO NOTHING""",
+                [(c.uuid, c.name) for c in candidates.values()], conn=conn,
+            )
+            evidence = {}
+            for show in shows or []:
+                for c in show.lineup:
+                    if c.uuid not in candidates:
+                        continue
+                    source = str(getattr(show, "last_scraped_by", None) or "unknown")
+                    url = str(getattr(show, "show_page_url", None) or "")
+                    context = f"Event: {show.name or ''}\n{show.description or ''}"[:12000]
+                    # Do not label generic platform artist fields as verified performers.
+                    kind = "extracted_lineup"
+                    fingerprint = hashlib.sha256(f"{c.uuid}|{show.id}|{url}|{source}|{kind}|{context}".encode()).hexdigest()
+                    evidence[fingerprint] = (fingerprint, c.uuid, show.id, url, source, kind, c.name, context)
+            if evidence:
+                self.execute_batch_operation(
+                    """INSERT INTO comedian_identity_evidence(fingerprint,candidate_uuid,show_id,source_url,source_key,extraction_kind,raw_name,context)
+                    SELECT v.* FROM (VALUES %s) v(fingerprint,candidate_uuid,show_id,source_url,source_key,extraction_kind,raw_name,context)
+                    WHERE EXISTS(SELECT 1 FROM comedian_identity_candidates x WHERE x.uuid=v.candidate_uuid)
+                    ON CONFLICT(fingerprint) DO UPDATE SET last_seen_at=now()""",
+                    list(evidence.values()), template="(%s,%s,%s::integer,%s,%s,%s,%s,%s)", conn=conn,
+                )
+            rows = self.execute_with_cursor(
+                """SELECT input.uuid AS candidate_uuid,c.* FROM unnest(%s::text[]) input(uuid)
+                LEFT JOIN comedian_identity_candidates candidate ON candidate.uuid=input.uuid
+                JOIN comedians c ON c.id=candidate.canonical_comedian_id OR
+                  (c.uuid=input.uuid AND candidate.uuid IS NULL)
+                WHERE (candidate.status='accepted' OR candidate.uuid IS NULL)
+                  AND c.identity_validated_at IS NOT NULL AND c.visible AND c.parent_comedian_id IS NULL
+                  AND NOT EXISTS(SELECT 1 FROM comedian_deny_list d WHERE lower(btrim(regexp_replace(replace(d.name,chr(160),' '),'[[:space:]]+',' ','g')))=lower(btrim(regexp_replace(replace(c.name,chr(160),' '),'[[:space:]]+',' ','g'))))""",
+                (list(candidates),), return_results=True, conn=conn,
+            )
+        return {row["candidate_uuid"]: Comedian.from_db_row(row) for row in rows or []}
 
     def _trigger_itunes_discovery_for_inserted(
         self, inserted_rows: List[DictRow]

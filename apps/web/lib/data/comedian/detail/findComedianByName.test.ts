@@ -177,6 +177,8 @@ function makeComedianRow(
         websiteConfidence: null,
         websiteScrapingUrlConfidence: null,
         tourSourceReviewEvidence: null,
+        identityValidatedAt: null,
+        identityValidatedBy: null,
         ...defaultComedianWebsiteHealthFields,
         lineupItems: [
             {

@@ -1083,9 +1083,19 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
                     data: {
                         name,
                         uuid,
+                        identityValidatedAt: new Date(),
+                        identityValidatedBy: profileId,
                     },
                     select: comedianSnapshotSelect,
                 });
+
+                await tx.$queryRaw`
+                    INSERT INTO comedian_identity_candidates(uuid,name,status,canonical_comedian_id,reviewed_by,reviewed_at,reason,version)
+                    VALUES(${uuid},${name},'accepted',${created.id},${profileId},now(),'Created by an administrator',1)
+                    ON CONFLICT(uuid) DO UPDATE SET status='accepted',canonical_comedian_id=EXCLUDED.canonical_comedian_id,
+                    reviewed_by=EXCLUDED.reviewed_by,reviewed_at=now(),reason=EXCLUDED.reason,version=comedian_identity_candidates.version+1,updated_at=now()
+                    RETURNING uuid
+                `;
 
                 await writeAdminActionAudit(tx, {
                     actorProfileId: profileId,

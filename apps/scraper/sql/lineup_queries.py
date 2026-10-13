@@ -15,7 +15,9 @@ class LineupQueries:
         INSERT INTO lineup_items (show_id, comedian_id)
         SELECT v.show_id, v.comedian_id
         FROM (VALUES %s) AS v(show_id, comedian_id)
-        WHERE EXISTS (SELECT 1 FROM comedians c WHERE c.uuid = v.comedian_id)
+        WHERE EXISTS (SELECT 1 FROM comedians c WHERE c.uuid = v.comedian_id
+          AND c.identity_validated_at IS NOT NULL AND c.visible AND c.parent_comedian_id IS NULL
+          AND NOT EXISTS(SELECT 1 FROM comedian_deny_list d WHERE lower(btrim(regexp_replace(replace(d.name,chr(160),' '),'[[:space:]]+',' ','g')))=lower(btrim(regexp_replace(replace(c.name,chr(160),' '),'[[:space:]]+',' ','g')))))
         ON CONFLICT (show_id, comedian_id) DO NOTHING;
     """
     
@@ -66,6 +68,7 @@ class LineupQueries:
             FROM comedians c
             LEFT JOIN comedians parent ON parent.id = c.parent_comedian_id
             WHERE c.name IS NOT NULL
+              AND (CASE WHEN parent.id IS NOT NULL THEN parent.identity_validated_at ELSE c.identity_validated_at END) IS NOT NULL
               AND (
                   array_length(regexp_split_to_array(trim(c.name), '[[:space:]]+'), 1) >= 2
                   OR trim(c.name) ~ '[[:alpha:]][[:alpha:]''’]*[-''’][[:alpha:]''’]*'
@@ -79,7 +82,7 @@ class LineupQueries:
                       )
                   )
               )
-              AND lower(trim(c.name)) NOT IN (
+              AND lower(btrim(regexp_replace(replace(c.name,chr(160),' '),'[[:space:]]+',' ','g'))) NOT IN (
                   'tba',
                   'tbd',
                   'to be announced',

@@ -1,0 +1,51 @@
+{
+  "before": [
+    {
+      "id": 2003397,
+      "uuid": "df4d05f04840ffe5506ac689f63c36d6",
+      "name": "A Charlie Brown Christmas",
+      "visible": true,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2147696,
+      "uuid": "d2d7d2cbeb0dda3f73d3558931a6abbe",
+      "name": "A Dreadful...",
+      "visible": true,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2225251,
+      "uuid": "bb69f0a8aa7875f19197677d3ccaa6cb",
+      "name": "a first-generation Pakistani-Chilean",
+      "visible": true,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2404566,
+      "uuid": "b0f00a3cc550805c447e9f50c5259a85",
+      "name": "A Magical Cirque Christmas (Touring)",
+      "visible": true,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2468634,
+      "uuid": "c64a6053fe56181f538d1084e67c93e9",
+      "name": "A BOOMER CHRISTMAS CAROL",
+      "visible": true,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    }
+  ],
+  "lineup_count": 6,
+  "show_count": 6
+}

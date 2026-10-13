@@ -24,6 +24,7 @@ def _handler(title_matches) -> ShowHandler:
     handler.tag_handler = MagicMock()
     handler.lineup_handler = MagicMock()
     handler.comedian_handler = MagicMock()
+    handler.comedian_handler.stage_identity_candidates.side_effect = lambda items, **kwargs: {c.uuid: c for c in items}
     handler.lineup_handler.get_lineup.return_value = {}
     handler.lineup_handler.get_comedians_from_show_names.return_value = title_matches
     handler.lineup_handler.batch_update_lineups.return_value = (1, 0)
@@ -58,7 +59,7 @@ def test_existing_canonical_replaces_decorated_title_without_inventing_unknown_i
         ("Carie Karavas", "8643d3c3e078bef376480f7cda95925b")
     ]
     assert unknown_show.lineup == []
-    inserted = handler.comedian_handler.insert_comedians.call_args.args[0]
+    inserted = handler.comedian_handler.stage_identity_candidates.call_args.args[0]
     assert [(comedian.name, comedian.uuid) for comedian in inserted] == [
         ("Carie Karavas", "8643d3c3e078bef376480f7cda95925b")
     ]
@@ -80,7 +81,7 @@ def test_decorated_source_resolves_before_both_persistence_steps(source_name, ti
     handler.update_show_lineups([show])
 
     assert show.lineup == [canonical]
-    inserted = handler.comedian_handler.insert_comedians.call_args.args[0]
+    inserted = handler.comedian_handler.stage_identity_candidates.call_args.args[0]
     assert [(c.name, c.uuid) for c in inserted] == [("Steve Marshall", "existing-steve")]
     persisted = handler.lineup_handler.batch_update_lineups.call_args.args[0]
     assert persisted[0].lineup == [canonical]
@@ -96,7 +97,7 @@ def test_historical_decorated_identity_from_title_matching_is_collapsed():
     handler = _handler({show.name: [canonical, polluted]})
     handler.update_show_lineups([show])
     assert show.lineup == [canonical]
-    assert handler.comedian_handler.insert_comedians.call_args.args[0] == [canonical]
+    assert handler.comedian_handler.stage_identity_candidates.call_args.args[0] == [canonical]
 
 
 @pytest.mark.parametrize("source_name, known_name", [
