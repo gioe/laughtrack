@@ -13,7 +13,6 @@ export type AdminClubStatus = {
 
 export type AdminClubDraft = {
     status: string;
-    visible: boolean;
     clubType: string;
     closedAt: string;
 };
@@ -53,7 +52,6 @@ function dateInputValue(iso: string | null) {
 function initialDraft(club: AdminClubListItem): AdminClubDraft {
     return {
         status: club.status,
-        visible: club.visible,
         clubType: club.clubType,
         closedAt: dateInputValue(club.closedAt),
     };
@@ -171,7 +169,6 @@ export function useAdminClubRowController(
     const canonicalIconUrl = currentIconUrl(club);
     const statusDirty =
         draft.status !== club.status ||
-        draft.visible !== club.visible ||
         draft.clubType !== club.clubType ||
         draft.closedAt !== dateInputValue(club.closedAt);
     const nameDirty = normalizedClubName(name) !== club.name;
@@ -247,7 +244,6 @@ export function useAdminClubRowController(
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         status: draft.status,
-                        visible: draft.visible,
                         clubType: draft.clubType,
                         closedAt: draft.closedAt || null,
                     }),

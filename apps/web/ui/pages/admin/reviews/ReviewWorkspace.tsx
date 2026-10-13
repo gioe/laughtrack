@@ -218,7 +218,10 @@ export default function ReviewWorkspace({
         )
             return;
         if (definition.reasonRequired && !reason.trim()) return;
-        if (definition.queued && !confirmed) {
+        if (
+            (definition.queued || definition.confirmationRequired) &&
+            !confirmed
+        ) {
             setConfirmation(action);
             return;
         }
@@ -770,16 +773,15 @@ export default function ReviewWorkspace({
                                             aria-label="Confirm review"
                                         >
                                             <h3 className="font-semibold">
-                                                Confirm {confirmation} for this
-                                                occurrence
+                                                Confirm {confirmation}
                                             </h3>
                                             <p>
                                                 {item.title} · {item.subtitle}
                                             </p>
                                             <p>{reason}</p>
                                             <p className="text-sm text-muted-foreground">
-                                                The worker rechecks the evidence
-                                                before applying this decision.
+                                                {definition.confirmationNotice ??
+                                                    "The worker rechecks the evidence before applying this decision."}
                                             </p>
                                             <button
                                                 className={button}

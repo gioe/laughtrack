@@ -18,7 +18,13 @@ import {
 
 type Tx = Pick<Prisma.TransactionClient, "$queryRaw">;
 type Row = Record<string, any>;
-export class ReviewConflict extends Error {}
+import { ReviewConflict } from "./reviewErrors";
+export { ReviewConflict } from "./reviewErrors";
+import {
+    listVisibilityReviews,
+    getVisibilityReview,
+    decideVisibilityReview,
+} from "./visibilityReviews";
 export const reviewFilters = z.object({
     workflow: z.enum(reviewWorkflows).default("comedian_identity"),
     status: z
@@ -27,6 +33,8 @@ export const reviewFilters = z.object({
             "accepted",
             "rejected",
             "all",
+            "active",
+            "blocked",
             "review",
             "accept",
             "approve",
@@ -49,7 +57,14 @@ export const reviewSubmission = z
         workflow: z.enum(reviewWorkflows),
         id: z.string().min(1).max(100),
         token: z.string().regex(/^[a-f0-9]{64}$/),
-        action: z.enum(["approve", "link", "reject", "defer"]),
+        action: z.enum([
+            "approve",
+            "link",
+            "reject",
+            "defer",
+            "block",
+            "unblock",
+        ]),
         requestId: z.string().uuid().optional(),
         name: z.string().trim().min(1).max(200).optional(),
         targetId: z.number().int().positive().optional(),
@@ -116,6 +131,11 @@ export async function listReviews(
         )
     )
         throw new ReviewConflict("Invalid status for this review type.");
+    if (
+        f.workflow === "comedian_visibility" ||
+        f.workflow === "club_visibility"
+    )
+        return listVisibilityReviews(f.workflow, f.status, f.q, f.page);
     if (f.workflow === "event_eligibility")
         return listEventInbox(
             {
@@ -175,6 +195,8 @@ export async function getReview(
     workflow: ReviewWorkflow,
     id: string,
 ): Promise<ReviewItem | null> {
+    if (workflow === "comedian_visibility" || workflow === "club_visibility")
+        return getVisibilityReview(workflow, id);
     if (workflow === "event_eligibility") {
         if (!/^[1-9]\d*$/.test(id) || Number(id) > 2147483647)
             throw new ReviewConflict("Invalid event ID.");
@@ -271,6 +293,11 @@ export async function decideReview(
         !reviewDefinitions[x.workflow].actions.some((a) => a.value === x.action)
     )
         throw new ReviewConflict("Invalid action for this review type.");
+    if (
+        x.workflow === "comedian_visibility" ||
+        x.workflow === "club_visibility"
+    )
+        return decideVisibilityReview({ ...x, workflow: x.workflow }, actor);
     if (x.workflow === "event_eligibility") {
         if (
             !x.requestId ||

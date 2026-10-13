@@ -64,8 +64,6 @@ type AttributedPodcast = AdminComedianListItem["attributedPodcasts"][number];
 type PodcastCandidateReview =
     AdminComedianListItem["podcastCandidateReviews"][number];
 
-const DEFAULT_BLOCK_REASON = "not a comic";
-
 function acceptedAttributedPodcasts(row: AdminComedianListItem) {
     return row.attributedPodcasts.filter(
         (podcast) => podcast.reviewStatus === "accepted",
@@ -477,76 +475,6 @@ export function AdminComedianRow({
                       : instagramRefresh?.status === "failed"
                         ? `${row.name} record saved, but Instagram followers could not be refreshed.`
                         : `${row.name} record saved.`,
-        });
-        startTransition(() => router.refresh());
-    }
-
-    async function blockComedian(row: AdminComedianListItem) {
-        setStatus({ kind: "idle" });
-        setPendingId(row.id);
-
-        let body: { comedian: AdminComedianListItem };
-        try {
-            body = await adminRequest<{ comedian: AdminComedianListItem }>(
-                "/api/admin/comedians",
-                {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        action: "blocklist-add",
-                        comedianId: row.id,
-                        reason: DEFAULT_BLOCK_REASON,
-                    }),
-                },
-            );
-        } catch (error) {
-            setPendingId(null);
-            setStatus({
-                kind: "error",
-                message:
-                    error instanceof Error ? error.message : "Network error",
-            });
-            return;
-        }
-
-        setPendingId(null);
-        onRowChange(body.comedian);
-        setStatus({ kind: "ok", message: `${row.name} added to blocklist.` });
-        startTransition(() => router.refresh());
-    }
-
-    async function unblockComedian(row: AdminComedianListItem) {
-        setStatus({ kind: "idle" });
-        setPendingId(row.id);
-
-        let body: { comedian: AdminComedianListItem };
-        try {
-            body = await adminRequest<{ comedian: AdminComedianListItem }>(
-                "/api/admin/comedians",
-                {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        action: "blocklist-remove",
-                        comedianId: row.id,
-                    }),
-                },
-            );
-        } catch (error) {
-            setPendingId(null);
-            setStatus({
-                kind: "error",
-                message:
-                    error instanceof Error ? error.message : "Network error",
-            });
-            return;
-        }
-
-        setPendingId(null);
-        onRowChange(body.comedian);
-        setStatus({
-            kind: "ok",
-            message: `${row.name} removed from blocklist.`,
         });
         startTransition(() => router.refresh());
     }
@@ -1138,9 +1066,7 @@ export function AdminComedianRow({
                 <BlockedComedianRow
                     row={row}
                     open={rowOpen}
-                    disabled={disabled || pendingId === row.id}
                     onToggle={() => toggleComedianRow(row.id)}
-                    onUnblock={() => void unblockComedian(row)}
                 />
             ) : (
                 <li className="px-4 py-3">
@@ -1292,21 +1218,12 @@ export function AdminComedianRow({
                                     <div className="mb-2 font-dmSans text-caption font-semibold uppercase tracking-wide text-muted-foreground">
                                         Blocklist state
                                     </div>
-                                    <label className="inline-flex w-fit items-center gap-2 rounded-md border border-strong bg-surface-elevated px-3 py-2 font-dmSans text-body font-semibold text-foreground">
-                                        <input
-                                            type="checkbox"
-                                            checked={false}
-                                            disabled={
-                                                disabled || pendingId === row.id
-                                            }
-                                            onChange={() =>
-                                                void blockComedian(row)
-                                            }
-                                            aria-label={`Blocked status for ${row.name}`}
-                                            className="h-4 w-4 accent-red-800 disabled:accent-soft-charcoal"
-                                        />
-                                        Blocked
-                                    </label>
+                                    <a
+                                        className="text-copper underline"
+                                        href={`/admin/reviews?workflow=comedian_visibility&id=${row.id}`}
+                                    >
+                                        Review visibility
+                                    </a>
                                 </div>
                             </ComedianProfileSection>
                             <div

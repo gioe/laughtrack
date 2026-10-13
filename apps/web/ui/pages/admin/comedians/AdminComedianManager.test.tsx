@@ -349,8 +349,8 @@ describe("AdminComedianManager", () => {
 
         expect(within(topRow).getByLabelText("Comedian name")).toBeTruthy();
         expect(
-            within(topRow).getByRole("checkbox", {
-                name: "Blocked status for Parent Comic",
+            within(topRow).getByRole("link", {
+                name: "Review visibility",
             }),
         ).toBeTruthy();
         expect(
@@ -1813,105 +1813,19 @@ describe("AdminComedianManager", () => {
 
     // 15s timeout: see TASK-2658 rationale block above "reviews podcast host
     // candidates from the comedian row" — parallel-suite CPU starvation.
-    it("blocks a comedian with the row toggle and default reason", async () => {
-        vi.mocked(global.fetch).mockResolvedValueOnce({
-            ok: true,
-            json: async () => ({
-                ok: true,
-                comedian: {
-                    ...comedians[0],
-                    isBlocked: true,
-                    blockReason: "not a comic",
-                    blockAddedBy: "profile-1",
-                    blockAddedAt: "2026-05-19T12:00:00.000Z",
-                },
-            }),
-        } as never);
+    it("routes blocking to Review Inbox instead of mutating from the comedian tab", () => {
         render(<AdminComedianManager comedians={comedians} />);
         expandAllRows();
-
-        expect(screen.queryByLabelText("Blocklist reason")).toBeNull();
-        expect(
-            screen.queryByRole("button", { name: "Add to blocklist" }),
-        ).toBeNull();
-
-        const blocklistGroup = screen.getByRole("group", {
+        const group = screen.getByRole("group", {
             name: "Name and blocklist status for Alias Comic",
         });
-
-        fireEvent.click(
-            within(blocklistGroup).getByRole("checkbox", {
-                name: "Blocked status for Alias Comic",
-            }),
-        );
-
-        await waitFor(() => {
-            expect(global.fetch).toHaveBeenCalledWith(
-                "/api/admin/comedians",
-                expect.objectContaining({
-                    method: "PATCH",
-                    body: JSON.stringify({
-                        action: "blocklist-add",
-                        comedianId: 2,
-                        reason: "not a comic",
-                    }),
-                }),
-            );
-        });
-    }, 15000);
-
-    it("unblocks a comedian with the row toggle", async () => {
-        vi.mocked(global.fetch).mockResolvedValueOnce({
-            ok: true,
-            json: async () => ({
-                ok: true,
-                comedian: {
-                    ...comedians[1],
-                    isBlocked: false,
-                    blockReason: null,
-                    blockAddedBy: null,
-                    blockAddedAt: null,
-                },
-            }),
-        } as never);
-        render(
-            <AdminComedianManager
-                comedians={[
-                    comedians[0],
-                    {
-                        ...comedians[1],
-                        isBlocked: true,
-                        blockReason: "Venue, not a person",
-                        blockAddedBy: "profile-1",
-                        blockAddedAt: "2026-05-19T12:00:00.000Z",
-                    },
-                ]}
-            />,
-        );
-        expandAllRows();
-        fireEvent.change(screen.getByLabelText("Record type"), {
-            target: { value: "blocked" },
-        });
-        expandAllRows();
-
-        fireEvent.click(
-            screen.getByRole("checkbox", {
-                name: "Blocked status for Alias Comic",
-            }),
-        );
-
-        await waitFor(() => {
-            expect(global.fetch).toHaveBeenCalledWith(
-                "/api/admin/comedians",
-                expect.objectContaining({
-                    method: "PATCH",
-                    body: JSON.stringify({
-                        action: "blocklist-remove",
-                        comedianId: 2,
-                    }),
-                }),
-            );
-        });
+        expect(
+            within(group)
+                .getByRole("link", { name: "Review visibility" })
+                .getAttribute("href"),
+        ).toBe("/admin/reviews?workflow=comedian_visibility&id=2");
+        expect(within(group).queryByRole("checkbox")).toBeNull();
+        expect(global.fetch).not.toHaveBeenCalled();
     });
 
     it("shows blocked comedians as a minimal row with unblock available", () => {
@@ -1937,15 +1851,13 @@ describe("AdminComedianManager", () => {
         expect(
             screen.getByRole("heading", { level: 2, name: "Alias Comic" }),
         ).toBeTruthy();
-        expect(screen.getAllByText("Blocked").length).toBeGreaterThan(1);
+        expect(screen.getAllByText("Blocked").length).toBeGreaterThan(0);
         expect(screen.getByText("Venue, not a person")).toBeTruthy();
         expect(
-            (
-                screen.getByRole("checkbox", {
-                    name: "Blocked status for Alias Comic",
-                }) as HTMLInputElement
-            ).checked,
-        ).toBe(true);
+            screen
+                .getByRole("link", { name: "Review visibility" })
+                .getAttribute("href"),
+        ).toBe("/admin/reviews?workflow=comedian_visibility&id=2");
         expect(
             screen.queryByRole("button", { name: "Remove from blocklist" }),
         ).toBeNull();

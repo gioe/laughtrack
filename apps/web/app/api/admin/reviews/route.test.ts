@@ -6,7 +6,10 @@ const mocks = vi.hoisted(() => ({
     decide: vi.fn(),
 }));
 vi.mock("@/lib/auth/requireAdmin", () => ({ requireAdminForApi: mocks.auth }));
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("next/cache", () => ({
+    revalidatePath: vi.fn(),
+    revalidateTag: vi.fn(),
+}));
 vi.mock("@/lib/admin/reviews", async (importOriginal) => ({
     ...(await importOriginal<typeof import("@/lib/admin/reviews")>()),
     listReviews: mocks.list,
@@ -109,3 +112,33 @@ it("returns 202 for queued event decisions with authenticated attribution", asyn
         "admin",
     );
 });
+
+import { revalidateTag } from "next/cache";
+it.each(["comedian_visibility", "club_visibility"])(
+    "attributes %s decisions and invalidates entity caches",
+    async (workflow) => {
+        mocks.decide.mockResolvedValue({
+            notice: "Blocked.",
+            revalidateTags: ["Sample", "club-detail-data"],
+        });
+        const body = {
+            workflow,
+            id: "1",
+            token: "a".repeat(64),
+            action: "block",
+            reason: "Not appropriate for public display",
+        };
+        const response = await POST(
+            new NextRequest("http://localhost/api/admin/reviews", {
+                method: "POST",
+                body: JSON.stringify(body),
+            }),
+        );
+        expect(response.status).toBe(200);
+        expect(mocks.decide).toHaveBeenCalledWith(
+            expect.objectContaining(body),
+            "admin",
+        );
+        expect(revalidateTag).toHaveBeenCalledWith("Sample");
+    },
+);

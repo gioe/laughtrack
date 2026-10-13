@@ -199,21 +199,17 @@ export function AdminClubRow({ club }: { club: AdminClubListItem }) {
                         ))}
                     </select>
                 </label>
-                <label className="grid gap-1 font-dmSans text-body font-semibold text-foreground">
-                    Visibility
-                    <select
-                        value={draft.visible ? "visible" : "blocked"}
-                        onChange={(event) =>
-                            patchDraft({
-                                visible: event.target.value === "visible",
-                            })
-                        }
-                        className="rounded-md border border-input bg-background px-3 py-2 text-foreground outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
+                <div className="grid gap-1 font-dmSans text-body">
+                    <span className="font-semibold">
+                        Visibility: {club.visible ? "Active" : "Blocked"}
+                    </span>
+                    <a
+                        className="text-copper underline"
+                        href={`/admin/reviews?workflow=club_visibility&id=${club.id}`}
                     >
-                        <option value="visible">visible</option>
-                        <option value="blocked">blocked</option>
-                    </select>
-                </label>
+                        Review visibility
+                    </a>
+                </div>
                 <label className="grid gap-1 font-dmSans text-body font-semibold text-foreground">
                     Type
                     <select

@@ -1,4 +1,5 @@
 export const PGLITE_TEST_FILES = [
+    "lib/admin/visibilityReviews.test.ts",
     "lib/admin/reviews.test.ts",
     "lib/admin/eventReviews.test.ts",
     "app/api/admin/podcast-ownership-reviews/route.test.ts",

@@ -289,3 +289,95 @@ it("uses the same evidence and action panel for podcast relationships", async ()
     );
     await screen.findByRole("button", { name: "Undo last decision" });
 });
+
+it.each(["comedian_visibility", "club_visibility"])(
+    "reviews %s blocking with reason, confirmation, and attributed history",
+    async (workflow) => {
+        const review = {
+            ...item,
+            id: "9",
+            workflow,
+            status: "active",
+            actions: ["block"],
+            matches: [],
+            history: [
+                {
+                    id: "h",
+                    action: "Previous review",
+                    reason: "Earlier decision",
+                    actor: "admin",
+                    createdAt: "2026-10-12T00:00:00Z",
+                    undone: false,
+                },
+            ],
+        };
+        mocks.request.mockImplementation(async (url, init) =>
+            init?.method === "POST"
+                ? { notice: "Robin Tran: blocked." }
+                : url.includes("id=")
+                  ? review
+                  : { items: [review], total: 1, page: 1 },
+        );
+        render(<ReviewWorkspace initialFilters={{ workflow, id: "9" }} />);
+        await screen.findByText("Featuring Robin Tran");
+        expect(
+            (screen.getByRole("button", { name: "Block" }) as HTMLButtonElement)
+                .disabled,
+        ).toBe(true);
+        fireEvent.change(screen.getByLabelText(/Decision note/), {
+            target: { value: "Duplicate public record" },
+        });
+        fireEvent.click(screen.getByRole("button", { name: "Block" }));
+        expect(
+            mocks.request.mock.calls.some(([, i]) => i?.method === "POST"),
+        ).toBe(false);
+        expect(
+            screen.getByText(/changes public visibility immediately/),
+        ).toBeTruthy();
+        fireEvent.click(screen.getByRole("button", { name: "Confirm review" }));
+        await screen.findByText("Robin Tran: blocked.");
+        const post = mocks.request.mock.calls.find(
+            ([, i]) => i?.method === "POST",
+        )!;
+        expect(JSON.parse(post[1].body)).toEqual({
+            workflow,
+            id: "9",
+            token: "token",
+            action: "block",
+            reason: "Duplicate public record",
+        });
+        expect(
+            screen.queryByRole("button", { name: "Undo last decision" }),
+        ).toBeNull();
+    },
+);
+it("offers unblock for a blocked record and preserves evidence on conflict", async () => {
+    const review = {
+        ...item,
+        workflow: "club_visibility",
+        status: "blocked",
+        actions: ["unblock"],
+        matches: [],
+    };
+    mocks.request.mockImplementation(async (url, init) => {
+        if (init?.method === "POST")
+            throw Error("This item changed. Refresh it before deciding.");
+        return url.includes("id=")
+            ? review
+            : { items: [review], total: 1, page: 1 };
+    });
+    render(
+        <ReviewWorkspace
+            initialFilters={{ workflow: "club_visibility", status: "blocked" }}
+        />,
+    );
+    await screen.findByText("Featuring Robin Tran");
+    expect(screen.queryByRole("button", { name: "Block" })).toBeNull();
+    fireEvent.change(screen.getByLabelText(/Decision note/), {
+        target: { value: "Validated venue" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Unblock" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm review" }));
+    await screen.findByText("This item changed. Refresh it before deciding.");
+    expect(screen.getByText("Featuring Robin Tran")).toBeTruthy();
+});

@@ -6,9 +6,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 type Props = {
     row: AdminComedianListItem;
     open: boolean;
-    disabled: boolean;
     onToggle: () => void;
-    onUnblock: () => void;
 };
 
 function formatDate(iso: string | null) {
@@ -33,13 +31,7 @@ function ComedianRowHeadshot({ row }: { row: AdminComedianListItem }) {
     );
 }
 
-export function BlockedComedianRow({
-    row,
-    open,
-    disabled,
-    onToggle,
-    onUnblock,
-}: Props) {
+export function BlockedComedianRow({ row, open, onToggle }: Props) {
     return (
         <li className="px-4 py-3">
             <button
@@ -89,17 +81,12 @@ export function BlockedComedianRow({
                             : ""}
                     </div>
                 </div>
-                <label className="inline-flex w-fit items-center gap-2 rounded-md border border-red-800/35 bg-surface-elevated px-3 py-2 font-dmSans text-body font-semibold text-red-300">
-                    <input
-                        type="checkbox"
-                        checked
-                        disabled={disabled}
-                        onChange={() => void onUnblock()}
-                        aria-label={`Blocked status for ${row.name}`}
-                        className="h-4 w-4 accent-red-800 disabled:accent-soft-charcoal"
-                    />
-                    Blocked
-                </label>
+                <a
+                    className="text-copper underline"
+                    href={`/admin/reviews?workflow=comedian_visibility&id=${row.id}`}
+                >
+                    Review visibility
+                </a>
             </div>
         </li>
     );

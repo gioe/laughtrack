@@ -2,6 +2,8 @@ export const reviewWorkflows = [
     "comedian_identity",
     "podcast_association",
     "event_eligibility",
+    "comedian_visibility",
+    "club_visibility",
 ] as const;
 export type ReviewWorkflow = (typeof reviewWorkflows)[number];
 export type ReviewStatus =
@@ -16,12 +18,21 @@ export type ReviewStatus =
     | "stale_review"
     | "stale_policy"
     | "awaiting_observation"
-    | "all";
-export type ReviewAction = "approve" | "link" | "reject" | "defer";
+    | "all"
+    | "active"
+    | "blocked";
+export type ReviewAction =
+    | "approve"
+    | "link"
+    | "reject"
+    | "defer"
+    | "block"
+    | "unblock";
 export type ReviewResult = {
     decisionId?: string;
     status?: string;
     notice?: string;
+    revalidateTags?: string[];
 };
 export type ReviewEvidence = {
     id: string;
@@ -76,6 +87,8 @@ export const workflowLabels: Record<ReviewWorkflow, string> = {
     comedian_identity: "Comedian identity",
     podcast_association: "Podcast relationship",
     event_eligibility: "Event eligibility",
+    comedian_visibility: "Comedian visibility",
+    club_visibility: "Club visibility",
 };
 
 // Each adapter supplies the same item/evidence/history shape. Capabilities keep
@@ -89,9 +102,49 @@ export const reviewDefinitions: Record<
         identityFields: boolean;
         reasonRequired: boolean;
         queued: boolean;
+        confirmationRequired?: boolean;
+        confirmationNotice?: string;
         sourceFilters: boolean;
     }
 > = {
+    comedian_visibility: {
+        statuses: [
+            { value: "all", label: "All records" },
+            { value: "active", label: "Active" },
+            { value: "blocked", label: "Blocked" },
+        ],
+        defaultStatus: "all",
+        actions: [
+            { value: "block", label: "Block" },
+            { value: "unblock", label: "Unblock" },
+        ],
+        identityFields: false,
+        reasonRequired: true,
+        queued: false,
+        sourceFilters: false,
+        confirmationRequired: true,
+        confirmationNotice:
+            "This changes public visibility immediately. You can review the record again to reverse it.",
+    },
+    club_visibility: {
+        statuses: [
+            { value: "all", label: "All records" },
+            { value: "active", label: "Active" },
+            { value: "blocked", label: "Blocked" },
+        ],
+        defaultStatus: "all",
+        actions: [
+            { value: "block", label: "Block" },
+            { value: "unblock", label: "Unblock" },
+        ],
+        identityFields: false,
+        reasonRequired: true,
+        queued: false,
+        sourceFilters: false,
+        confirmationRequired: true,
+        confirmationNotice:
+            "This changes public visibility immediately. You can review the record again to reverse it.",
+    },
     comedian_identity: {
         statuses: [
             { value: "pending", label: "Needs review" },

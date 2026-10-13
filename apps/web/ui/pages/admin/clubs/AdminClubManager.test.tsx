@@ -378,9 +378,12 @@ describe("AdminClubManager", () => {
 
         const statusSelects = screen.getAllByLabelText("Status");
         fireEvent.change(statusSelects[0], { target: { value: "closed" } });
-        fireEvent.change(screen.getAllByLabelText("Visibility")[0], {
-            target: { value: "blocked" },
-        });
+        expect(screen.queryByLabelText("Visibility")).toBeNull();
+        expect(
+            screen
+                .getAllByRole("link", { name: "Review visibility" })[0]
+                .getAttribute("href"),
+        ).toBe("/admin/reviews?workflow=club_visibility&id=10");
         fireEvent.change(screen.getAllByLabelText("Type")[0], {
             target: { value: "festival" },
         });
@@ -400,7 +403,6 @@ describe("AdminClubManager", () => {
                     method: "PATCH",
                     body: JSON.stringify({
                         status: "closed",
-                        visible: false,
                         clubType: "festival",
                         closedAt: "2026-05-19",
                     }),

@@ -12,7 +12,7 @@ import {
     undoReview,
 } from "@/lib/admin/reviews";
 import { reviewWorkflows } from "@/lib/admin/reviewTypes";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 function failure(error: unknown) {
     if (error instanceof z.ZodError)
         return NextResponse.json(
@@ -72,6 +72,11 @@ export async function POST(req: NextRequest) {
                       reviewSubmission.parse(body),
                       auth.context.profileId,
                   );
+        if ("revalidateTags" in result)
+            for (const tag of result.revalidateTags ?? []) revalidateTag(tag);
+        revalidatePath("/club", "layout");
+        revalidatePath("/admin/comedians");
+        revalidatePath("/admin/clubs");
         revalidatePath("/comedian", "layout");
         revalidatePath("/podcast", "layout");
         revalidatePath("/show", "layout");
