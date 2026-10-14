@@ -275,6 +275,7 @@ model Scraper {
 }
 
 model Club {
+  curationIdentity CurationEntity?
   comedyEventCandidates   ComedyEventCandidate[]
   id                      Int                        @id @default(autoincrement())
   name                    String                     @unique
@@ -388,6 +389,7 @@ model ClubImageAsset {
 }
 
 model Comedian {
+  curationIdentity CurationEntity?
   identityValidatedAt DateTime? @map("identity_validated_at") @db.Timestamptz
   identityValidatedBy String? @map("identity_validated_by")
   identityCandidates ComedianIdentityCandidate[]
@@ -545,6 +547,7 @@ model ComedianImageAsset {
 }
 
 model Podcast {
+  curationIdentity CurationEntity?
   id               Int                      @id @default(autoincrement())
   slug             String                   @unique
   source           String
@@ -953,6 +956,7 @@ model SavedShow {
 }
 
 model Show {
+  curationIdentity CurationEntity?
   identityEvidence ComedianIdentityEvidence[]
   comedyEventPublications   ComedyEventPublication[]
   // Explicit source cancellation retains the row and all historical references.
@@ -1602,4 +1606,131 @@ model AdminReviewDecision {
   undoneAt DateTime? @map("undone_at") @db.Timestamptz
   @@index([workflow,itemId,createdAt], map: "admin_review_decisions_item")
   @@map("admin_review_decisions")
+}
+
+// Durable curation records survive deletion of optional public projections.
+// Cross-field checks, append-only/transition triggers and partial indexes live in SQL.
+model CurationEntity {
+ id String @id @default(uuid())
+ kind String
+ identityScope String @default("entity") @map("identity_scope")
+ label String
+ disposition String @default("pending")
+ version Int @default(0)
+ comedianId Int? @unique @map("comedian_id")
+ clubId Int? @unique @map("club_id")
+ showId Int? @unique @map("show_id")
+ podcastId Int? @unique @map("podcast_id")
+ createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+ comedian Comedian? @relation(fields:[comedianId], references:[id], onDelete:SetNull,onUpdate:Restrict)
+ club Club? @relation(fields:[clubId], references:[id], onDelete:SetNull,onUpdate:Restrict)
+ show Show? @relation(fields:[showId], references:[id], onDelete:SetNull,onUpdate:Restrict)
+ podcast Podcast? @relation(fields:[podcastId], references:[id], onDelete:SetNull,onUpdate:Restrict)
+ keys CurationIdentityKey[]
+ outgoing CurationRelationship[] @relation("CurationSource")
+ incoming CurationRelationship[] @relation("CurationTarget")
+ observations CurationObservation[]
+ decisions CurationDecision[]
+ requests CurationRequest[]
+ @@unique([id,kind,identityScope])
+ @@index([kind,disposition,createdAt,id], map:"curation_entities_queue")
+ @@map("curation_entities")
+}
+model CurationIdentityKey {
+ id String @id @default(uuid())
+ entityId String @map("entity_id")
+ entityKind String @map("entity_kind")
+ identityScope String @map("identity_scope")
+ keyType String @map("key_type")
+ namespace String
+ scope String
+ value String
+ createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+ entity CurationEntity @relation(fields:[entityId,entityKind,identityScope],references:[id,kind,identityScope],onDelete:Restrict,onUpdate:Restrict)
+ @@unique([entityKind,namespace,scope,value])
+ @@index([entityId],map:"curation_identity_keys_entity")
+ @@map("curation_identity_keys")
+}
+model CurationRelationship {
+ id String @id @default(uuid())
+ kind String
+ sourceId String @map("source_id")
+ sourceKind String @default("comedian") @map("source_kind")
+ sourceScope String @default("entity") @map("source_scope")
+ targetId String @map("target_id")
+ targetKind String @map("target_kind")
+ targetScope String @default("entity") @map("target_scope")
+ disposition String @default("proposed")
+ version Int @default(0)
+ createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+ source CurationEntity @relation("CurationSource",fields:[sourceId,sourceKind,sourceScope],references:[id,kind,identityScope],onDelete:Restrict,onUpdate:Restrict)
+ target CurationEntity @relation("CurationTarget",fields:[targetId,targetKind,targetScope],references:[id,kind,identityScope],onDelete:Restrict,onUpdate:Restrict)
+ observations CurationObservation[]
+ decisions CurationDecision[]
+ requests CurationRequest[]
+ @@unique([kind,sourceId,targetId])
+ @@index([targetId],map:"curation_relationships_target")
+ @@index([kind,disposition,createdAt,id],map:"curation_relationships_queue")
+ @@map("curation_relationships")
+}
+model CurationGraphLock {
+ id Int @id
+ version BigInt @default(0)
+ @@map("curation_graph_lock")
+}
+model CurationObservation {
+ id String @id @default(uuid())
+ entityId String? @map("entity_id")
+ relationshipId String? @map("relationship_id")
+ source String
+ sourceKey String @map("source_key")
+ fingerprint String
+ evidence Json
+ observedAt DateTime @map("observed_at") @db.Timestamptz
+ recordedAt DateTime @default(now()) @map("recorded_at") @db.Timestamptz
+ entity CurationEntity? @relation(fields:[entityId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ relationship CurationRelationship? @relation(fields:[relationshipId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ @@unique([entityId,source,sourceKey,fingerprint])
+ @@unique([relationshipId,source,sourceKey,fingerprint])
+ @@map("curation_observations")
+}
+model CurationDecision {
+ id String @id @default(uuid())
+ entityId String? @map("entity_id")
+ relationshipId String? @map("relationship_id")
+ version Int
+ action String
+ beforeState String @map("before_state")
+ afterState String @map("after_state")
+ actor String
+ reason String
+ evidence Json @default("{}")
+ createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+ entity CurationEntity? @relation(fields:[entityId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ relationship CurationRelationship? @relation(fields:[relationshipId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ request CurationRequest?
+ @@unique([entityId,version])
+ @@unique([relationshipId,version])
+ @@map("curation_decisions")
+}
+model CurationRequest {
+ id String @id @default(uuid())
+ entityId String? @map("entity_id")
+ relationshipId String? @map("relationship_id")
+ expectedVersion Int @map("expected_version")
+ action String
+ actor String
+ reason String
+ status String @default("pending")
+ decisionId String? @unique @map("decision_id")
+ error String?
+ createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+ completedAt DateTime? @map("completed_at") @db.Timestamptz
+ entity CurationEntity? @relation(fields:[entityId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ relationship CurationRelationship? @relation(fields:[relationshipId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ decision CurationDecision? @relation(fields:[decisionId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ @@index([status,createdAt,id],map:"curation_requests_queue")
+ @@index([entityId,createdAt],map:"curation_requests_entity")
+ @@index([relationshipId,createdAt],map:"curation_requests_relationship")
+ @@map("curation_requests")
 }

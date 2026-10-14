@@ -203,3 +203,7 @@ Immutable reports retain explicit denominator metrics, configuration, source pol
 Automatic action is disabled by default. Explicitly enabling monitor action authorizes only comedy_only → mixed/enforce, including enforcement activation if the trusted source was off/shadow; it never automatically upgrades source trust. The policy revision is checked under lock and the existing policy helper records monitor attribution/evidence while the policy trigger increments the revision. Transition history retains before/after policy state and the report that justified it. No source ownership, enabled flag, venue visibility or public inventory rows are modified.
 
 Rollback is an explicit operator action requiring actor, reason, and the exact revision produced by the downgrade. A later policy edit blocks rollback. Rollback restores prior trust/mode with a fresh revision and records its link to the original downgrade. Its bad-content evidence digest remains suppressed independently of policy version or configuration changes, preventing immediate re-downgrade on identical evidence. Fresh substantive event evidence may trigger a new evaluation. Database triggers enforce append-only reports and transition history; no retention purge is introduced.
+
+## Intake curation
+
+See [CURATION.md](CURATION.md) for durable entity/relationship identities, decisions, and compatibility boundaries.
