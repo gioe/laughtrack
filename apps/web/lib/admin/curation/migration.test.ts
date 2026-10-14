@@ -401,3 +401,20 @@ it("recognizes a current ownership-review hostship audit without inventing attri
     );
     expect((await rows("curation_decisions"))[0].actor).toBe("human");
 });
+
+it("reports empty legacy names instead of silently omitting them from pagination", async () => {
+    await pg.exec(
+        "INSERT INTO comedian_deny_list VALUES('','Invalid empty name','audit','2026-01-01'),('Valid name','Denied','audit','2026-01-01')",
+    );
+    const first = await plan("comedian_deny_list", { limit: 1 });
+    expect(first.items[0].key).toBe("");
+    expect(first.items[0].conflicts).toHaveLength(1);
+    expect(first.nextCursor).toBe("");
+    expect((await applyMigration(store, first, "operator")).held).toBe(1);
+    const next = await plan("comedian_deny_list", {
+        limit: 1,
+        after: first.nextCursor,
+    });
+    expect(next.items[0].key).toBe("Valid name");
+    expect((await applyMigration(store, next, "operator")).imported).toBe(1);
+});

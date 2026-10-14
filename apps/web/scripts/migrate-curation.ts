@@ -82,7 +82,7 @@ async function main() {
                 const plan = await planMigration(tx, {
                     source: value("--source"),
                     environment: value("--environment"),
-                    after: value("--after") ?? "",
+                    after: value("--after") ?? null,
                     limit: Number(value("--limit") ?? 10),
                 });
                 return {

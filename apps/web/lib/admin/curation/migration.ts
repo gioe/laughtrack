@@ -55,7 +55,7 @@ export type Item = {
 export const optionsSchema = z
     .object({
         source: z.enum(sources),
-        after: z.string().max(500).default(""),
+        after: z.string().max(500).nullable().default(null),
         limit: z.number().int().min(1).max(50).default(10),
         environment: z.string().regex(/^[a-z0-9][a-z0-9_.-]{0,63}$/),
     })
@@ -234,6 +234,13 @@ async function prepare(
         conflicts: [],
         fingerprint: "",
     };
+    if (typeof row.name === "string" && !row.name.trim()) {
+        item.conflicts.push(
+            "Blank legacy name requires manual review; no identity was inferred.",
+        );
+        item.fingerprint = hash({ source, key: item.key, row });
+        return item;
+    }
     const add = (kind: EntityKind, r: Row) => {
         const e = domainEntity(kind, r, environment);
         item.entities.push(e);
@@ -657,6 +664,20 @@ async function prepare(
             );
         }
     }
+    for (const e of item.entities) {
+        if (
+            !e.label?.trim() ||
+            e.keys.some(
+                (k) =>
+                    typeof k.value !== "string" ||
+                    !k.value.trim() ||
+                    !k.scope?.trim(),
+            )
+        )
+            item.conflicts.push(
+                "Blank legacy identity label or source key requires manual review.",
+            );
+    }
     item.fingerprint = hash({
         source,
         key: item.key,
@@ -672,7 +693,7 @@ export async function planMigration(
     const options = optionsSchema.parse(input),
         column = identifier(rawId(options.source));
     const raw = await tx.$queryRaw<{ row: Row }[]>(
-        Prisma.sql`SELECT to_jsonb(t) AS row FROM ${identifier(options.source)} t WHERE ${column}::text COLLATE "C">${options.after} ORDER BY ${column}::text COLLATE "C" LIMIT ${options.limit + 1}`,
+        Prisma.sql`SELECT to_jsonb(t) AS row FROM ${identifier(options.source)} t WHERE (${options.after}::text IS NULL OR ${column}::text COLLATE "C">${options.after}) ORDER BY ${column}::text COLLATE "C" LIMIT ${options.limit + 1}`,
     );
     const items: Item[] = [];
     for (const { row } of raw.slice(0, options.limit))
@@ -684,7 +705,7 @@ export async function planMigration(
         nextCursor:
             raw.length > options.limit ? items[items.length - 1].key : null,
     };
-    if (stable(plan).length > 10_000_000)
+    if (Buffer.byteLength(stable(plan), "utf8") > 10_000_000)
         throw new Error("Plan exceeds the 10 MB safety limit; reduce --limit.");
     return { ...plan, digest: hash(plan) };
 }
