@@ -1646,7 +1646,7 @@ model CurationIdentityKey {
  scope String
  value String
  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
- entity CurationEntity @relation(fields:[entityId,entityKind,identityScope],references:[id,kind,identityScope],onDelete:Restrict,onUpdate:Restrict)
+ entity CurationEntity @relation(fields:[entityId,entityKind,identityScope],references:[id,kind,identityScope],onDelete:Restrict,onUpdate:Restrict,map:"curation_identity_keys_entity_fkey")
  @@unique([entityKind,namespace,scope,value])
  @@index([entityId],map:"curation_identity_keys_entity")
  @@map("curation_identity_keys")
@@ -1690,8 +1690,8 @@ model CurationObservation {
  recordedAt DateTime @default(now()) @map("recorded_at") @db.Timestamptz
  entity CurationEntity? @relation(fields:[entityId],references:[id],onDelete:Restrict,onUpdate:Restrict)
  relationship CurationRelationship? @relation(fields:[relationshipId],references:[id],onDelete:Restrict,onUpdate:Restrict)
- @@unique([entityId,source,sourceKey,fingerprint])
- @@unique([relationshipId,source,sourceKey,fingerprint])
+ @@unique([entityId,source,sourceKey,fingerprint],map:"curation_observations_entity_fingerprint_key")
+ @@unique([relationshipId,source,sourceKey,fingerprint],map:"curation_observations_relationship_fingerprint_key")
  @@map("curation_observations")
 }
 model CurationDecision {

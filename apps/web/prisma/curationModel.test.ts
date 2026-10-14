@@ -267,3 +267,61 @@ it("defines conservative identity normalization and restoration contracts", () =
         }),
     ).toThrow();
 });
+it("supports multiple provider keys and preserves namespace, scope and case boundaries", async () => {
+    await entity("a");
+    await entity("b");
+    const key = (
+        id: string,
+        target: string,
+        namespace: string,
+        scope: string,
+        value: string,
+    ) =>
+        db.query(
+            "INSERT INTO curation_identity_keys(id,entity_id,entity_kind,identity_scope,key_type,namespace,scope,value) VALUES($1,$2,'comedian','entity','external_id',$3,$4,$5)",
+            [id, target, namespace, scope, value],
+        );
+    await key("k1", "a", "provider:v1", "global", "AbC");
+    await key("k2", "a", "other:v1", "global", "123");
+    await key("k3", "b", "provider:v1", "global", "abc");
+    await key("k4", "b", "provider:v1", "venue:2", "AbC");
+    expect(
+        (
+            await db.query(
+                "SELECT * FROM curation_identity_keys WHERE entity_id='a'",
+            )
+        ).rows,
+    ).toHaveLength(2);
+    await expect(
+        key("collision", "b", "provider:v1", "global", "AbC"),
+    ).rejects.toThrow();
+    const names = (
+        await db.query<{ conname: string }>(
+            "SELECT conname FROM pg_constraint WHERE conname IN ('curation_identity_keys_entity_fkey','curation_observations_entity_fingerprint_key','curation_observations_relationship_fingerprint_key')",
+        )
+    ).rows;
+    expect(names).toHaveLength(3);
+});
+it("retains rejected relationship history when a public endpoint is deleted", async () => {
+    await entity("a");
+    await entity("p", "podcast");
+    await db.exec(
+        "INSERT INTO podcasts VALUES(5); UPDATE curation_entities SET podcast_id=5 WHERE id='p'",
+    );
+    await edge("ap", "a", "p", "host_of");
+    await decide("d", "ap", 1, "reject", "proposed", "rejected", true);
+    await db.exec(
+        "DELETE FROM podcasts WHERE id=5; INSERT INTO podcasts VALUES(5)",
+    );
+    expect(
+        (
+            await db.query(
+                "SELECT disposition,version FROM curation_relationships WHERE id='ap'",
+            )
+        ).rows[0],
+    ).toEqual({ disposition: "rejected", version: 1 });
+    await expect(edge("again", "a", "p", "host_of")).rejects.toThrow();
+    await expect(
+        db.exec("DELETE FROM curation_relationships WHERE id='ap'"),
+    ).rejects.toThrow();
+});

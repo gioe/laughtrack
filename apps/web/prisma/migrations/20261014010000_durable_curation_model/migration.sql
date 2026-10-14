@@ -30,7 +30,7 @@ CREATE TABLE curation_identity_keys (
  scope text NOT NULL CHECK(length(btrim(scope))>0 AND scope=btrim(scope)),
  value text NOT NULL CHECK(length(btrim(value))>0),
  created_at timestamptz NOT NULL DEFAULT now(),
- FOREIGN KEY(entity_id,entity_kind,identity_scope) REFERENCES curation_entities(id,kind,identity_scope) ON DELETE RESTRICT ON UPDATE RESTRICT,
+ CONSTRAINT curation_identity_keys_entity_fkey FOREIGN KEY(entity_id,entity_kind,identity_scope) REFERENCES curation_entities(id,kind,identity_scope) ON DELETE RESTRICT ON UPDATE RESTRICT,
  UNIQUE(entity_kind,namespace,scope,value),
  CHECK((key_type='exact_name' AND identity_scope='name' AND namespace='exact-name:v1')
     OR (key_type='series_id' AND identity_scope='series' AND entity_kind='show')
@@ -73,8 +73,8 @@ CREATE TABLE curation_observations (
  observed_at timestamptz NOT NULL,
  recorded_at timestamptz NOT NULL DEFAULT now(),
  CHECK(num_nonnulls(entity_id,relationship_id)=1),
- UNIQUE(entity_id,source,source_key,fingerprint),
- UNIQUE(relationship_id,source,source_key,fingerprint)
+ CONSTRAINT curation_observations_entity_fingerprint_key UNIQUE(entity_id,source,source_key,fingerprint),
+ CONSTRAINT curation_observations_relationship_fingerprint_key UNIQUE(relationship_id,source,source_key,fingerprint)
 );
 CREATE TABLE curation_decisions (
  id text PRIMARY KEY,
