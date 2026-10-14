@@ -1673,6 +1673,11 @@ model CurationRelationship {
  @@index([kind,disposition,createdAt,id],map:"curation_relationships_queue")
  @@map("curation_relationships")
 }
+model CurationIntakeLock {
+ id Int @id
+ version BigInt @default(0)
+ @@map("curation_intake_lock")
+}
 model CurationGraphLock {
  id Int @id
  version BigInt @default(0)

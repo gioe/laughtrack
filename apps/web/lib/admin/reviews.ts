@@ -363,6 +363,7 @@ export async function decideReview(
                             "Choose the existing comedian to link.",
                         );
                     target = await canonical(tx, x.targetId);
+                    await tx.$queryRaw`SELECT curation_approve_comedian(${x.id},${before.name},${actor},${x.reason},${target.id}::integer)`;
                 } else {
                     const name = (x.name ?? before.name)
                         .trim()
@@ -375,6 +376,8 @@ export async function decideReview(
                         throw new ReviewConflict(
                             "This name is denied. Resolve the block first.",
                         );
+                    await tx.$queryRaw`SELECT curation_approve_comedian(${x.id},${name},${actor},${x.reason})`;
+                    await tx.$queryRaw`SELECT curation_observe_comedian(${uuid},${name},'{"writer":"review"}'::jsonb)`;
                     const created = await tx.$queryRaw<
                         Row[]
                     >`INSERT INTO comedians(name,uuid) VALUES(${name},${uuid}) ON CONFLICT(uuid) DO UPDATE SET visible=true,block_reason=NULL,block_added_by=NULL,block_added_at=NULL
@@ -417,6 +420,12 @@ export async function decideReview(
                     );
             }
             await tx.$queryRaw`UPDATE comedian_podcasts SET review_status=${x.action === "reject" ? "rejected" : "accepted"},reviewed_by=${actor},reviewed_at=now(),updated_at=now() WHERE id=${before.id} RETURNING id`;
+        }
+        if (x.workflow === "comedian_identity") {
+            const versions = await tx.$queryRaw<
+                Row[]
+            >`SELECT e.version FROM curation_entities e JOIN curation_identity_keys k ON k.entity_id=e.id WHERE k.namespace='comedian-uuid:v1' AND k.scope='global' AND k.value=${x.id}`;
+            effects.curationVersion = versions[0]?.version;
         }
         const after = await current(tx, x.workflow, x.id);
         const decisionId = randomUUID();
@@ -463,11 +472,14 @@ export async function undoReview(decisionId: string, actor: string) {
                             "New appearances were added after approval. Resolve this in comedian management.",
                         );
                 }
+                await tx.$queryRaw`SELECT curation_reopen_comedian(${d.item_id},${actor},'Undo identity approval',${e.curationVersion ?? null}::integer)`;
                 await tx.$queryRaw`DELETE FROM lineup_items WHERE comedian_id=${c.uuid} AND show_id=ANY(${e.showIds}::int[]) RETURNING show_id`;
                 await tx.$queryRaw`UPDATE comedians SET identity_validated_at=${e.comedianBefore.identity_validated_at}::timestamptz,identity_validated_by=${e.comedianBefore.identity_validated_by} WHERE id=${c.id} RETURNING id`;
                 if (e.created)
                     await tx.$queryRaw`UPDATE comedians SET visible=false,block_reason='Identity approval undone',block_added_by=${actor},block_added_at=now() WHERE id=${c.id} RETURNING id`;
             }
+            if (!e.comedianAfter)
+                await tx.$queryRaw`SELECT curation_reopen_comedian(${d.item_id},${actor},'Undo identity rejection',${e.curationVersion ?? null}::integer)`;
             await tx.$queryRaw`UPDATE comedian_identity_candidates SET status='pending',canonical_comedian_id=NULL,reviewed_at=NULL,reviewed_by=NULL,reason=NULL,version=version+1,updated_at=now() WHERE uuid=${d.item_id} RETURNING uuid`;
         } else {
             await tx.$queryRaw`UPDATE comedian_podcasts SET review_status=${b.review_status},reviewed_at=${b.reviewed_at}::timestamptz,reviewed_by=${b.reviewed_by},updated_at=now() WHERE id=${b.id} RETURNING id`;

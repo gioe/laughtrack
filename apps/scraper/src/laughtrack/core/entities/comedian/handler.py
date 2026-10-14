@@ -439,6 +439,11 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         if not candidates:
             return {}
         with self.transaction() as conn:
+            # Policy failures abort this transaction: no fallback to legacy validation.
+            self.execute_batch_operation(
+                "SELECT curation_observe_comedian(v.uuid,v.name) FROM (VALUES %s) v(uuid,name)",
+                [(c.uuid, c.name) for c in candidates.values()], conn=conn,
+            )
             self.execute_batch_operation(
                 """INSERT INTO comedian_identity_candidates(uuid,name)
                 SELECT v.uuid,v.name FROM (VALUES %s) v(uuid,name)
@@ -464,6 +469,11 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
                     fingerprint = hashlib.sha256(f"{c.uuid}|{show.id}|{url}|{source}|{kind}|{context}".encode()).hexdigest()
                     evidence[fingerprint] = (fingerprint, c.uuid, show.id, url, source, kind, c.name, context)
             if evidence:
+                import json
+                self.execute_batch_operation(
+                    "SELECT curation_observe_comedian(v.uuid,v.name,v.evidence::jsonb) FROM (VALUES %s) v(uuid,name,evidence)",
+                    [(v[1], v[6], json.dumps({"fingerprint": v[0], "showId": v[2], "url": v[3], "source": v[4], "kind": v[5], "context": v[7]})) for v in evidence.values()], conn=conn,
+                )
                 self.execute_batch_operation(
                     """INSERT INTO comedian_identity_evidence(fingerprint,candidate_uuid,show_id,source_url,source_key,extraction_kind,raw_name,context)
                     SELECT v.* FROM (VALUES %s) v(fingerprint,candidate_uuid,show_id,source_url,source_key,extraction_kind,raw_name,context)
@@ -478,6 +488,7 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
                   (c.uuid=input.uuid AND candidate.uuid IS NULL)
                 WHERE (candidate.status='accepted' OR candidate.uuid IS NULL)
                   AND c.identity_validated_at IS NOT NULL AND c.visible AND c.parent_comedian_id IS NULL
+                  AND EXISTS(SELECT 1 FROM curation_comedian_policy(input.uuid,c.name,c.id) p WHERE p.disposition='approved' AND p.comedian_id=c.id)
                   AND NOT EXISTS(SELECT 1 FROM comedian_deny_list d WHERE lower(btrim(regexp_replace(replace(d.name,chr(160),' '),'[[:space:]]+',' ','g')))=lower(btrim(regexp_replace(replace(c.name,chr(160),' '),'[[:space:]]+',' ','g'))))""",
                 (list(candidates),), return_results=True, conn=conn,
             )

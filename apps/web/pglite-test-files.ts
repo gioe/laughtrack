@@ -1,4 +1,5 @@
 export const PGLITE_TEST_FILES = [
+    "lib/admin/curation/comedianIntake.test.ts",
     "lib/admin/curation/migration.test.ts",
     "lib/admin/curation/decisions.test.ts",
     "prisma/curationModel.test.ts",

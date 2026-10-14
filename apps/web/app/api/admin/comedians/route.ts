@@ -1079,6 +1079,7 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
                     };
                 }
 
+                await tx.$queryRaw`SELECT curation_approve_comedian(${uuid},${name},${profileId},'Created by an administrator')`;
                 const created = await tx.comedian.create({
                     data: {
                         name,

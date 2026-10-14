@@ -68,6 +68,7 @@ class LineupQueries:
             FROM comedians c
             LEFT JOIN comedians parent ON parent.id = c.parent_comedian_id
             WHERE c.name IS NOT NULL
+              AND EXISTS(SELECT 1 FROM curation_comedian_policy(c.uuid,c.name,c.id) p WHERE p.disposition='approved' AND p.comedian_id=COALESCE(parent.id,c.id))
               AND (CASE WHEN parent.id IS NOT NULL THEN parent.identity_validated_at ELSE c.identity_validated_at END) IS NOT NULL
               AND (
                   array_length(regexp_split_to_array(trim(c.name), '[[:space:]]+'), 1) >= 2

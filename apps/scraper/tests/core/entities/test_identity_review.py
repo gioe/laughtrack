@@ -24,9 +24,9 @@ def test_extraction_never_inserts_an_unvalidated_identity(name):
     show = SimpleNamespace(id=1, name=name, description="Source context", show_page_url="https://example.com/event", last_scraped_by="test", lineup=[c])
     assert h.stage_identity_candidates([c], shows=[show]) == {}
     queries = [call.args[0] for call in h.execute_batch_operation.call_args_list]
-    assert len(queries) == 2
+    assert len(queries) == 4
     assert all("INSERT INTO comedians " not in q for q in queries)
-    assert "ON CONFLICT(uuid) DO NOTHING" in queries[0]
+    assert "ON CONFLICT(uuid) DO NOTHING" in queries[1]
     assert h.execute_batch_operation.call_args.args[1][0][-1] == f"Event: {name}\nSource context"
 
 def test_reviewed_alias_resolves_to_canonical_uuid():

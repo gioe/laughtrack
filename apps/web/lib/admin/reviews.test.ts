@@ -22,6 +22,13 @@ function adapter(conn: Pick<PGlite, "query">) {
         const sql = Array.isArray(arg)
             ? Prisma.sql(arg as TemplateStringsArray, ...values)
             : (arg as Prisma.Sql);
+        if (
+            sql.text.includes("SELECT curation_approve_comedian") ||
+            sql.text.includes("SELECT curation_observe_comedian") ||
+            sql.text.includes("SELECT curation_reopen_comedian") ||
+            sql.text.includes("SELECT e.version FROM curation_entities")
+        )
+            return [];
         return (await conn.query(sql.text, sql.values)).rows;
     };
 }
