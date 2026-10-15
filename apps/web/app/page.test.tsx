@@ -28,8 +28,8 @@ vi.mock("next/headers", () => ({
     cookies: mocks.cookies,
 }));
 
-vi.mock("next/cache", () => ({
-    unstable_cache: (fn: unknown) => fn,
+vi.mock("@/lib/data/show/publicationCache", () => ({
+    publicationCache: (fn: unknown) => fn,
 }));
 
 vi.mock("@/lib/data/home/getTrendingComedians", () => ({
