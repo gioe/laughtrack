@@ -13,6 +13,9 @@ def venue_payload(venue, provider):
     name = field(venue, "name", "") or ""
     address = field(venue, "address", "") or ""
     city, state = field(venue, "city"), field(venue, "state")
+    country = field(venue, "country") or field(address, "country")
+    if isinstance(country, dict):
+        country = country.get("countryCode") or country.get("name")
     if isinstance(city, dict):
         city = city.get("name")
     if isinstance(state, dict):
@@ -26,7 +29,7 @@ def venue_payload(venue, provider):
         from laughtrack.utilities.domain.club.timezone_lookup import parse_city_state_from_address
         parsed_city, parsed_state = parse_city_state_from_address(address)
         city, state = city or parsed_city, state or parsed_state
-    payload = {"name": name, "address": address, "city": city, "state": state,
+    payload = {"name": name, "address": address, "city": city, "state": state, "country": country,
                "website": field(venue, "website", "") or "",
                "google_place_id": field(venue, "google_place_id") or field(venue, "place_id")}
     source_id = field(venue, "uuid" if provider == "seatengine_v3" else "id")

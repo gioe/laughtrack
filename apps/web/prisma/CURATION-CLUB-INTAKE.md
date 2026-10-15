@@ -15,8 +15,9 @@ No fuzzy or name-only match grants approval. An approved hidden organizer proxy
 is valid; visibility does not imply rejection or approval. Eventbrite organizer
 source IDs are deliberately NOT venue identity keys.
 
-Provider IDs, verified aliases and public IDs are retained before deleting a
-club. Compatibility place-ID denials also become durable decisions, including
+Provider IDs, verified aliases and public IDs are retained when blocking or
+deleting a club, including when reconciling imported blocks. Explicit country
+conflicts prevent geographic matches. Compatibility place-ID denials also become durable decisions, including
 when their legacy row is removed. A ledger restore does not erase a legacy
 denial; resolve that evidence explicitly before subsequent approval.
 

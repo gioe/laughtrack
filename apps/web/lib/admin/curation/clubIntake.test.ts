@@ -55,7 +55,10 @@ const keys = [
         value: "tm-42",
     },
 ];
-async function policy(p = payload(), k: unknown[] = []) {
+async function policy(
+    p: Record<string, unknown> = payload(),
+    k: unknown[] = [],
+) {
     return (
         await pg.query<any>(
             "SELECT * FROM curation_club_policy($1::jsonb,$2::jsonb)",
@@ -401,4 +404,55 @@ it("allows approved recurring upserts without duplicating the public club", asyn
         { id: c.club_id, website: "https://updated.example.com" },
     ]);
     expect((await pg.query("SELECT * FROM clubs")).rows).toHaveLength(1);
+});
+
+it("does not apply a public club or alias block across conflicting countries", async () => {
+    const p = payload({
+        address: "1 Main St",
+        city: "London",
+        state: null,
+        country: "GB",
+    });
+    const c = await approve(p);
+    await pg.query(
+        "INSERT INTO club_aliases(club_id,alias_name,city,state) VALUES($1,'Old Room','London',null)",
+        [c.club_id],
+    );
+    await decision(c.entity_id, "block");
+    expect((await policy({ ...p, country: "CA" })).disposition).toBe("pending");
+    expect(
+        (await policy({ ...p, name: "Old Room", country: "CA" })).disposition,
+    ).toBe("pending");
+});
+it("retains legacy aliases and provider keys at block time before they can be detached", async () => {
+    const c = await approve();
+    await pg.exec(
+        "ALTER TABLE scraping_sources DISABLE TRIGGER curation_club_source; ALTER TABLE club_aliases DISABLE TRIGGER curation_club_alias",
+    );
+    try {
+        await pg.query(
+            "INSERT INTO scraping_sources(club_id,ticketmaster_id) VALUES($1,'old-provider')",
+            [c.club_id],
+        );
+        await pg.query(
+            "INSERT INTO club_aliases(club_id,alias_name,city,state) VALUES($1,'Old Room','Boston','MA')",
+            [c.club_id],
+        );
+    } finally {
+        await pg.exec(
+            "ALTER TABLE scraping_sources ENABLE TRIGGER curation_club_source; ALTER TABLE club_aliases ENABLE TRIGGER curation_club_alias",
+        );
+    }
+    await decision(c.entity_id, "block");
+    await pg.exec("DELETE FROM club_aliases; DELETE FROM scraping_sources");
+    expect((await policy(payload({ name: "Old Room" }))).disposition).toBe(
+        "blocked",
+    );
+    expect(
+        (
+            await policy(payload({ name: "Renamed", address: "Elsewhere" }), [
+                { ...keys[0], value: "old-provider" },
+            ])
+        ).disposition,
+    ).toBe("blocked");
 });

@@ -17,9 +17,9 @@ CREATE FUNCTION curation_club_matches(payload jsonb, supplied jsonb DEFAULT '[]'
  matched_clubs AS (
  SELECT c.id FROM clubs c WHERE c.id::text=payload->>'id'
  OR (nullif(payload->>'google_place_id','') IS NOT NULL AND c.google_place_id=payload->>'google_place_id')
- OR (nullif(payload->>'address','') IS NOT NULL AND curation_exact_name(c.address)=curation_exact_name(payload->>'address') AND curation_exact_name(c.name)=curation_exact_name(payload->>'name') AND (nullif(payload->>'city','') IS NULL OR c.city IS NULL OR curation_exact_name(c.city)=curation_exact_name(payload->>'city')) AND (nullif(payload->>'state','') IS NULL OR c.state IS NULL OR curation_exact_name(c.state)=curation_exact_name(payload->>'state')))
+ OR (nullif(payload->>'address','') IS NOT NULL AND curation_exact_name(c.address)=curation_exact_name(payload->>'address') AND curation_exact_name(c.name)=curation_exact_name(payload->>'name') AND (nullif(payload->>'city','') IS NULL OR c.city IS NULL OR curation_exact_name(c.city)=curation_exact_name(payload->>'city')) AND (nullif(payload->>'state','') IS NULL OR c.state IS NULL OR curation_exact_name(c.state)=curation_exact_name(payload->>'state')) AND (nullif(payload->>'country','') IS NULL OR c.country IS NULL OR curation_exact_name(c.country)=curation_exact_name(payload->>'country')))
  OR EXISTS(SELECT 1 FROM club_aliases a WHERE a.club_id=c.id AND a.verified
-  AND curation_exact_name(a.alias_name)=curation_exact_name(payload->>'name')
+  AND curation_exact_name(a.alias_name)=curation_exact_name(payload->>'name') AND (nullif(payload->>'country','') IS NULL OR c.country IS NULL OR curation_exact_name(c.country)=curation_exact_name(payload->>'country'))
   AND curation_exact_name(a.city)=curation_exact_name(payload->>'city') AND curation_exact_name(a.state)=curation_exact_name(payload->>'state')
   AND (nullif(payload->>'address','') IS NULL OR curation_exact_name(c.address)=curation_exact_name(payload->>'address')))
  OR EXISTS(SELECT 1 FROM scraping_sources s CROSS JOIN LATERAL jsonb_array_elements(curation_club_source_keys(to_jsonb(s))) sk
@@ -139,6 +139,19 @@ BEGIN
 END $$;
 CREATE TRIGGER curation_club_show BEFORE INSERT OR UPDATE ON shows FOR EACH ROW EXECUTE FUNCTION curation_guard_club_child();
 CREATE TRIGGER curation_club_source BEFORE INSERT OR UPDATE ON scraping_sources FOR EACH ROW EXECUTE FUNCTION curation_guard_club_child();
+CREATE FUNCTION curation_capture_club_keys(public_id integer) RETURNS void LANGUAGE plpgsql AS $$
+DECLARE payload jsonb; alias record; source record;
+BEGIN
+ SELECT to_jsonb(c) INTO payload FROM clubs c WHERE c.id=public_id;
+ IF payload IS NULL THEN RETURN; END IF;
+ PERFORM curation_observe_club(payload);
+ FOR source IN SELECT * FROM scraping_sources WHERE club_id=public_id LOOP
+  PERFORM curation_observe_club(payload,curation_club_source_keys(to_jsonb(source)),'scraping_sources');
+ END LOOP;
+ FOR alias IN SELECT * FROM club_aliases WHERE club_id=public_id AND verified LOOP
+  PERFORM curation_observe_club(payload||jsonb_build_object('name',alias.alias_name,'city',alias.city,'state',alias.state),'[]','club_aliases');
+ END LOOP;
+END $$;
 -- Projection is driven by the ledger, including direct imports/legacy denials.
 CREATE FUNCTION curation_project_club_block() RETURNS trigger LANGUAGE plpgsql AS $$
 DECLARE public_id integer;
@@ -146,6 +159,7 @@ BEGIN
  IF NEW.entity_id IS NOT NULL AND NEW.action='block' THEN
   SELECT club_id INTO public_id FROM curation_entities WHERE id=NEW.entity_id AND kind='club';
   IF public_id IS NOT NULL THEN
+   PERFORM curation_capture_club_keys(public_id);
    UPDATE clubs SET visible=false WHERE id=public_id;
    UPDATE shows SET visible=false WHERE club_id=public_id;
   END IF;
@@ -174,15 +188,8 @@ BEGIN
 END $$;
 CREATE TRIGGER curation_club_alias AFTER INSERT OR UPDATE ON club_aliases FOR EACH ROW EXECUTE FUNCTION curation_retain_club_alias();
 CREATE FUNCTION curation_retain_club_identity() RETURNS trigger LANGUAGE plpgsql AS $$
-DECLARE alias record; source record;
 BEGIN
- PERFORM curation_observe_club(to_jsonb(OLD));
- FOR source IN SELECT * FROM scraping_sources WHERE club_id=OLD.id LOOP
-  PERFORM curation_observe_club(to_jsonb(OLD),curation_club_source_keys(to_jsonb(source)),'scraping_sources');
- END LOOP;
- FOR alias IN SELECT * FROM club_aliases WHERE club_id=OLD.id AND verified LOOP
-  PERFORM curation_observe_club(to_jsonb(OLD)||jsonb_build_object('name',alias.alias_name,'city',alias.city,'state',alias.state),'[]','club_aliases');
- END LOOP;
+ PERFORM curation_capture_club_keys(OLD.id);
  RETURN OLD;
 END $$;
 CREATE TRIGGER curation_club_delete BEFORE DELETE ON clubs FOR EACH ROW EXECUTE FUNCTION curation_retain_club_identity();
@@ -197,5 +204,10 @@ CREATE TRIGGER curation_venue_denial_delete BEFORE DELETE ON venue_deny_list FOR
 
 -- Imported negative decisions predate the projection trigger. Reconcile only
 -- their public visibility; do not infer approval or alter source configuration.
+DO $$ DECLARE venue record; BEGIN
+ FOR venue IN SELECT club_id FROM curation_entities WHERE kind='club' AND disposition='blocked' AND club_id IS NOT NULL LOOP
+  PERFORM curation_capture_club_keys(venue.club_id);
+ END LOOP;
+END $$;
 UPDATE clubs SET visible=false WHERE id IN (SELECT club_id FROM curation_entities WHERE kind='club' AND disposition='blocked');
 UPDATE shows SET visible=false WHERE club_id IN (SELECT club_id FROM curation_entities WHERE kind='club' AND disposition='blocked');

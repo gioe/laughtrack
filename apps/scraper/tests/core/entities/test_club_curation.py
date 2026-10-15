@@ -48,3 +48,12 @@ def test_provider_ids_are_not_organizer_or_show_ids():
     p,k=venue_payload({"id":"venue-id","name":"Room","city":{"name":"Boston"},"state":{"stateCode":"MA"},"address":{"line1":"1 Main St"}},"ticketmaster")
     assert p["address"]=="1 Main St, Boston, MA"
     assert k==[{"namespace":"club-provider:ticketmaster_id:v1","scope":"global","value":"venue-id"}]
+
+
+def test_country_is_preserved_from_provider_address():
+    p, _ = venue_payload({"id": "venue-id", "name": "Room", "country": {"countryCode": "CA"},
+                          "city": {"name": "London"}, "address": {"line1": "1 Main St"}}, "ticketmaster")
+    assert p["country"] == "CA"
+    p, _ = venue_payload(SimpleNamespace(id="42", name="Room", address=SimpleNamespace(
+        address_1="1 Main St", city="London", region=None, country="GB")), "eventbrite")
+    assert p["country"] == "GB"
