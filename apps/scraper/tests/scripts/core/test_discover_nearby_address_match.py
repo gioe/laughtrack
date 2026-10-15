@@ -312,3 +312,20 @@ def test_table_render_includes_category_state(capsys):
     )
 
     assert "hidden_active:non_comedy" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("disposition,status", [("blocked", "denied"), ("pending", "review"), (None, "review")])
+def test_curation_precedes_legacy_known_or_new_matching(disposition, status):
+    v = venue("Existing", "1 Main St", place_id="known")
+    result = dn._classify(v, None, by_place_id={"known": (1, "Existing", "club", True, "active")},
+                          name_rows=[], name_match_miles=2, curation={"disposition": disposition})
+    assert result.status == status
+
+
+def test_discovery_does_not_fall_back_when_policy_is_unavailable(monkeypatch):
+    from laughtrack.foundation import db_util
+    def unavailable(*args):
+        raise RuntimeError("Policy unavailable")
+    monkeypatch.setattr(db_util, "connect_with_retry", unavailable)
+    with pytest.raises(RuntimeError, match="Policy unavailable"):
+        dn._curate_discoveries("unused", [])

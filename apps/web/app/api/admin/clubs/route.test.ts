@@ -92,9 +92,11 @@ describe("POST /api/admin/clubs", () => {
     it("creates a club from required fields and writes an audit entry", async () => {
         mockAuth.mockResolvedValue(adminSession as never);
         const auditCreate = vi.fn();
+        const approve = vi.fn();
         const create = vi.fn().mockResolvedValue(clubRow());
         mockTransaction.mockImplementation(async (callback) =>
             callback({
+                $queryRaw: approve,
                 club: { create },
                 adminActionAudit: { create: auditCreate },
             } as never),
@@ -110,6 +112,11 @@ describe("POST /api/admin/clubs", () => {
         const body = await res.json();
 
         expect(res.status).toBe(201);
+        expect(approve).toHaveBeenCalledOnce();
+        expect(approve.mock.calls[0][0].join("?")).toContain(
+            "curation_approve_club",
+        );
+        expect(approve.mock.calls[0][2]).toBe("profile-1");
         expect(create).toHaveBeenCalledWith({
             data: {
                 name: "New Club",

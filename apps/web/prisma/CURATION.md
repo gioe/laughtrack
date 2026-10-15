@@ -53,3 +53,5 @@ Cache invalidation runs after commit and again on applied replay. If invalidatio
 See [CURATION-MIGRATION.md](CURATION-MIGRATION.md) for the dry-run inventory, source mappings, bounded apply, reconciliation, compatibility and restoration procedure.
 
 Comedian enforcement and rollout: [CURATION-COMEDIAN-INTAKE.md](CURATION-COMEDIAN-INTAKE.md).
+
+Club admission and rollout: [CURATION-CLUB-INTAKE.md](CURATION-CLUB-INTAKE.md).

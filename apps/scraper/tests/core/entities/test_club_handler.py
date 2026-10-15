@@ -62,6 +62,20 @@ _club_handler_mod = _load_module(
 )
 ClubHandler = _club_handler_mod.ClubHandler
 
+@pytest.fixture(autouse=True)
+def _legacy_upsert_algorithms_after_admission(monkeypatch):
+    """These tests isolate legacy matching/metadata behavior after admission.
+
+    test_club_curation covers the production wrappers; the PGlite integration
+    suite enforces the durable writes independently of any Python preflight.
+    """
+    for name in ("upsert_for_eventbrite_venue", "upsert_for_seatengine_venue",
+                 "upsert_for_seatengine_v3_venue", "upsert_for_ticketmaster_venue",
+                 "upsert_discovered_venue"):
+        method = getattr(ClubHandler, name)
+        monkeypatch.setattr(ClubHandler, name, method.__wrapped__)
+
+
 _real_ticketmaster_id_match = ClubHandler._find_ticketmaster_id_match
 
 
@@ -962,16 +976,10 @@ class TestUpsertSqlAvoidsCteSnapshotBug:
 
 
 class TestSeatEngineUpsertRespectsDispositionMetadata:
-    """Regression tests for TASK-1968: UPSERT_CLUB_BY_SEATENGINE_VENUE and
-    UPSERT_CLUB_BY_SEATENGINE_V3_VENUE must not unconditionally re-enable a row
-    whose metadata carries any ``task_<id>_disposition`` stamp. seatengine_national
-    iterates v1 venue ids 1..N every night and upserts every still-listed venue,
-    so the prior bare ``enabled = TRUE`` reverted dispositional disables within
-    24h (concrete prior-art: ss=924 club 602 'Laugh And Enjoy' was disabled on
-    2026-05-02 and back to enabled=true by 2026-05-03 07:42:54). The fix replaces
-    the bare TRUE with a CASE that preserves ``scraping_sources.enabled`` when
-    any matching disposition key exists on the existing row, while leaving the
-    new-venue INSERT path emitting enabled=true."""
+    """Ingestion preserves all existing source enablement, including dispositions.
+
+    Approved first-time venue sources may still start enabled.
+    """
 
     def _normalized(self, sql: str) -> str:
         # Collapse whitespace so multi-line SQL formatting doesn't defeat
@@ -1000,19 +1008,8 @@ class TestSeatEngineUpsertRespectsDispositionMetadata:
     def test_conflict_branch_preserves_existing_enabled_on_disposition_metadata(self):
         for label, raw in self._seatengine_sqls():
             conflict = self._conflict_clause(raw)
-            # The conflict branch must inspect existing-row metadata for any
-            # disposition key and short-circuit the re-enable when found.
-            assert "JSONB_OBJECT_KEYS" in conflict, label
-            assert "SCRAPING_SOURCES.METADATA" in conflict, label
-            # The on-disk SQL must escape the % to %% — psycopg2 pyformat
-            # substitution otherwise reads it as a malformed placeholder
-            # and raises IndexError. Postgres receives a single literal %.
-            assert "TASK_%%_DISPOSITION" in conflict, label
-            # Preserves the existing enabled flag (not EXCLUDED.enabled, which
-            # would defeat the carve-out by always re-enabling).
-            assert "THEN SCRAPING_SOURCES.ENABLED" in conflict, label
-            assert "ELSE TRUE" in conflict, label
-            # Must NOT contain a bare unconditional re-enable in this branch.
+            # Every existing source keeps its enabled state, even without metadata.
+            assert "ENABLED = SCRAPING_SOURCES.ENABLED" in conflict, label
             assert "ENABLED = TRUE" not in conflict, label
 
     def test_insert_branch_still_emits_enabled_true_for_new_venues(self):
@@ -1034,28 +1031,10 @@ class TestSeatEngineUpsertRespectsDispositionMetadata:
 
 
 class TestEventbriteTicketmasterUpsertRespectsDispositionMetadata:
-    """Regression tests for TASK-1978: UPSERT_CLUB_BY_EVENTBRITE_VENUE and
-    UPSERT_CLUB_BY_TICKETMASTER_VENUE must respect the same dispositional
-    disable contract as the seatengine pair fixed in TASK-1968. Each query's
-    caller drives a recurring nightly sweep that re-emits previously-disposed
-    venues — eventbrite organizer-mode replays every distinct (name, city,
-    state) per organizer feed and ticketmaster_national paginates the TM
-    Discovery API for US Comedy events. The bare 'enabled = TRUE' that
-    originally lived on each of these queries' (club_id, platform, priority)
-    ON CONFLICT branch reverted any dispositional disable on a still-listed
-    venue within 24h, exactly the pattern that TASK-1968 first observed on
-    seatengine_national (ss=924 club 602 'Laugh And Enjoy' was disabled on
-    2026-05-02 and back to enabled=true by 2026-05-03 07:42:54). The fix
-    mirrors the seatengine carve-out: when the existing scraping_sources row
-    carries any 'task_<id>_disposition' metadata key, the UPDATE branch
-    preserves scraping_sources.enabled instead of re-setting it to TRUE;
-    otherwise (no disposition stamp, including all first-time-discovery rows)
-    the upsert continues to flip enabled to TRUE.
+    """Ingestion preserves all existing source enablement, including dispositions.
 
-    UPSERT_CLUB_BY_TOUR_DATE_VENUE was previously covered here but was
-    removed alongside TourDatesScraper in TASK-2581 — the replacement
-    UPSERT_DISCOVERED_VENUE does not touch scraping_sources at all, so the
-    disposition contract no longer applies to the discovery upsert path."""
+    Approved first-time venue sources may still start enabled.
+    """
 
     def _normalized(self, sql: str) -> str:
         # Collapse whitespace so multi-line SQL formatting doesn't defeat
@@ -1084,26 +1063,14 @@ class TestEventbriteTicketmasterUpsertRespectsDispositionMetadata:
     def test_conflict_branch_preserves_existing_enabled_on_disposition_metadata(self):
         for label, raw in self._at_risk_sqls():
             conflict = self._conflict_clause(raw)
-            # The conflict branch must inspect existing-row metadata for any
-            # disposition key and short-circuit the re-enable when found.
-            assert "JSONB_OBJECT_KEYS" in conflict, label
-            assert "SCRAPING_SOURCES.METADATA" in conflict, label
-            # The on-disk SQL must escape the % to %% — psycopg2 pyformat
-            # substitution otherwise reads it as a malformed placeholder
-            # and raises IndexError. Postgres receives a single literal %.
-            assert "TASK_%%_DISPOSITION" in conflict, label
-            # Preserves the existing enabled flag (not EXCLUDED.enabled, which
-            # would defeat the carve-out by always re-enabling).
-            assert "THEN SCRAPING_SOURCES.ENABLED" in conflict, label
-            assert "ELSE TRUE" in conflict, label
-            # Must NOT contain a bare unconditional re-enable in this branch.
+            # Every existing source keeps its enabled state, even without metadata.
+            assert "ENABLED = SCRAPING_SOURCES.ENABLED" in conflict, label
             assert "ENABLED = TRUE" not in conflict, label
 
     def test_ticketmaster_conflict_preserves_disabled_ticketmaster_comedy_cutover_rows(self):
         conflict = self._conflict_clause(ClubQueries.UPSERT_CLUB_BY_TICKETMASTER_VENUE)
 
-        assert "SCRAPING_SOURCES.SCRAPER_KEY = 'TICKETMASTER_COMEDY'" in conflict
-        assert "THEN SCRAPING_SOURCES.ENABLED" in conflict
+        assert "ENABLED = SCRAPING_SOURCES.ENABLED" in conflict
 
     def test_insert_branch_still_emits_enabled_true_for_new_venues(self):
         # The first-time-discovery path lives in the SELECT inside the

@@ -135,6 +135,7 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
 
     try {
         const club = await db.$transaction(async (tx) => {
+            await tx.$queryRaw`SELECT curation_approve_club(${JSON.stringify(data)}::jsonb,${profileId},'Created by an administrator')`;
             const created = await tx.club.create({
                 data,
                 select: adminClubSelect,

@@ -372,22 +372,8 @@ class ClubQueries:
                 scraper_key = EXCLUDED.scraper_key,
                 eventbrite_id = COALESCE(scraping_sources.eventbrite_id, EXCLUDED.eventbrite_id),
                 source_url  = COALESCE(NULLIF(scraping_sources.source_url, ''), EXCLUDED.source_url),
-                -- Preserve the existing enabled flag when the row carries any
-                -- task_<id>_disposition stamp; otherwise re-enable. Eventbrite
-                -- organizer-mode re-emits every distinct per-venue
-                -- (name, city, state) on every nightly run, so without this
-                -- carve-out any dispositional disable on a venue that still
-                -- appears in any organizer's feed reverts within 24h
-                -- (TASK-1968 / TASK-1978).
-                enabled     = CASE
-                    WHEN EXISTS (
-                        SELECT 1
-                        FROM jsonb_object_keys(COALESCE(scraping_sources.metadata, '{}'::jsonb)) k
-                        WHERE k LIKE 'task_%%_disposition'
-                    )
-                    THEN scraping_sources.enabled
-                    ELSE TRUE
-                END
+                -- Intake approval never reenables an existing source.
+                enabled = scraping_sources.enabled
             RETURNING club_id
         )
         SELECT uc.*, '[]'::json AS scraping_sources
@@ -458,19 +444,8 @@ class ClubQueries:
                     NULLIF(scraping_sources.source_url, 'https://www.seatengine.com'),
                     EXCLUDED.source_url
                 ),
-                -- Preserve the existing enabled flag when the row carries any
-                -- task_<id>_disposition stamp; otherwise re-enable. seatengine_national
-                -- sweeps v1 venue ids 1..N each nightly and would otherwise revert
-                -- every dispositional disable on a still-listed venue (TASK-1968).
-                enabled     = CASE
-                    WHEN EXISTS (
-                        SELECT 1
-                        FROM jsonb_object_keys(COALESCE(scraping_sources.metadata, '{}'::jsonb)) k
-                        WHERE k LIKE 'task_%%_disposition'
-                    )
-                    THEN scraping_sources.enabled
-                    ELSE TRUE
-                END
+                -- Intake approval never reenables an existing source.
+                enabled = scraping_sources.enabled
             RETURNING club_id
         )
         SELECT uc.*, '[]'::json AS scraping_sources
@@ -515,17 +490,8 @@ class ClubQueries:
                 scraper_key = COALESCE(scraping_sources.scraper_key, EXCLUDED.scraper_key),
                 seatengine_v3_id = COALESCE(scraping_sources.seatengine_v3_id, EXCLUDED.seatengine_v3_id),
                 source_url  = COALESCE(NULLIF(scraping_sources.source_url, ''), EXCLUDED.source_url),
-                -- See UPSERT_CLUB_BY_SEATENGINE_VENUE for the disposition carve-out
-                -- rationale (TASK-1968); same pattern, same risk on the v3 directory sweep.
-                enabled     = CASE
-                    WHEN EXISTS (
-                        SELECT 1
-                        FROM jsonb_object_keys(COALESCE(scraping_sources.metadata, '{}'::jsonb)) k
-                        WHERE k LIKE 'task_%%_disposition'
-                    )
-                    THEN scraping_sources.enabled
-                    ELSE TRUE
-                END
+                -- Intake approval never reenables an existing source.
+                enabled = scraping_sources.enabled
             RETURNING club_id
         )
         SELECT uc.*, '[]'::json AS scraping_sources
@@ -686,28 +652,8 @@ class ClubQueries:
                 scraper_key = COALESCE(scraping_sources.scraper_key, EXCLUDED.scraper_key),
                 ticketmaster_id = COALESCE(scraping_sources.ticketmaster_id, EXCLUDED.ticketmaster_id),
                 source_url  = COALESCE(NULLIF(scraping_sources.source_url, ''), EXCLUDED.source_url),
-                -- Preserve the existing enabled flag when the row carries any
-                -- task_<id>_disposition stamp; otherwise re-enable. Also keep
-                -- disabled ticketmaster_comedy rows disabled: TASK-3042 moved
-                -- covered per-venue Ticketmaster sources onto the single
-                -- ticketmaster_national source target, and the national upsert
-                -- still resolves venues by those disabled source rows.
-                -- ticketmaster_national paginates the TM Discovery API for US
-                -- Comedy events each nightly and upserts every venue surfaced,
-                -- so without this carve-out any dispositional disable on a
-                -- still-listed TM venue reverts within 24h; without the
-                -- ticketmaster_comedy carve-out the cutover itself reverts
-                -- within 24h too (TASK-1968 / TASK-1978 / TASK-3484).
-                enabled     = CASE
-                    WHEN EXISTS (
-                        SELECT 1
-                        FROM jsonb_object_keys(COALESCE(scraping_sources.metadata, '{}'::jsonb)) k
-                        WHERE k LIKE 'task_%%_disposition'
-                    )
-                    OR scraping_sources.scraper_key = 'ticketmaster_comedy'
-                    THEN scraping_sources.enabled
-                    ELSE TRUE
-                END
+                -- Intake approval never reenables an existing source.
+                enabled = scraping_sources.enabled
             RETURNING club_id
         )
         -- Return the club unconditionally. Even when the source insert is
@@ -761,15 +707,7 @@ class ClubQueries:
                 scraper_key = COALESCE(scraping_sources.scraper_key, EXCLUDED.scraper_key),
                 ticketmaster_id = COALESCE(scraping_sources.ticketmaster_id, EXCLUDED.ticketmaster_id),
                 source_url = COALESCE(NULLIF(scraping_sources.source_url, ''), EXCLUDED.source_url),
-                enabled = CASE
-                    WHEN EXISTS (
-                        SELECT 1
-                        FROM jsonb_object_keys(COALESCE(scraping_sources.metadata, '{{}}'::jsonb)) k
-                        WHERE k LIKE 'task_%%_disposition'
-                    )
-                    THEN scraping_sources.enabled
-                    ELSE TRUE
-                END
+                enabled = scraping_sources.enabled
             RETURNING club_id
         )
         {_CLUB_SELECT_WITH_OPTIONAL_SOURCES}

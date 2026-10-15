@@ -9,6 +9,7 @@ from laughtrack.core.data.base_handler import BaseDatabaseHandler
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 from .model import Club
+from .curation import curated_venue
 
 
 def _normalize_venue_text_for_match(value: str) -> str:
@@ -317,6 +318,7 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         """
         return self.get_clubs_by_ids(club_ids)
 
+    @curated_venue("eventbrite")
     def upsert_for_eventbrite_venue(self, venue) -> Optional[Club]:
         """
         Upsert a clubs row for an Eventbrite venue discovered via the national
@@ -581,6 +583,7 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             return Club.from_db_row(results[0])
         return club
 
+    @curated_venue("seatengine")
     def upsert_for_seatengine_venue(self, venue: dict) -> Optional[Club]:
         """
         Upsert a clubs row for a SeatEngine venue discovered via the national
@@ -627,6 +630,7 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             Logger.error(f"Error upserting club for SeatEngine venue {venue_id}: {e}")
             raise
 
+    @curated_venue("seatengine_v3")
     def upsert_for_seatengine_v3_venue(self, venue: dict) -> Optional[Club]:
         """
         Upsert a clubs row for a SeatEngine v3 venue discovered via the national
@@ -689,6 +693,7 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         )
         return Club.from_db_row(rows[0]) if rows else None
 
+    @curated_venue("ticketmaster")
     def upsert_for_ticketmaster_venue(self, venue: dict) -> Optional[Club]:
         """
         Upsert a clubs row for a Ticketmaster venue discovered via the national
@@ -764,6 +769,7 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             Logger.error(f"Error upserting club for Ticketmaster venue {venue_id}: {e}")
             raise
 
+    @curated_venue("discovered")
     def upsert_discovered_venue(self, venue: dict) -> Optional[Club]:
         """
         Upsert a clubs row for a venue surfaced as a discovery side

@@ -269,7 +269,6 @@ def _tile_centers(lat, lng, radius_miles, spacing_miles):
 
 def _load_existing_clubs(dsn):
     """Return existing clubs as (by_place_id dict, name_rows, addr_index)."""
-    import psycopg2  # noqa: F401
 
     from laughtrack.foundation.db_util import connect_with_retry
 
@@ -460,6 +459,27 @@ def _match_by_address(venue, addr_index, name_match_miles, stale_coord_miles=_AD
     return None
 
 
+def _curate_discoveries(dsn, venues):
+    """Record discovery evidence and require authoritative policy; never fail open."""
+    import json
+    from psycopg2.extras import RealDictCursor
+    from laughtrack.foundation.db_util import connect_with_retry
+    result = {}
+    conn = connect_with_retry(dsn)
+    try:
+        with conn:
+            with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                for venue in venues:
+                    payload = json.dumps({"name": venue.name, "address": venue.address,
+                                          "google_place_id": venue.place_id, "website": venue.website or ""})
+                    cur.execute("SELECT curation_observe_club(%s::jsonb,'[]','discover-nearby')", (payload,))
+                    cur.execute("SELECT * FROM curation_club_policy(%s::jsonb)", (payload,))
+                    result[venue.place_id] = dict(cur.fetchone())
+    finally:
+        conn.close()
+    return result
+
+
 def _classify(
     venue,
     origin,
@@ -469,8 +489,14 @@ def _classify(
     denied_place_ids=frozenset(),
     denied_venues=None,
     addr_index=None,
+    curation=None,
 ):
     """Tag a discovered venue as denied / known / likely / new against existing clubs."""
+    if curation is not None:
+        if curation.get("disposition") == "blocked":
+            return Classification("denied", category_state="curation:blocked", deny_reason="Durable venue rejection")
+        if curation.get("disposition") != "approved":
+            return Classification("review", category_state="curation:pending")
     denied_venues = denied_venues or {}
     if venue.place_id in denied_venues or venue.place_id in denied_place_ids:
         evidence = denied_venues.get(venue.place_id, {})
@@ -572,6 +598,8 @@ def main() -> None:
     by_place_id, name_rows, addr_index = _load_existing_clubs(dsn)
     denied_venues = _load_denied_venues(dsn)
 
+    curation = _curate_discoveries(dsn, [v for v in deduped.values()
+        if _haversine_miles(o_lat, o_lng, v.lat, v.lng) <= args.radius])
     results = []
     for venue in deduped.values():
         dist = _haversine_miles(o_lat, o_lng, venue.lat, venue.lng)
@@ -579,7 +607,7 @@ def main() -> None:
             continue
         classification = _classify(
             venue, origin, by_place_id, name_rows, args.name_match_miles,
-            denied_venues=denied_venues, addr_index=addr_index,
+            denied_venues=denied_venues, addr_index=addr_index, curation=curation[venue.place_id],
         )
         if args.new_only and classification.status != "new":
             continue
@@ -606,7 +634,7 @@ def main() -> None:
     if args.limit is not None:
         results = results[: args.limit]
 
-    counts = {"new": 0, "likely": 0, "known": 0, "denied": 0}
+    counts = {"new": 0, "likely": 0, "known": 0, "denied": 0, "review": 0}
     for r in results:
         counts[r["status"]] = counts.get(r["status"], 0) + 1
     print(
@@ -616,7 +644,7 @@ def main() -> None:
     print(
         f"{len(results)} venue(s): "
         f"{counts['new']} new, {counts['likely']} likely-known, {counts['known']} known, "
-        f"{counts['denied']} deny-listed",
+        f"{counts['denied']} deny-listed, {counts['review']} awaiting review",
         file=sys.stderr,
     )
 
