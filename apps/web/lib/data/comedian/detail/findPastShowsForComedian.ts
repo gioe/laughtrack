@@ -44,6 +44,7 @@ export async function findPastShowsForComedian(
 
     const whereClause: Prisma.ShowWhereInput = {
         isCancelled: false,
+        visible: true,
         date: { lt: new Date() },
         club: { visible: true },
         ...helper.getLineupItemClause(identity.memberUuids),

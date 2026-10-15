@@ -44,6 +44,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
 
         const where = {
             isCancelled: false,
+            visible: true,
             date: { gte: new Date() },
             club: { visible: true },
             lineupItems: {

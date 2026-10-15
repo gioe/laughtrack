@@ -31,6 +31,7 @@ export async function getStats(): Promise<StatsDTO> {
             db.show.count({
                 where: {
                     isCancelled: false,
+                    visible: true,
                     date: {
                         gt: new Date(),
                     },

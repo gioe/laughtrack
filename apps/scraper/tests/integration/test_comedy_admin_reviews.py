@@ -45,7 +45,8 @@ def test_apply_uses_live_guard_same_transaction_and_exact_scope():
     store.apply.assert_called_once_with("preview", "admin", "admin:request", "token")
     assert outcomes == ["commit"]
     sql = [call.args[0] for call in cur.execute.call_args_list]
-    assert "FOR UPDATE SKIP LOCKED" in sql[0]
+    assert sql[0] == "SELECT curation_lock_intake()"
+    assert "FOR UPDATE SKIP LOCKED" in sql[1]
     assert "status='applied'" in sql[-1]
     assert not any("UPDATE shows" in s or "UPDATE scraping_sources" in s for s in sql)
 

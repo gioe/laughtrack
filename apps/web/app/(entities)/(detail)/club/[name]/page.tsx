@@ -8,7 +8,7 @@ import { Button } from "@/ui/components/ui/button";
 import ClubDetailHeader from "@/ui/pages/entity/club/header";
 import FilterModal from "@/ui/components/modals/filter";
 import { getClubDetailPageData } from "@/lib/data/club/detail/getClubDetailPageData";
-import { unstable_cache } from "next/cache";
+import { publicationCache as unstable_cache } from "@/lib/data/show/publicationCache";
 import { ParameterizedRequestData } from "@/objects/interface";
 import { toSearchParams } from "@/util/search/toSearchParams";
 import { cookies } from "next/headers";

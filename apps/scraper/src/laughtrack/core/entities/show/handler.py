@@ -924,10 +924,15 @@ class ShowHandler(BaseDatabaseHandler[Show]):
     def _process_single_batch(self, batch: List[Show], fullcalendar_context=None) -> DatabaseOperationResult:
         from laughtrack.core.comedy_eligibility_gate import EligibilityGate
 
-        with EligibilityGate(self.transaction).screen(batch) as screened:
+        from .curation import screen_shows
+
+        batch, validation_errors = ShowValidator.validate_shows(batch)
+        curated = screen_shows(self.transaction, batch)
+        with EligibilityGate(self.transaction).screen(curated.shows) as screened:
             result = self._process_screened_batch(screened.shows, fullcalendar_context=fullcalendar_context)
-        result.eligibility_withheld += screened.withheld
-        result.reconciliation_safe = result.reconciliation_safe and screened.reconciliation_safe
+        result.validation_errors += len(validation_errors)
+        result.eligibility_withheld += screened.withheld + curated.withheld
+        result.reconciliation_safe = result.reconciliation_safe and screened.reconciliation_safe and curated.reconciliation_safe
         return result
 
     def _process_screened_batch(self, batch: List[Show], fullcalendar_context=None) -> DatabaseOperationResult:

@@ -40,6 +40,7 @@ function buildClubSelect() {
                 shows: {
                     where: {
                         isCancelled: false,
+                        visible: true,
                         date: {
                             gt: new Date(),
                         },
@@ -135,7 +136,13 @@ export async function findClubsWithCount(
             ...queryHelper.getChainClause(),
             ...zipCodeClause,
             ...(!includeEmpty && {
-                shows: { some: { isCancelled: false, date: { gt: now } } },
+                shows: {
+                    some: {
+                        isCancelled: false,
+                        visible: true,
+                        date: { gt: now },
+                    },
+                },
             }),
         };
 
@@ -154,6 +161,7 @@ export async function findClubsWithCount(
                             shows: {
                                 where: {
                                     isCancelled: false,
+                                    visible: true,
                                     date: { gt: now },
                                 },
                             },

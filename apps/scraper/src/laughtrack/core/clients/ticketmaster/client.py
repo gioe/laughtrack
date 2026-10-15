@@ -386,6 +386,8 @@ class TicketmasterClient(BaseApiClient):
             show = Show.create(**show_data)
             from laughtrack.core.comedy_eligibility_gate import capture_event_inputs
 
+            if isinstance(event_data.get("id"), str) and event_data["id"]:
+                show.curation_event_id = "ticketmaster:" + event_data["id"]
             capture_event_inputs(show, event_data)
             return show
 

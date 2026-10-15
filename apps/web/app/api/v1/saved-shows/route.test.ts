@@ -157,6 +157,7 @@ describe("GET /api/v1/saved-shows", () => {
             profileId: "profile-2",
             show: {
                 isCancelled: false,
+                visible: true,
                 date: { lt: expect.any(Date) },
                 club: { visible: true },
             },

@@ -71,6 +71,8 @@ class EventbriteEvent(ShowConvertible):
     subcategory_id: Optional[str] = None
 
     # Data source indicators
+    provider_event_id: Optional[str] = None
+    provider_series_id: Optional[str] = None
     data_source_type: str = "json_ld"  # "json_ld" or "html_extraction"
 
     # Raw data preservation for debugging
@@ -163,6 +165,8 @@ class EventbriteEvent(ShowConvertible):
             is_free=getattr(api_event, "is_free", None),
             category_id=getattr(api_event, "category_id", None),
             subcategory_id=getattr(api_event, "subcategory_id", None),
+            provider_series_id=getattr(api_event, "series_id", None),
+            provider_event_id=str(api_event.id) if getattr(api_event, "id", None) else None,
             data_source_type="api",
             _raw_json_ld=None,
             _raw_html_data={"api_event": api_event.__dict__},
@@ -273,6 +277,10 @@ class EventbriteEvent(ShowConvertible):
                 popularity=0.0,
             )
 
+            if isinstance(self.provider_series_id, str) and self.provider_series_id.strip():
+                show.curation_series_id = "eventbrite:" + self.provider_series_id
+            if self.provider_event_id:
+                show.curation_event_id = "eventbrite:" + self.provider_event_id
             show.eligibility_performer_names = list(self.performers) if self.performers is not None else None
             show.eligibility_raw_performers_preserved = self.performers is not None
             if self.subcategory_id in _COMEDY_SUBCATEGORY_IDS:

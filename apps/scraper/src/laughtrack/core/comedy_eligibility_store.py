@@ -87,6 +87,8 @@ def _row(cursor: Any) -> dict | None:
 
 def load_source(cursor: Any, source_id: int, lock: bool = False) -> dict | None:
     """Policy columns remain optional before DDL; off mode needs no staging tables."""
+    if lock:
+        cursor.execute("SELECT curation_lock_intake()")
     cursor.execute(LOAD_SOURCE_SQL + (" FOR SHARE OF ss" if lock else ""), (source_id,))
     return _row(cursor)
 

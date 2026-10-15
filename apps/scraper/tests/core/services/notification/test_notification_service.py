@@ -1469,3 +1469,23 @@ class TestRunGroupsPushNotifications:
 
         assert sender.send_show_notification.call_count == 2
         assert summary["push_sent"] == 2
+
+
+@pytest.fixture(autouse=True)
+def public_show_policy(monkeypatch):
+    # Delivery/copy tests do not access live policy. Dedicated tests below
+    # exercise the SQL reader and suppression after candidate retrieval.
+    monkeypatch.setattr(ComedianArrivalNotificationService, "_show_is_public", lambda self, show_id: True)
+
+
+def test_blocked_after_fetch_prevents_email_and_push():
+    distance=MagicMock()
+    distance.distance_miles.return_value=1
+    service=ComedianArrivalNotificationService(zip_distance=distance)
+    service._show_is_public=MagicMock(return_value=False)
+    email=_make_row()
+    push={**email,"notification_type":"push","push_token":"token","push_token_id":1,"push_platform":"ios"}
+    with patch.object(service,"_fetch_candidates",return_value=[email,push]), patch.object(service,"_send_notification") as send, patch.object(service,"_send_push_notification") as push_send:
+        service.run()
+    send.assert_not_called()
+    push_send.assert_not_called()

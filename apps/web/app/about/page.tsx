@@ -1,4 +1,4 @@
-import { unstable_cache } from "next/cache";
+import { publicationCache as unstable_cache } from "@/lib/data/show/publicationCache";
 import { CACHE } from "@/util/constants/cacheConstants";
 import AboutUsSection from "@/ui/pages/about/content";
 import StatsSection from "@/ui/pages/about/stats";

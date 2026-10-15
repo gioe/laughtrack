@@ -39,6 +39,7 @@ const { mockCount, mockFindMany, mockResolveIdentity, mockClubs } = vi.hoisted(
 
 const availableShowWhere = {
     isCancelled: false,
+    visible: true,
     AND: [
         {
             NOT: [
@@ -590,14 +591,22 @@ describe("findShowsWithCount", () => {
             expect(comedianSelect._count).toEqual({
                 select: {
                     lineupItems: {
-                        where: { AND: [{ show: { isCancelled: false } }] },
+                        where: {
+                            AND: [
+                                { show: { isCancelled: false, visible: true } },
+                            ],
+                        },
                     },
                 },
             });
             expect(comedianSelect.parentComedian.select._count).toEqual({
                 select: {
                     lineupItems: {
-                        where: { AND: [{ show: { isCancelled: false } }] },
+                        where: {
+                            AND: [
+                                { show: { isCancelled: false, visible: true } },
+                            ],
+                        },
                     },
                 },
             });

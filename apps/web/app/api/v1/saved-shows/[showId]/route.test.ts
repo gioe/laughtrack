@@ -129,7 +129,12 @@ describe("/api/v1/saved-shows/[showId]", () => {
 
         expect(response.status).toBe(404);
         expect(mockFindShow).toHaveBeenCalledWith({
-            where: { id: 42, isCancelled: false, club: { visible: true } },
+            where: {
+                id: 42,
+                isCancelled: false,
+                visible: true,
+                club: { visible: true },
+            },
             select: { id: true },
         });
         expect(mockFindSavedShow).not.toHaveBeenCalled();

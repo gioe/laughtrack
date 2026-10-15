@@ -1,6 +1,6 @@
 import { auth } from "../auth";
 import { cookies } from "next/headers";
-import { unstable_cache } from "next/cache";
+import { publicationCache as unstable_cache } from "@/lib/data/show/publicationCache";
 import { toZonedTime, format } from "date-fns-tz";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { readTimezoneCookie } from "@/util/timezone";

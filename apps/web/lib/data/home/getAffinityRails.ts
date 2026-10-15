@@ -163,7 +163,7 @@ export function buildAffinityQuery({
                 show.name,
                 show.tickets_sold_out,
                 club.visible AS club_visible
-            FROM (SELECT * FROM shows WHERE is_cancelled = false) show
+            FROM (SELECT * FROM shows WHERE is_cancelled = false AND visible = true) show
             JOIN clubs club ON club.id = show.club_id
             WHERE club.visible = true
               AND show.date > ${now}

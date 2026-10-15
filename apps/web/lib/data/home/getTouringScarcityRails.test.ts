@@ -526,6 +526,7 @@ describe("getTouringScarcityRails", () => {
                     tickets_sold_out BOOLEAN NOT NULL DEFAULT false,
                     is_cancelled BOOLEAN NOT NULL DEFAULT FALSE
                 );
+ ALTER TABLE shows ADD COLUMN visible boolean NOT NULL DEFAULT true;
                 CREATE TABLE tickets (
                     id INTEGER PRIMARY KEY,
                     show_id INTEGER NOT NULL REFERENCES shows(id),

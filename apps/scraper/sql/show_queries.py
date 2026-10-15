@@ -73,6 +73,7 @@ class ShowQueries:
           AND last_scraped_by = %s
           AND date > NOW()
           AND is_cancelled = false
+          AND visible = true
           AND last_scraped_date < %s
         RETURNING id, name, date, room
     '''
@@ -91,6 +92,7 @@ class ShowQueries:
           AND last_scraped_by = %s
           AND date > NOW()
           AND is_cancelled = false
+          AND visible = true
           AND last_scraped_date < %s
     '''
 
@@ -109,6 +111,7 @@ class ShowQueries:
           AND scraped_by_organizer_id = %s
           AND date > NOW()
           AND is_cancelled = false
+          AND visible = true
           AND last_scraped_date < %s
         RETURNING id, name, date, room
     '''
@@ -120,6 +123,7 @@ class ShowQueries:
           AND scraped_by_organizer_id = %s
           AND date > NOW()
           AND is_cancelled = false
+          AND visible = true
           AND last_scraped_date < %s
     '''
 

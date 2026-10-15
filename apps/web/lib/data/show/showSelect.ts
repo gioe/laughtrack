@@ -91,7 +91,10 @@ export const PUBLIC_SHOW_SELECT = {
 // here alongside PUBLIC_SHOW_SELECT so a change to what counts as available stays
 // a single edit (previously copy-pasted in the search and home fetchers).
 // Cancellation is independent of ticket availability; keep history and user links.
-export const NON_CANCELLED_SHOW_WHERE = { isCancelled: false } as const;
+export const NON_CANCELLED_SHOW_WHERE = {
+    isCancelled: false,
+    visible: true,
+} as const;
 
 export const AVAILABLE_SHOW_WHERE: Prisma.ShowWhereInput = {
     ...NON_CANCELLED_SHOW_WHERE,

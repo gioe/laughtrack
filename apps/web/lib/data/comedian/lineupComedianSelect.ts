@@ -38,7 +38,7 @@ export function buildLineupItemComedianSelect(
             lineupItems: {
                 where: {
                     AND: [
-                        { show: { isCancelled: false } },
+                        { show: { isCancelled: false, visible: true } },
                         ...(countWhere ? [countWhere] : []),
                     ],
                 },

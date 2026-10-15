@@ -80,7 +80,7 @@ candidate_shows AS (
     FROM favorite_comedian_members members
     JOIN lineup_items li ON li.comedian_id = members.member_uuid
     JOIN shows s2 ON s2.id = li.show_id
-    WHERE s2.is_cancelled = false
+    WHERE s2.is_cancelled = false AND s2.visible = true
       AND s2.date >= NOW()
       AND s2.first_discovered_at IS NOT NULL
       AND s2.first_discovered_at >= NOW() - INTERVAL '%s days'
@@ -126,7 +126,8 @@ JOIN comedians c ON c.id = candidate.root_id
 JOIN shows s ON s.id = candidate.show_id
 JOIN clubs cl ON cl.id = s.club_id
 {push_join_sql}
-WHERE up.email_show_notifications = true
+WHERE s.visible = true AND cl.visible = true
+  AND up.email_show_notifications = true
   AND up.zip_code IS NOT NULL AND up.zip_code != ''
   AND cl.zip_code IS NOT NULL AND cl.zip_code != ''
   AND NOT EXISTS (
@@ -1476,6 +1477,9 @@ class ComedianArrivalNotificationService:
                 )
                 continue
 
+            if not self._show_is_public(show_id):
+                continue
+
             # Email path — one send per show (unchanged; only push is grouped).
             if dry_run:
                 summary["emails_would_send"] += 1
@@ -1557,7 +1561,7 @@ class ComedianArrivalNotificationService:
         push_platform = group["push_platform"]
         # Soonest show first; any show without a date sorts last.
         events = sorted(
-            group["events"],
+            [event for event in group["events"] if self._show_is_public(event["show_id"])],
             key=lambda e: (e.get("show_date") is None, e.get("show_date")),
         )
         if not events:
@@ -1674,6 +1678,17 @@ class ComedianArrivalNotificationService:
         if profile_radius is None:
             return fallback_radius_miles
         return float(profile_radius)
+
+    def _show_is_public(self, show_id: int) -> bool:
+        """Recheck suppression after fetching, immediately before promotion."""
+        try:
+            with get_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT 1 FROM shows s JOIN clubs c ON c.id=s.club_id WHERE s.id=%s AND s.visible AND NOT s.is_cancelled AND c.visible", (show_id,))
+                    return cur.fetchone() is not None
+        except Exception as exc:
+            Logger.warn(f"Notification visibility unavailable for show {show_id}; holding delivery: {exc}")
+            return False
 
     def _fetch_candidates(self, days_ahead: int | None = None, discovered_within_days: int = 7) -> list:
         """Fetch all candidate rows from the DB."""

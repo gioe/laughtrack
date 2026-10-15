@@ -44,7 +44,9 @@ def test_harvelles_style_review_demo(monkeypatch, capsys):
 
         def execute(self, sql, params=()):
             self.rows = []
-            if sql.startswith(LOAD_SOURCE_SQL):
+            if sql == "SELECT curation_lock_intake()":
+                pass
+            elif sql.startswith(LOAD_SOURCE_SQL):
                 self.rows = [dict(state.source)]
             elif sql.startswith(reviews.CURRENT_SQL):
                 row = candidates.get(params[0])

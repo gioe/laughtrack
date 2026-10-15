@@ -2,7 +2,7 @@ import { CACHE } from "@/util/constants/cacheConstants";
 import { notFound } from "next/navigation";
 import { NotFoundError } from "@/objects/NotFoundError";
 import { auth } from "@/auth";
-import { unstable_cache } from "next/cache";
+import { publicationCache as unstable_cache } from "@/lib/data/show/publicationCache";
 import { getComedianDetailPageData } from "@/lib/data/comedian/detail/getComedianDetailPageData";
 import { ParameterizedRequestData } from "@/objects/interface";
 import { toSearchParams } from "@/util/search/toSearchParams";

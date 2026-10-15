@@ -140,6 +140,7 @@ enum ComedyGateMode {
 }
 
 model ScrapingSource {
+  curationSeriesMembers CurationShowSeriesMember[]
   comedyMonitorSamples     ComedySourceSample[]
   comedyMonitorReports     ComedySourceReport[]
   comedyMonitorTransitions ComedySourceTransition[]
@@ -956,6 +957,7 @@ model SavedShow {
 }
 
 model Show {
+  visible Boolean @default(true)
   curationIdentity CurationEntity?
   identityEvidence ComedianIdentityEvidence[]
   comedyEventPublications   ComedyEventPublication[]
@@ -1611,6 +1613,10 @@ model AdminReviewDecision {
 // Durable curation records survive deletion of optional public projections.
 // Cross-field checks, append-only/transition triggers and partial indexes live in SQL.
 model CurationEntity {
+  showMappingsLeft CurationShowMapping[] @relation("ShowMappingLeft")
+  showMappingsRight CurationShowMapping[] @relation("ShowMappingRight")
+  seriesMembers CurationShowSeriesMember[] @relation("ShowSeries")
+  occurrenceSeries CurationShowSeriesMember[] @relation("ShowOccurrence")
  id String @id @default(uuid())
  kind String
  identityScope String @default("entity") @map("identity_scope")
@@ -1738,4 +1744,33 @@ model CurationRequest {
  @@index([entityId,createdAt],map:"curation_requests_entity")
  @@index([relationshipId,createdAt],map:"curation_requests_relationship")
  @@map("curation_requests")
+}
+
+model CurationShowMapping {
+  leftId   String         @map("left_id")
+  rightId  String         @map("right_id")
+  evidence Json
+  left     CurationEntity @relation("ShowMappingLeft", fields: [leftId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  right    CurationEntity @relation("ShowMappingRight", fields: [rightId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@id([leftId, rightId])
+  @@map("curation_show_mappings")
+}
+
+model CurationShowSeriesMember {
+  seriesId     String         @map("series_id")
+  occurrenceId String         @map("occurrence_id")
+  sourceId     Int            @map("source_id")
+  series       CurationEntity @relation("ShowSeries", fields: [seriesId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  occurrence   CurationEntity @relation("ShowOccurrence", fields: [occurrenceId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  source       ScrapingSource @relation(fields: [sourceId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@id([seriesId, occurrenceId])
+  @@map("curation_show_series_members")
+}
+
+model ShowPublicationRevision {
+  id Int @id
+  revision BigInt @default(0)
+  @@map("show_publication_revision")
 }

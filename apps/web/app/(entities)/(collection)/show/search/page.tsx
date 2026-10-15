@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { SearchVariant } from "@/objects/enum/searchVariant";
-import { unstable_cache } from "next/cache";
+import { publicationCache as unstable_cache } from "@/lib/data/show/publicationCache";
 import { getSearchedShows } from "@/lib/data/show/search/getSearchedShows";
 import { ParameterizedRequestData } from "@/objects/interface";
 import { toSearchParams } from "@/util/search/toSearchParams";

@@ -47,7 +47,7 @@ export function buildFrequentPerformersQuery(
     return Prisma.sql`
         WITH lineup_shows AS (
             SELECT DISTINCT s.id
-            FROM (SELECT * FROM shows WHERE is_cancelled = false) s
+            FROM (SELECT * FROM shows WHERE is_cancelled = false AND visible = true) s
             JOIN lineup_items li ON li.show_id = s.id
             WHERE s.club_id = ${clubId}
               AND s.date >= ${since}
@@ -187,6 +187,7 @@ export async function findClubHighlights(
             where: {
                 clubId,
                 isCancelled: false,
+                visible: true,
                 date: { gte: startOfTonight, lte: endOfTonight },
             },
             select: showSelect,
@@ -196,6 +197,7 @@ export async function findClubHighlights(
             where: {
                 clubId,
                 isCancelled: false,
+                visible: true,
                 date: { gt: endOfTonight },
             },
             select: showSelect,

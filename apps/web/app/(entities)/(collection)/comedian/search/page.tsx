@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import { SearchVariant } from "@/objects/enum/searchVariant";
 import { UserRole } from "@/objects/enum/userRole";
 import { getSearchedComedians } from "@/lib/data/comedian/search/getSearchedComedians";
-import { unstable_cache } from "next/cache";
+import { publicationCache as unstable_cache } from "@/lib/data/show/publicationCache";
 import SearchDetailHeader from "@/ui/pages/search/header";
 import FilterModal from "@/ui/components/modals/filter";
 import FilterBar from "@/ui/pages/search/filterBar";

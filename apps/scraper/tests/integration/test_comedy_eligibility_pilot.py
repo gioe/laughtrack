@@ -33,10 +33,12 @@ class ReadDatabase:
     def cursor(self):
         yield self
 
-    def execute(self, sql, params):
+    def execute(self, sql, params=()):
         self.statements.append(sql)
         assert sql.startswith("SELECT"), "Default pilot must not write"
-        if "scraping_sources" in sql:
+        if sql == "SELECT curation_lock_intake()":
+            self.rows = []
+        elif "scraping_sources" in sql:
             self.rows = [deepcopy(self.source)]
         elif "FROM clubs" in sql:
             self.rows = [dict(id=2, name="Synthetic venue", website="https://example.com", timezone="America/New_York")]

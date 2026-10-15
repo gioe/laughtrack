@@ -1,7 +1,7 @@
 import { CACHE } from "@/util/constants/cacheConstants";
 import { notFound } from "next/navigation";
 import { NotFoundError } from "@/objects/NotFoundError";
-import { unstable_cache } from "next/cache";
+import { publicationCache as unstable_cache } from "@/lib/data/show/publicationCache";
 import { getShowDetailPageData } from "@/lib/data/show/detail/getShowDetailPageData";
 import { db } from "@/lib/db";
 import { formatShowDate, isShowPast } from "@/util/dateUtil";
@@ -41,7 +41,7 @@ export async function generateMetadata(props: {
     const getShowMeta = unstable_cache(
         () =>
             db.show.findUnique({
-                where: { id, isCancelled: false },
+                where: { id, isCancelled: false, visible: true },
                 select: {
                     name: true,
                     date: true,

@@ -12,6 +12,7 @@ def process_one(transaction, *, store_factory=ReviewStore):
     # everything back to pending; concurrent workers skip the locked request.
     with transaction() as conn:
         with conn.cursor() as cur:
+            cur.execute("SELECT curation_lock_intake()")
             cur.execute("""SELECT * FROM comedy_admin_review_requests
                 WHERE status='pending' ORDER BY created_at,id LIMIT 1 FOR UPDATE SKIP LOCKED""")
             request = _row(cur)

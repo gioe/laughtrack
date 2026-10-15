@@ -192,6 +192,7 @@ class ReviewStore:
             raise ValueError("Idempotency key required")
         with self.transaction() as conn:
             with conn.cursor() as cur:
+                cur.execute("SELECT curation_lock_intake()")
                 cur.execute(LOAD_PREVIEW_SQL, (preview_id,))
                 preview = _row(cur)
                 if not preview or preview["actor"] != actor or preview["token_digest"] != token_digest:

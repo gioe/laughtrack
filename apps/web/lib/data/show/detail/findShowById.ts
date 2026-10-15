@@ -18,12 +18,16 @@ export async function findShowById(id: number): Promise<FindShowByIdResult> {
         const baseSelect = buildShowSelect({
             includeDescription: true,
             lineupCountWhere: {
-                show: { isCancelled: false, date: { gt: new Date() } },
+                show: {
+                    isCancelled: false,
+                    visible: true,
+                    date: { gt: new Date() },
+                },
             },
         });
 
         const row = await db.show.findUnique({
-            where: { id, isCancelled: false },
+            where: { id, isCancelled: false, visible: true },
             select: {
                 ...baseSelect,
                 showPageUrl: true,

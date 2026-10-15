@@ -50,6 +50,9 @@ class Show(DatabaseEntity):
     infer_lineup_from_title: bool = True
 
     # Scrape-local provenance, never written to public shows columns.
+    # Provider series ID only; never inferred from a display title.
+    curation_series_id: Optional[str] = None
+    curation_event_id: Optional[str] = None
     eligibility_source_id: Optional[int] = None
     eligibility_persisted: bool = False
     eligibility_raw_performers_preserved: bool = False

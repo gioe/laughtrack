@@ -191,3 +191,13 @@ def test_title_fallback_does_not_extract_credit_names():
     event = EventbriteEvent(name="Example", event_url="https://example.com", start_date="2026-10-12T20:00:00Z")
     assert event._extract_lineup_from_title("Credits include John Oliver and Seth Meyers") == []
     assert [c.name for c in event._extract_lineup_from_title("Alice Smith & Bob Jones (as seen on Jimmy Kimmel Live!)")] == ["Alice Smith", "Bob Jones"]
+
+
+def test_preserves_explicit_event_and_series_ids_without_changing_storage_identity():
+    ev=EventbriteEvent(name="Same title",event_url="https://example.com/tickets",start_date="2027-01-01T20:00:00Z",provider_event_id="123",provider_series_id="456")
+    show=ev.to_show(make_club(),enhanced=False)
+    assert show.curation_event_id=="eventbrite:123"
+    assert show.curation_series_id=="eventbrite:456"
+    assert show.source_performance_id is None
+    ev.provider_series_id=None
+    assert ev.to_show(make_club(),enhanced=False).curation_series_id is None

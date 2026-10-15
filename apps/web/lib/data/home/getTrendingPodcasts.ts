@@ -40,6 +40,7 @@ function whereFor(
             some: {
                 show: {
                     isCancelled: false,
+                    visible: true,
                     date: { gt: now },
                     club: {
                         zipCode: { in: nearbyZips },

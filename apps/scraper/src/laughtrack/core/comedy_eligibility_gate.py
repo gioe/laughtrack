@@ -175,7 +175,9 @@ def candidate_payload(show):
         "room": show.room,
         "url": safe_url(show.show_page_url),
         "source_performance_id": show.source_performance_id,
+        **({"series_id": show.curation_series_id} if getattr(show, "curation_series_id", None) else {}),
         "performers": show.eligibility_performer_names,
+        **({"provider_event_id": show.curation_event_id} if getattr(show, "curation_event_id", None) else {}),
         "raw_performers_preserved": show.eligibility_raw_performers_preserved,
         "evidence": show.eligibility_evidence,
         "tickets": [
@@ -356,6 +358,7 @@ class EligibilityGate:
                 try:
                     conn = stack.enter_context(self.transaction())
                     cursor = stack.enter_context(conn.cursor())
+                    cursor.execute("SELECT curation_lock_intake()")
                     # Acquire every source before candidates: no inverted lock order.
                     exclusive_sources = {s["id"] for _, s, staged in prepared
                                          if staged is None and s["comedy_gate_mode"] == "shadow"}
@@ -393,8 +396,12 @@ class EligibilityGate:
                     fenced_shows = []
                     verified = []
                     stack.close()
+                    conn = None
             outcome.shows.extend(fenced_shows)
-            yield outcome
+            from laughtrack.core.data.base_handler import publication_transaction
+
+            with publication_transaction(conn):
+                yield outcome
             for show, staged in verified:
                 if show.id is not None and show.eligibility_persisted:
                     try:
@@ -404,7 +411,7 @@ class EligibilityGate:
                         Logger.warn(f"Eligibility publication link failed: {exc}")
                         if conn is not None:
                             conn.rollback()
-                        break
+                        raise
         except BaseException:
             if conn is not None:
                 conn.rollback()

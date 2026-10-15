@@ -68,6 +68,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             profileId: authCtx.profileId,
             show: {
                 isCancelled: false,
+                visible: true,
                 date: dateWhere,
                 club: { visible: true },
             },

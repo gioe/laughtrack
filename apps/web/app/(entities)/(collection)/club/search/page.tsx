@@ -5,7 +5,7 @@ import FilterBar from "@/ui/pages/search/filterBar";
 import SearchDetailHeader from "@/ui/pages/search/header";
 import { SearchVariant } from "@/objects/enum/searchVariant";
 import { getSearchedClubs } from "@/lib/data/club/search/getSearchedClubs";
-import { unstable_cache } from "next/cache";
+import { publicationCache as unstable_cache } from "@/lib/data/show/publicationCache";
 import { ParameterizedRequestData } from "@/objects/interface";
 import { toSearchParams } from "@/util/search/toSearchParams";
 import ClubSearchClient from "@/ui/pages/search/club/ClubSearchClient";

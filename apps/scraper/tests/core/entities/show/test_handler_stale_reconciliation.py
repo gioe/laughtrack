@@ -173,6 +173,7 @@ def test_reconciliation_keeps_cancelled_show_and_all_user_references():
                     (2, 'Ordinary stale', '2027-01-02', '', 5, 'next_stop_comedy', 9, '2026-09-28', FALSE),
                     (3, 'Active and refreshed', '2027-01-03', '', 5, 'next_stop_comedy', 9, '2026-10-01', FALSE),
                     (4, 'Other source', '2027-01-04', '', 5, 'other', 10, '2026-09-28', FALSE);
+                ALTER TABLE shows ADD COLUMN visible BOOLEAN NOT NULL DEFAULT TRUE;
                 INSERT INTO saved_shows VALUES (1, 'retained-profile');
                 INSERT INTO clicks VALUES (101, 1);
             """)

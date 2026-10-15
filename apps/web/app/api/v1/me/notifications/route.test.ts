@@ -268,7 +268,10 @@ describe("GET /api/v1/me/notifications", () => {
         });
         expect(mockFindNotifications).toHaveBeenCalledWith(
             expect.objectContaining({
-                where: { userId: "user-1", show: { isCancelled: false } },
+                where: {
+                    userId: "user-1",
+                    show: { isCancelled: false, visible: true },
+                },
                 orderBy: { sentAt: "desc" },
             }),
         );

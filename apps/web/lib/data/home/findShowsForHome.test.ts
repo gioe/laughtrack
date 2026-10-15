@@ -167,6 +167,7 @@ beforeEach(() => {
 describe("findShowsForHome", () => {
     const availableShowWhere = {
         isCancelled: false,
+        visible: true,
         AND: [
             {
                 NOT: [

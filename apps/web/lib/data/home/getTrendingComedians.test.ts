@@ -150,6 +150,7 @@ const TRENDING_COMEDIANS_FIXTURE_SCHEMA = `
         club_id INTEGER NOT NULL REFERENCES clubs(id),
                     is_cancelled BOOLEAN NOT NULL DEFAULT FALSE
     );
+ ALTER TABLE shows ADD COLUMN visible boolean NOT NULL DEFAULT true;
 
     CREATE TABLE lineup_items (
         show_id INTEGER NOT NULL REFERENCES shows(id),

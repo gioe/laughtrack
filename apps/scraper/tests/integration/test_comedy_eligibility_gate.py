@@ -65,6 +65,8 @@ from unittest.mock import MagicMock
 
 def _gate_environment(monkeypatch, mode="enforce"):
     from laughtrack.core import comedy_eligibility_gate as gate
+    from laughtrack.core.entities.show import curation
+    monkeypatch.setattr(curation, "screen_shows", lambda tx, shows: gate.GateBatch(shows=list(shows)))
     from laughtrack.core.comedy_eligibility_store import StagedCandidate
 
     state = SimpleNamespace(

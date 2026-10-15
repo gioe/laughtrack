@@ -2,6 +2,7 @@
 
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
+from contextvars import ContextVar
 from typing import Generator, Generic, List, Optional
 
 import psycopg2
@@ -21,6 +22,22 @@ from laughtrack.ports.database import DatabaseConnection
 # that import are scripts/__init__.py (every python -m scripts.* entry point)
 # and laughtrack.app.wiring (the app layer).
 _db_adapter: Optional[DatabaseConnection] = None
+_publication_connection: ContextVar = ContextVar("publication_connection", default=None)
+
+
+@contextmanager
+def publication_transaction(conn):
+    """Share the publication fence with nested entity writes in this worker.
+
+    The owning gate commits/closes; nested handlers must never open a competing
+    connection while this one holds the intake lock. ContextVar isolates workers.
+    """
+    token = _publication_connection.set(conn)
+    try:
+        yield
+    finally:
+        _publication_connection.reset(token)
+
 
 
 def configure_database(adapter: DatabaseConnection) -> None:
@@ -89,9 +106,15 @@ class BaseDatabaseHandler(Generic[T], ABC):
         one transaction. Commits on clean exit, rolls back on exception, always
         closes the connection.
         """
+        shared = _publication_connection.get()
+        if shared is not None:
+            yield shared
+            return
         conn = self.create_connection()
         try:
             yield conn
+            if conn.get_transaction_status() == psycopg2.extensions.TRANSACTION_STATUS_INERROR:
+                raise psycopg2.InternalError("Publication transaction aborted")
             conn.commit()
         except Exception:
             conn.rollback()
@@ -111,6 +134,8 @@ class BaseDatabaseHandler(Generic[T], ABC):
         :func:`infrastructure.database.connection.get_connection` so the
         fallback path does not leak a connection per call under load.
         """
+        if conn is None:
+            conn = _publication_connection.get()
         if conn is not None:
             yield conn
         else:

@@ -55,3 +55,5 @@ See [CURATION-MIGRATION.md](CURATION-MIGRATION.md) for the dry-run inventory, so
 Comedian enforcement and rollout: [CURATION-COMEDIAN-INTAKE.md](CURATION-COMEDIAN-INTAKE.md).
 
 Club admission and rollout: [CURATION-CLUB-INTAKE.md](CURATION-CLUB-INTAKE.md).
+
+Show occurrence/series enforcement and rollout: [CURATION-SHOW-INTAKE.md](CURATION-SHOW-INTAKE.md).

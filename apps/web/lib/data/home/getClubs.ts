@@ -24,7 +24,9 @@ export async function getClubs(
         visible: true,
         status: "active",
         ...(options.requireImage && { hasImage: true }),
-        shows: { some: { isCancelled: false, date: { gt: now } } },
+        shows: {
+            some: { isCancelled: false, visible: true, date: { gt: now } },
+        },
     };
 
     return db.club
@@ -40,6 +42,7 @@ export async function getClubs(
                 shows: {
                     where: {
                         isCancelled: false,
+                        visible: true,
                         date: {
                             gte: now,
                             lte: new Date(

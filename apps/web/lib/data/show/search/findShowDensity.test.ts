@@ -122,6 +122,7 @@ describe("findShowDensity", () => {
         expect(mockFindMany).toHaveBeenCalledWith({
             where: {
                 isCancelled: false,
+                visible: true,
                 date: {
                     gte: "2026-06-01T04:00:00.000Z",
                     lte: "2026-06-04T03:59:59.999Z",
