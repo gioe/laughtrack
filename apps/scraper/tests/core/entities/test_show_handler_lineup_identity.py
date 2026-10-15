@@ -165,3 +165,17 @@ def test_disabled_title_inference_keeps_empty_lineup_empty():
     handler = _handler({show.name: [Comedian("Steve Marshall", uuid="steve")]})
     handler.update_show_lineups([show])
     assert show.lineup == []
+
+@pytest.mark.parametrize("blocked_title", [True, False])
+def test_rejected_decorated_value_cannot_reenter_through_title_inference(blocked_title):
+    source = "Steve Marshall Comedy"
+    show = _show(1, source if blocked_title else "Thursday Headliners")
+    show.lineup = [Comedian(source)]
+    handler = _handler({show.name: [Comedian("Steve Marshall", uuid="canonical")]})
+    handler.comedian_handler.blocked_identity_names.return_value = {source}
+    handler.comedian_handler.stage_identity_candidates.side_effect = lambda items, **kwargs: {
+        c.uuid: c for c in items if c.name != source
+    }
+    handler.update_show_lineups([show])
+    assert show.lineup == []
+    assert handler.lineup_handler.get_comedians_from_show_names.call_args.args[0] == []

@@ -320,3 +320,11 @@ it("blocked provider IDs cannot be attached through enrichment", async () => {
         ).rows,
     ).toEqual([{ bandsintown_id: null }]);
 });
+
+it("does not infer an approved performer from a rejected show-title value", async () => {
+    await approve();
+    await pg.exec(
+        "INSERT INTO comedian_identity_candidates(uuid,name,status,reviewed_by,reason) VALUES('title','Real Person Comedy','rejected','admin','Not a performer'); INSERT INTO shows(id,name) VALUES(10,'Real Person Comedy'); INSERT INTO lineup_items VALUES(10,'comic')",
+    );
+    expect((await pg.query("SELECT * FROM lineup_items")).rows).toHaveLength(0);
+});

@@ -427,6 +427,18 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             Logger.error(f"Error inserting comedians: {str(e)}")
             raise
 
+    def blocked_identity_names(self, names):
+        """Recheck raw source labels before title parsing can replace their identity."""
+        names = list({name for name in names if isinstance(name, str) and name})
+        if not names:
+            return set()
+        rows = self.execute_with_cursor(
+            "SELECT input.name FROM unnest(%s::text[]) input(name) "
+            "CROSS JOIN LATERAL curation_comedian_policy(NULL,input.name) p "
+            "WHERE p.disposition='blocked'", (names,), return_results=True,
+        )
+        return {row["name"] for row in rows or []}
+
     def stage_identity_candidates(self, comedians, *, shows=None):
         """Persist idempotent candidate observations and resolve human-approved identities.
 

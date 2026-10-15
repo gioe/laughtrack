@@ -1308,12 +1308,21 @@ class ShowHandler(BaseDatabaseHandler[Show]):
                 list({c for show in shows for c in show.lineup}), shows=shows
             )
 
+            blocked_names = self.comedian_handler.blocked_identity_names(
+                [show.name for show in shows] + [c.name for show in shows for c in show.lineup]
+            )
+            # A rejected source value must not become a different identity through
+            # title parsing, splitting or decoration removal. Explicit approved
+            # performers can still resolve normally in the later staging pass.
+            inference_shows = [show for show in shows if show.name not in blocked_names
+                               and not any(c.name in blocked_names for c in show.lineup)]
+
             # Reuse the batched identity lookup for source performer names too:
             # a decorated talent can arrive under an unrelated show title.
-            show_names = [(show.name,) for show in shows]
+            show_names = [(show.name,) for show in inference_shows]
             show_names.extend(
                 (performer.name,)
-                for show in shows
+                for show in inference_shows
                 for performer in show.lineup
                 if extract_explicit_headliner_from_title(performer.name)
             )
@@ -1321,13 +1330,13 @@ class ShowHandler(BaseDatabaseHandler[Show]):
 
             # Remove source fields that repeat a decorated event title before
             # adding credible existing comedians found within that title.
-            self._remove_title_shaped_lineup_entries(shows)
-            self._process_comedian_additions(shows, show_name_comedians_map)
-            self._reconcile_decorated_lineup_entries(shows, show_name_comedians_map)
-            self._seed_headliners_from_empty_lineup_titles(shows)
+            self._remove_title_shaped_lineup_entries(inference_shows)
+            self._process_comedian_additions(inference_shows, show_name_comedians_map)
+            self._reconcile_decorated_lineup_entries(inference_shows, show_name_comedians_map)
+            self._seed_headliners_from_empty_lineup_titles(inference_shows)
 
             # Split multi-comedian lineup entries (e.g. "X & Y") into individual items
-            self._expand_multi_comedian_lineups(shows)
+            self._expand_multi_comedian_lineups(inference_shows)
 
             # Keep uncertain identities in staging. An extracted name is not a
             # validated person, even when it already exists in the legacy table.

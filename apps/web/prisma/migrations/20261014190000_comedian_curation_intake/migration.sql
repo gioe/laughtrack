@@ -174,7 +174,8 @@ BEGIN
  SELECT * INTO c FROM comedians WHERE uuid=NEW.comedian_id;
  IF NOT FOUND THEN RETURN NULL; END IF;
  SELECT * INTO result FROM curation_comedian_policy(c.uuid,c.name,c.id);
- IF result.disposition<>'approved' OR result.comedian_id IS DISTINCT FROM c.id OR c.parent_comedian_id IS NOT NULL OR NOT c.visible THEN
+ IF result.disposition<>'approved' OR result.comedian_id IS DISTINCT FROM c.id OR c.parent_comedian_id IS NOT NULL OR NOT c.visible
+ OR EXISTS(SELECT 1 FROM shows s CROSS JOIN LATERAL curation_comedian_policy(NULL,s.name) p WHERE s.id=NEW.show_id AND p.disposition='blocked') THEN
    PERFORM curation_observe_comedian(c.uuid,c.name,jsonb_build_object('writer','lineup_items','row',to_jsonb(NEW)));
    RETURN NULL;
  END IF;
