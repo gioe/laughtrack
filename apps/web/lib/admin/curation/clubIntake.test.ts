@@ -456,3 +456,17 @@ it("retains legacy aliases and provider keys at block time before they can be de
         ).disposition,
     ).toBe("blocked");
 });
+
+it("retained location blocks survive omitted geography in admin and import payloads", async () => {
+    const c = await approve(payload({ country: "US" }));
+    await decision(c.entity_id, "block");
+    await pg.query("DELETE FROM clubs WHERE id=$1", [c.club_id]);
+    const reduced = { name: payload().name, address: payload().address };
+    expect((await policy(reduced)).disposition).toBe("blocked");
+    await expect(
+        pg.query(
+            "SELECT curation_approve_club($1::jsonb,'admin','Create venue')",
+            [JSON.stringify(reduced)],
+        ),
+    ).rejects.toThrow(/blocked/);
+});

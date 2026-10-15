@@ -11,7 +11,8 @@ Keys are append-only: `club-id:v1`, `google-place:v1`, and typed
 `club-provider:{seatengine_id,seatengine_v3_id,ticketmaster_id,eventbrite_venue_id}:v1`
 use global ID scopes. `club-location:v1` uses exact normalized name plus an
 address/city/state/country scope. Verified aliases retain the same location scope.
-No fuzzy or name-only match grants approval. An approved hidden organizer proxy
+Missing optional geography matches retained name/address keys conservatively;
+multiple compatible identities hold for review. No fuzzy or name-only match grants approval. An approved hidden organizer proxy
 is valid; visibility does not imply rejection or approval. Eventbrite organizer
 source IDs are deliberately NOT venue identity keys.
 

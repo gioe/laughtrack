@@ -12,6 +12,15 @@ CREATE FUNCTION curation_club_source_keys(payload jsonb) RETURNS jsonb LANGUAGE 
  -- eventbrite_venue_id rather than borrowing an organizer scraping-source ID.
  AND field<>'eventbrite_id'
 $$;
+-- Missing optional geography is not evidence of a different venue. Match the
+-- same exact address conservatively; explicit conflicts remain separate and
+-- multiple compatible identities keep policy pending.
+CREATE FUNCTION curation_club_location_compatible(saved text,candidate text) RETURNS boolean LANGUAGE sql IMMUTABLE AS $$
+ SELECT saved::jsonb->>0=candidate::jsonb->>0 AND NOT EXISTS(
+  SELECT 1 FROM generate_series(1,3) i WHERE saved::jsonb->>i IS NOT NULL
+  AND candidate::jsonb->>i IS NOT NULL AND saved::jsonb->>i<>candidate::jsonb->>i
+ )
+$$;
 CREATE FUNCTION curation_club_matches(payload jsonb, supplied jsonb DEFAULT '[]') RETURNS TABLE(id text) LANGUAGE sql STABLE AS $$
  WITH keys AS (SELECT * FROM jsonb_array_elements(curation_club_keys(payload,supplied))),
  matched_clubs AS (
@@ -26,7 +35,7 @@ CREATE FUNCTION curation_club_matches(payload jsonb, supplied jsonb DEFAULT '[]'
   JOIN keys k ON sk->>'namespace'=k.value->>'namespace' AND sk->>'scope'=k.value->>'scope' AND sk->>'value'=k.value->>'value' WHERE s.club_id=c.id)
  )
  SELECT e.id FROM curation_entities e WHERE e.kind='club' AND e.identity_scope='entity' AND
- (e.club_id IN (SELECT id FROM matched_clubs) OR EXISTS(SELECT 1 FROM curation_identity_keys k JOIN keys j ON k.namespace=j.value->>'namespace' AND k.scope=j.value->>'scope' AND k.value=j.value->>'value' WHERE k.entity_id=e.id))
+ (e.club_id IN (SELECT id FROM matched_clubs) OR EXISTS(SELECT 1 FROM curation_identity_keys k JOIN keys j ON k.namespace=j.value->>'namespace' AND k.value=j.value->>'value' AND (k.scope=j.value->>'scope' OR (k.namespace='club-location:v1' AND curation_club_location_compatible(k.scope,j.value->>'scope'))) WHERE k.entity_id=e.id))
 $$;
 CREATE FUNCTION curation_club_policy(payload jsonb, supplied jsonb DEFAULT '[]') RETURNS TABLE(disposition text,entity_id text,club_id integer) LANGUAGE plpgsql STABLE AS $$
 DECLARE ids text[]; chosen text;
