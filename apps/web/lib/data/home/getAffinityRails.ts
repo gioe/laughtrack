@@ -215,6 +215,7 @@ export function buildAffinityQuery({
             FROM favorite_podcasts fp
             JOIN podcasts podcast ON podcast.id = fp.podcast_id
             WHERE ${favoritePodcastProfile}
+              AND curation_podcast_allowed(podcast.id)
               AND NOT EXISTS (
                   SELECT 1
                   FROM podcast_deny_list deny

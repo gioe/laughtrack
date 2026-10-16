@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { createCurationService } from "./decisions";
+import { podcastAdapter } from "./podcastAdapter";
 import { showAdapter } from "./showAdapter";
 import { clubAdapter } from "./clubAdapter";
 import { comedianAdapter } from "./comedianAdapter";
@@ -18,13 +19,15 @@ export const curation = createCurationService({
             }),
     },
     adapter: (target) =>
-        target.type === "entity" && target.kind === "show"
-            ? showAdapter
-            : target.type === "entity" && target.kind === "club"
-              ? clubAdapter
-              : target.type === "entity" && target.kind === "comedian"
-                ? comedianAdapter
-                : undefined,
+        target.type === "entity" && target.kind === "podcast"
+            ? podcastAdapter
+            : target.type === "entity" && target.kind === "show"
+              ? showAdapter
+              : target.type === "entity" && target.kind === "club"
+                ? clubAdapter
+                : target.type === "entity" && target.kind === "comedian"
+                  ? comedianAdapter
+                  : undefined,
     async invalidate() {
         revalidateTag("show-detail-data");
         revalidateTag("show-metadata");

@@ -1,4 +1,5 @@
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
+import { PUBLIC_PODCAST_DENY_LIST_WHERE } from "@/lib/data/podcast/publicWhere";
 import { db } from "@/lib/db";
 import { buildComedianImageUrl } from "@/util/imageUtil";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
@@ -64,6 +65,7 @@ function buildComedianSelect() {
             },
             where: {
                 reviewStatus: "accepted",
+                episode: { podcast: PUBLIC_PODCAST_DENY_LIST_WHERE },
                 AND: [
                     {
                         episode: {

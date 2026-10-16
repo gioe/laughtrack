@@ -117,6 +117,7 @@ describe("getPodcastEpisodeDiscovery", () => {
                     is_active BOOLEAN NOT NULL DEFAULT true,
                     published_at TIMESTAMPTZ NOT NULL DEFAULT now()
                 );
+                CREATE FUNCTION curation_podcast_allowed(id integer) RETURNS boolean LANGUAGE sql AS $$ SELECT true $$;
                 CREATE TABLE podcasts (
                     id INTEGER PRIMARY KEY,
                     slug TEXT NOT NULL,

@@ -48,7 +48,9 @@ class _FakeCursor:
     def execute(self, sql: str, params: tuple[Any, ...] | None = None) -> None:
         self.conn.executed.append((sql, params))
         normalized = " ".join(sql.split())
-        if normalized.startswith("SELECT id, external_ids FROM podcasts"):
+        if "curation_podcast_policy" in normalized:
+            self._last = [("pending", "entity", self.conn.feed_matches[0][0] if self.conn.feed_matches else None)]
+        elif normalized.startswith("SELECT id, external_ids FROM podcasts"):
             self._last = self.conn.feed_matches
         elif normalized.startswith("SELECT p.id, p.external_ids FROM podcasts p"):
             self._last = self.conn.title_host_matches
@@ -299,21 +301,15 @@ def test_upsert_candidate_merges_itunes_id_into_existing_feed_url_match() -> Non
     result = mod.upsert_candidate_with_conn(conn, _candidate())
 
     assert result.podcast_id == 77
-    assert result.action == "merged_feed_url"
+    assert result.action == "matched_identity"
     assert conn.podcast_upserts == []
-    assert len(conn.podcast_updates) == 1
-    update_params = conn.podcast_updates[0]
-    assert update_params is not None
-    merged_external_ids = json.loads(update_params[0])
-    assert merged_external_ids == {
-        "itunes_collection_id": "12345",
-        "podcast_index_feed_id": 998,
-    }
+    assert conn.podcast_updates == []
+    assert any("curation_observe_podcast" in sql for sql, _ in conn.executed)
     assert len(conn.review_upserts) == 1
     assert conn.review_upserts[0][:6] == (12, 77, mod._SOURCE, "12345", "pending", "host")
 
 
-def test_upsert_candidate_reuses_existing_accepted_host_title_match_when_feed_differs() -> None:
+def test_upsert_candidate_does_not_merge_same_title_host_when_feed_differs() -> None:
     conn = _FakeConn(
         feed_matches=[],
         title_host_matches=[(767, {"podcast_index_feed_id": 743501})],
@@ -330,18 +326,12 @@ def test_upsert_candidate_reuses_existing_accepted_host_title_match_when_feed_di
         ),
     )
 
-    assert result.podcast_id == 767
-    assert result.action == "matched_title_host"
-    assert conn.podcast_upserts == []
-    assert len(conn.podcast_updates) == 1
-    update_params = conn.podcast_updates[0]
-    assert update_params is not None
-    assert json.loads(update_params[0]) == {
-        "itunes_collection_id": "7411017",
-        "podcast_index_feed_id": 743501,
-    }
-    assert len(conn.review_upserts) == 1
-    assert conn.review_upserts[0][:6] == (14676, 767, mod._SOURCE, "7411017", "pending", "host")
+    assert result.podcast_id == 42
+    assert result.action == "upserted_source"
+    assert len(conn.podcast_upserts) == 1
+    assert conn.podcast_updates == []
+    assert not any("JOIN comedian_podcasts" in sql for sql, _ in conn.executed)
+    assert conn.review_upserts[0][:6] == (14676, 42, mod._SOURCE, "7411017", "pending", "host")
 
 
 def test_upsert_candidate_inserts_when_no_feed_url_match() -> None:

@@ -59,6 +59,7 @@ _LOAD_PODCASTS_SQL = """
         source_payload
     FROM podcasts
     WHERE COALESCE(feed_url, source_payload ->> 'feed_url') IS NOT NULL
+      AND curation_podcast_allowed(podcasts.id)
       AND (%s::text IS NULL OR source = %s)
       AND (%s::int[] IS NULL OR id = ANY(%s::int[]))
       AND NOT EXISTS (
@@ -95,6 +96,7 @@ _COUNT_UNREACHABLE_SQL = """
     SELECT COUNT(*)
     FROM podcasts
     WHERE COALESCE(feed_url, source_payload ->> 'feed_url') IS NOT NULL
+      AND curation_podcast_allowed(podcasts.id)
       AND (%s::text IS NULL OR source = %s)
       AND (%s::int[] IS NULL OR id = ANY(%s::int[]))
       AND NOT EXISTS (

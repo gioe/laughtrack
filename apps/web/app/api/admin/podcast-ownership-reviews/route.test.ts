@@ -1,3 +1,8 @@
+vi.mock("@/lib/admin/curation/podcastIntake", () => ({
+    lockPodcastIntake: vi.fn().mockResolvedValue(undefined),
+    resolvePodcastIntake: vi.fn().mockResolvedValue(null),
+    podcastEpisodesAllowed: vi.fn().mockResolvedValue(true),
+}));
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PGlite } from "@electric-sql/pglite";
 import { NextRequest } from "next/server";
@@ -46,6 +51,10 @@ vi.mock("@/lib/db", () => ({
     },
 }));
 
+import {
+    podcastEpisodesAllowed,
+    lockPodcastIntake,
+} from "@/lib/admin/curation/podcastIntake";
 import { GET, POST, PUT } from "./route";
 import { db } from "@/lib/db";
 
@@ -423,11 +432,9 @@ describe("POST /api/admin/podcast-hostship-reviews", () => {
                 },
             }),
         );
+        expect(lockPodcastIntake).toHaveBeenCalled();
         expect(denyListUpsert).not.toHaveBeenCalled();
-        expect(denyListUpdateMany).toHaveBeenCalledWith({
-            where: { podcastId: 99, restoredAt: null },
-            data: expect.objectContaining({ restoredBy: "profile-1" }),
-        });
+        expect(denyListUpdateMany).not.toHaveBeenCalled();
         expect(auditCreate).toHaveBeenCalledWith({
             data: expect.objectContaining({
                 actorProfileId: "profile-1",
@@ -850,7 +857,7 @@ describe("POST /api/admin/podcast-hostship-reviews", () => {
         expect(mocks.revalidateTag).toHaveBeenCalledWith("jane-show");
     });
 
-    it("treats an implicit no-host review as a rejected deny-list decision", async () => {
+    it("rejects proposed hosts without implicitly blocking the podcast", async () => {
         const podcast = {
             id: 99,
             slug: "jane-show",
@@ -929,34 +936,23 @@ describe("POST /api/admin/podcast-hostship-reviews", () => {
         );
 
         expect(res.status).toBe(200);
-        expect(denyListUpsert).toHaveBeenCalledWith(
-            expect.objectContaining({
-                where: { podcastId: 99 },
-                create: expect.objectContaining({
-                    podcastId: 99,
-                    reason: "No accepted host after review",
-                    deniedBy: "profile-1",
-                }),
-                update: expect.objectContaining({
-                    reason: "No accepted host after review",
-                    restoredAt: null,
-                    restoredBy: null,
-                }),
-            }),
-        );
+        expect(denyListUpsert).not.toHaveBeenCalled();
         expect(denyListUpdateMany).not.toHaveBeenCalled();
         expect(auditCreate).toHaveBeenCalledWith({
             data: expect.objectContaining({
-                action: "podcast_hostship_review.deny_list",
-                reason: "No accepted host after review",
+                action: "podcast_hostship_review.reject",
+                reason: null,
             }),
         });
     });
 });
 
 describe("PUT /api/admin/podcast-hostship-reviews", () => {
-    it("ingests a manual RSS feed, links it to the comedian, audits, and revalidates", async () => {
-        const rss = `<?xml version="1.0"?>
+    it.each([true, false])(
+        "ingests manual metadata and honors episode approval=%s",
+        async (approved) => {
+            vi.mocked(podcastEpisodesAllowed).mockResolvedValueOnce(approved);
+            const rss = `<?xml version="1.0"?>
             <rss><channel>
                 <title>Manual Jane Feed</title>
                 <link>https://pod.example</link>
@@ -969,122 +965,134 @@ describe("PUT /api/admin/podcast-hostship-reviews", () => {
                     <enclosure url="https://cdn.example/1.mp3" />
                 </item>
             </channel></rss>`;
-        vi.stubGlobal(
-            "fetch",
-            vi.fn().mockResolvedValue({
-                ok: true,
-                text: async () => rss,
-            }),
-        );
-
-        const comedian = {
-            id: 42,
-            name: "Jane Comic",
-            uuid: "comedian-uuid",
-            visible: true,
-            parentComedianId: null,
-        };
-        const podcast = {
-            id: 99,
-            slug: "manual-jane-feed-manual-rss-abc",
-            title: "Manual Jane Feed",
-            feedUrl: "https://feeds.example.com/jane.xml",
-        };
-        const auditCreate = vi.fn();
-        const podcastUpsert = vi.fn().mockResolvedValue(podcast);
-        const podcastUpdate = vi.fn();
-        const comedianFindUnique = vi.fn().mockResolvedValue(comedian);
-        const comedianPodcastDeleteMany = vi.fn();
-        const comedianPodcastUpsert = vi.fn();
-        const episodeQueryRaw = vi
-            .fn()
-            .mockResolvedValueOnce([])
-            .mockResolvedValue([{ id: 123 }]);
-        mockTransaction.mockImplementation(async (callback) =>
-            callback({
-                podcast: {
-                    upsert: podcastUpsert,
-                    update: podcastUpdate,
-                },
-                comedian: { findUnique: comedianFindUnique },
-                comedianPodcast: {
-                    deleteMany: comedianPodcastDeleteMany,
-                    upsert: comedianPodcastUpsert,
-                },
-                $queryRaw: episodeQueryRaw,
-                adminActionAudit: { create: auditCreate },
-            } as never),
-        );
-
-        const res = await PUT(
-            makeRequest({
-                comedianId: 42,
-                feedUrl: "https://feeds.example.com/jane.xml",
-                reason: "Confirmed manually",
-            }),
-        );
-        const body = await res.json();
-
-        expect(res.status).toBe(200);
-        expect(body.episodeCount).toBe(1);
-        expect(podcastUpsert).toHaveBeenCalledWith(
-            expect.objectContaining({
-                create: expect.objectContaining({
-                    source: "manual_rss",
-                    feedUrl: "https://feeds.example.com/jane.xml",
-                    title: "Manual Jane Feed",
+            vi.stubGlobal(
+                "fetch",
+                vi.fn().mockResolvedValue({
+                    ok: true,
+                    text: async () => rss,
                 }),
-            }),
-        );
-        expect(comedianPodcastUpsert).toHaveBeenCalledWith(
-            expect.objectContaining({
-                create: expect.objectContaining({
+            );
+
+            const comedian = {
+                id: 42,
+                name: "Jane Comic",
+                uuid: "comedian-uuid",
+                visible: true,
+                parentComedianId: null,
+            };
+            const podcast = {
+                id: 99,
+                slug: "manual-jane-feed-manual-rss-abc",
+                title: "Manual Jane Feed",
+                feedUrl: "https://feeds.example.com/jane.xml",
+            };
+            const auditCreate = vi.fn();
+            const podcastUpsert = vi.fn().mockResolvedValue(podcast);
+            const podcastUpdate = vi.fn();
+            const comedianFindUnique = vi.fn().mockResolvedValue(comedian);
+            const comedianPodcastDeleteMany = vi.fn();
+            const comedianPodcastUpsert = vi.fn();
+            const episodeQueryRaw = vi
+                .fn()
+                .mockResolvedValueOnce([])
+                .mockResolvedValue([{ id: 123 }]);
+            mockTransaction.mockImplementation(async (callback) =>
+                callback({
+                    podcast: {
+                        upsert: podcastUpsert,
+                        update: podcastUpdate,
+                    },
+                    comedian: { findUnique: comedianFindUnique },
+                    comedianPodcast: {
+                        deleteMany: comedianPodcastDeleteMany,
+                        upsert: comedianPodcastUpsert,
+                    },
+                    $queryRaw: episodeQueryRaw,
+                    adminActionAudit: { create: auditCreate },
+                } as never),
+            );
+
+            const res = await PUT(
+                makeRequest({
+                    comedianId: 42,
+                    feedUrl: "https://feeds.example.com/jane.xml",
+                    reason: "Confirmed manually",
+                }),
+            );
+            const body = await res.json();
+
+            expect(res.status).toBe(200);
+            expect(body.episodeCount).toBe(approved ? 1 : 0);
+            expect(body.episodeIntakeHeld).toBe(!approved);
+            expect(podcastUpsert).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    create: expect.objectContaining({
+                        source: "manual_rss",
+                        feedUrl: "https://feeds.example.com/jane.xml",
+                        title: "Manual Jane Feed",
+                    }),
+                }),
+            );
+            expect(comedianPodcastUpsert).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    create: expect.objectContaining({
+                        comedianId: 42,
+                        podcastId: 99,
+                        reviewStatus: "accepted",
+                        source: "manual_rss",
+                    }),
+                }),
+            );
+            expect(comedianPodcastDeleteMany).toHaveBeenCalledWith({
+                where: {
                     comedianId: 42,
                     podcastId: 99,
+                    associationType: "host",
+                    source: { not: "manual_rss" },
                     reviewStatus: "accepted",
-                    source: "manual_rss",
+                },
+            });
+            if (approved) {
+                expect(episodeQueryRaw).toHaveBeenCalledTimes(2);
+                const episodeQuery = episodeQueryRaw.mock.calls[1]?.[0] as {
+                    strings: string[];
+                    values: unknown[];
+                };
+                expect(episodeQuery.strings.join(" ")).toContain(
+                    "ON CONFLICT DO NOTHING",
+                );
+                expect(episodeQuery.strings.join(" ")).toContain(
+                    "REGEXP_REPLACE",
+                );
+                expect(episodeQuery.values).toContain("guid:episode-1");
+                expect(episodeQuery.values).toContain("episode-1");
+                expect(podcastUpdate).toHaveBeenCalledWith({
+                    where: { id: 99 },
+                    data: { lastSyncedAt: expect.any(Date) },
+                });
+            } else {
+                expect(episodeQueryRaw).toHaveBeenCalledTimes(1);
+                expect(
+                    episodeQueryRaw.mock.calls[0][0].join(" "),
+                ).not.toContain("podcast_episodes");
+                expect(podcastUpdate).not.toHaveBeenCalled();
+            }
+            expect(auditCreate).toHaveBeenCalledWith({
+                data: expect.objectContaining({
+                    action: "podcast_manual_rss.ingest",
+                    entityType: "podcast",
+                    entityId: "99",
+                    reason: "Confirmed manually",
                 }),
-            }),
-        );
-        expect(comedianPodcastDeleteMany).toHaveBeenCalledWith({
-            where: {
-                comedianId: 42,
-                podcastId: 99,
-                associationType: "host",
-                source: { not: "manual_rss" },
-                reviewStatus: "accepted",
-            },
-        });
-        expect(episodeQueryRaw).toHaveBeenCalledTimes(2);
-        const episodeQuery = episodeQueryRaw.mock.calls[1]?.[0] as {
-            strings: string[];
-            values: unknown[];
-        };
-        expect(episodeQuery.strings.join(" ")).toContain(
-            "ON CONFLICT DO NOTHING",
-        );
-        expect(episodeQuery.strings.join(" ")).toContain("REGEXP_REPLACE");
-        expect(episodeQuery.values).toContain("guid:episode-1");
-        expect(episodeQuery.values).toContain("episode-1");
-        expect(podcastUpdate).toHaveBeenCalledWith({
-            where: { id: 99 },
-            data: { lastSyncedAt: expect.any(Date) },
-        });
-        expect(auditCreate).toHaveBeenCalledWith({
-            data: expect.objectContaining({
-                action: "podcast_manual_rss.ingest",
-                entityType: "podcast",
-                entityId: "99",
-                reason: "Confirmed manually",
-            }),
-        });
-        expect(mocks.revalidateTag).toHaveBeenCalledWith(
-            "podcasts-search-page-data-v3",
-        );
-        expect(mocks.revalidateTag).toHaveBeenCalledWith(
-            "manual-jane-feed-manual-rss-abc",
-        );
-    });
+            });
+            expect(mocks.revalidateTag).toHaveBeenCalledWith(
+                "podcasts-search-page-data-v3",
+            );
+            expect(mocks.revalidateTag).toHaveBeenCalledWith(
+                "manual-jane-feed-manual-rss-abc",
+            );
+        },
+    );
 
     it("canonicalizes a manual RSS alias and removes accepted links across its full alias path", async () => {
         vi.stubGlobal(

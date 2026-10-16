@@ -614,6 +614,16 @@ describe("findComedianByName", () => {
                             }),
                             where: {
                                 reviewStatus: "accepted",
+                                episode: {
+                                    podcast: {
+                                        curationIdentity: {
+                                            is: { disposition: "approved" },
+                                        },
+                                        denyListEntries: {
+                                            none: { restoredAt: null },
+                                        },
+                                    },
+                                },
                                 AND: [
                                     {
                                         episode: {

@@ -43,6 +43,7 @@ describe("getTrendingPodcasts", () => {
         expect(mockFindMany).toHaveBeenCalledWith(
             expect.objectContaining({
                 where: {
+                    curationIdentity: { is: { disposition: "approved" } },
                     denyListEntries: {
                         none: {
                             restoredAt: null,
@@ -137,6 +138,7 @@ describe("getTrendingPodcasts", () => {
         expect(mockFindMany).toHaveBeenCalledWith(
             expect.objectContaining({
                 where: {
+                    curationIdentity: { is: { disposition: "approved" } },
                     denyListEntries: {
                         none: {
                             restoredAt: null,

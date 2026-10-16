@@ -88,7 +88,9 @@ class _PodcastDedupeCursor:
 
     def execute(self, sql: str, params: tuple[Any, ...] | None = None) -> None:
         normalized = " ".join(sql.split())
-        if normalized.startswith("SELECT id, external_ids FROM podcasts"):
+        if "curation_podcast_policy" in normalized:
+            self._last = [("pending", "identity-77", 77)]
+        elif normalized.startswith("SELECT id, external_ids FROM podcasts"):
             self._last = [(77, {"podcast_index_feed_id": 998})]
         elif normalized.startswith("UPDATE podcasts"):
             self.conn.podcast_updates.append(params)
@@ -133,16 +135,14 @@ def _candidate(comedian_id: int = 12) -> ItunesPodcastCandidate:
     )
 
 
-def test_feed_url_dedupe_merges_itunes_collection_id_into_existing_podcast() -> None:
+def test_exact_identity_reuses_existing_podcast() -> None:
     conn = _PodcastDedupeConn()
 
     result = upsert_candidate_with_conn(conn, _candidate())
 
-    assert result == UpsertResult(77, "merged_feed_url")
+    assert result == UpsertResult(77, "matched_identity")
     assert conn.podcast_inserts == []
-    assert len(conn.podcast_updates) == 1
-    assert conn.podcast_updates[0] is not None
-    assert '"itunes_collection_id": "12345"' in conn.podcast_updates[0][0]
+    assert conn.podcast_updates == []
     assert len(conn.review_upserts) == 1
     assert conn.review_upserts[0][:4] == (12, 77, "itunes", "12345")
 

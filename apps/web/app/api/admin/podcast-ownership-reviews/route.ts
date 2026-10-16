@@ -1,3 +1,9 @@
+import {
+    resolvePodcastIntake,
+    lockPodcastIntake,
+    podcastEpisodesAllowed,
+} from "@/lib/admin/curation/podcastIntake";
+import { CurationError } from "@/lib/admin/curation/decisions";
 import { writeAdminActionAudit } from "@/lib/admin/audit";
 import { listPodcastHostshipReviews } from "@/lib/admin/podcastHostshipReviews";
 import { requireAdminForApi } from "@/lib/auth/requireAdmin";
@@ -463,8 +469,7 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
         })),
     ] as const;
     const requestedComedianIds = requestedRoleRows.map((row) => row.comedianId);
-    const denyListed =
-        parsed.data.denyListed ?? requestedComedianIds.length === 0;
+    const denyListed = parsed.data.denyListed ?? false;
     const reason = parsed.data.reason?.trim() || null;
     const decisionReason =
         reason ?? (denyListed ? "No accepted host after review" : null);
@@ -477,6 +482,7 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
 
     try {
         const result = await db.$transaction(async (tx) => {
+            await lockPodcastIntake(tx);
             const podcast = await tx.podcast.findUnique({
                 where: { id: podcastId },
                 select: {
@@ -761,7 +767,7 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
                   })
                 : null;
 
-            if (!denyListed) {
+            if (parsed.data.denyListed === false) {
                 await tx.podcastDenyList.updateMany({
                     where: { podcastId, restoredAt: null },
                     data: {
@@ -778,7 +784,9 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
                         ? "podcast_hostship_review.approve"
                         : denyListed
                           ? "podcast_hostship_review.deny_list"
-                          : "podcast_hostship_review.restore",
+                          : parsed.data.denyListed === false
+                            ? "podcast_hostship_review.restore"
+                            : "podcast_hostship_review.reject",
                 entityType: "podcast",
                 entityId: podcastId,
                 reason: decisionReason,
@@ -959,49 +967,66 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
                 resolution,
             );
 
-            const podcast = await tx.podcast.upsert({
-                where: {
-                    source_sourcePodcastId: {
-                        source,
-                        sourcePodcastId,
-                    },
-                },
-                create: {
-                    source,
-                    sourcePodcastId,
-                    slug,
-                    feedUrl,
-                    title: parsedFeed.title,
-                    authorName: parsedFeed.authorName,
-                    websiteUrl: parsedFeed.websiteUrl,
-                    imageUrl: parsedFeed.imageUrl,
-                    description: parsedFeed.description,
-                    evidence: manualEvidence,
-                    sourcePayload: {
-                        channelTitle: parsedFeed.title,
-                        fetchedAt: new Date().toISOString(),
-                    },
-                },
-                update: {
-                    feedUrl,
-                    title: parsedFeed.title,
-                    authorName: parsedFeed.authorName,
-                    websiteUrl: parsedFeed.websiteUrl,
-                    imageUrl: parsedFeed.imageUrl,
-                    description: parsedFeed.description,
-                    evidence: manualEvidence,
-                    sourcePayload: {
-                        channelTitle: parsedFeed.title,
-                        fetchedAt: new Date().toISOString(),
-                    },
-                },
-                select: {
-                    id: true,
-                    slug: true,
-                    title: true,
-                    feedUrl: true,
-                },
+            const existingId = await resolvePodcastIntake(tx, {
+                source,
+                source_podcast_id: sourcePodcastId,
+                feed_url: feedUrl,
+                title: parsedFeed.title,
             });
+            const podcast =
+                existingId !== null
+                    ? await tx.podcast.findUniqueOrThrow({
+                          where: { id: existingId },
+                          select: {
+                              id: true,
+                              slug: true,
+                              title: true,
+                              feedUrl: true,
+                          },
+                      })
+                    : await tx.podcast.upsert({
+                          where: {
+                              source_sourcePodcastId: {
+                                  source,
+                                  sourcePodcastId,
+                              },
+                          },
+                          create: {
+                              source,
+                              sourcePodcastId,
+                              slug,
+                              feedUrl,
+                              title: parsedFeed.title,
+                              authorName: parsedFeed.authorName,
+                              websiteUrl: parsedFeed.websiteUrl,
+                              imageUrl: parsedFeed.imageUrl,
+                              description: parsedFeed.description,
+                              evidence: manualEvidence,
+                              sourcePayload: {
+                                  channelTitle: parsedFeed.title,
+                                  fetchedAt: new Date().toISOString(),
+                              },
+                          },
+                          update: {
+                              feedUrl,
+                              title: parsedFeed.title,
+                              authorName: parsedFeed.authorName,
+                              websiteUrl: parsedFeed.websiteUrl,
+                              imageUrl: parsedFeed.imageUrl,
+                              description: parsedFeed.description,
+                              evidence: manualEvidence,
+                              sourcePayload: {
+                                  channelTitle: parsedFeed.title,
+                                  fetchedAt: new Date().toISOString(),
+                              },
+                          },
+                          select: {
+                              id: true,
+                              slug: true,
+                              title: true,
+                              feedUrl: true,
+                          },
+                      });
 
             const reviewedAt = new Date();
             const aliasComedianIds = resolution.aliasPath.filter(
@@ -1090,24 +1115,28 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
             );
         }
 
+        const episodeIntakeHeld = !(await podcastEpisodesAllowed(
+            result.podcast.id,
+        ));
         let episodeCount = 0;
         let episodeRefreshFailed = false;
         try {
-            await db.$transaction(async (tx) => {
-                for (const episode of parsedFeed.episodes) {
-                    await upsertManualRssEpisode(
-                        tx,
-                        result.podcast.id,
-                        feedUrl,
-                        episode,
-                    );
-                }
-                await tx.podcast.update({
-                    where: { id: result.podcast.id },
-                    data: { lastSyncedAt: new Date() },
+            if (!episodeIntakeHeld)
+                await db.$transaction(async (tx) => {
+                    for (const episode of parsedFeed.episodes) {
+                        await upsertManualRssEpisode(
+                            tx,
+                            result.podcast.id,
+                            feedUrl,
+                            episode,
+                        );
+                    }
+                    await tx.podcast.update({
+                        where: { id: result.podcast.id },
+                        data: { lastSyncedAt: new Date() },
+                    });
                 });
-            });
-            episodeCount = parsedFeed.episodes.length;
+            episodeCount = episodeIntakeHeld ? 0 : parsedFeed.episodes.length;
         } catch (error) {
             episodeRefreshFailed = true;
             console.error(
@@ -1128,8 +1157,14 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
             ...result,
             episodeCount,
             episodeRefreshFailed,
+            episodeIntakeHeld,
         });
     } catch (error) {
+        if (error instanceof CurationError)
+            return NextResponse.json(
+                { error: error.message },
+                { status: error.status },
+            );
         console.error("Manual RSS podcast ingest failed:", error);
         return NextResponse.json({ error: "Ingest failed" }, { status: 500 });
     }

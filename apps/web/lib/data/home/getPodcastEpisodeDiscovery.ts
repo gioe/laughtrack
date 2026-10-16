@@ -178,6 +178,7 @@ export function buildPodcastEpisodeDiscoveryQuery({
         WHERE ea.review_status = 'accepted'
           AND pe.release_date >= ${cutoff}
           AND pe.release_date <= ${now}
+          AND curation_podcast_allowed(p.id)
           AND c.visible = true
           AND c.parent_comedian_id IS NULL
           AND NOT EXISTS (

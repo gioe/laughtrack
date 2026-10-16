@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { unstable_cache } from "next/cache";
+import { publicationCache as unstable_cache } from "@/lib/data/show/publicationCache";
 import type { Metadata } from "next";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { NotFoundError } from "@/objects/NotFoundError";

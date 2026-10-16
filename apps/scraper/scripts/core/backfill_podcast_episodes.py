@@ -103,6 +103,7 @@ _LOAD_ACCEPTED_FEEDS_SQL = """
     JOIN podcasts p ON p.id = cp.podcast_id
     JOIN comedians c ON c.id = cp.comedian_id
     WHERE cp.review_status = 'accepted'
+      AND curation_podcast_allowed(p.id)
       AND p.source = %s
       AND (%s::text[] IS NULL OR p.source_podcast_id = ANY(%s::text[]))
       AND (%s::int[] IS NULL OR cp.comedian_id = ANY(%s::int[]))

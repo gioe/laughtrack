@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 
 export const PUBLIC_PODCAST_DENY_LIST_WHERE = {
+    curationIdentity: { is: { disposition: "approved" } },
     denyListEntries: {
         none: {
             restoredAt: null,
@@ -79,6 +80,7 @@ export async function getPublicPodcastAcceptedAttributionWhere(): Promise<Prisma
                  lower(btrim(regexp_replace(replace(dl.name, chr(160), ' '), '[[:space:]]+', ' ', 'g')))
             WHERE cp.review_status = 'accepted'
               AND cp.association_type IN ('host', 'cohost')
+            UNION SELECT podcast_id FROM curation_entities WHERE kind='podcast' AND disposition='approved' AND podcast_id IS NOT NULL AND NOT curation_podcast_allowed(podcast_id)
         `,
     );
 

@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { unstable_cache } from "next/cache";
+import { publicationCache as unstable_cache } from "@/lib/data/show/publicationCache";
 import { auth } from "@/auth";
 import { CACHE } from "@/util/constants/cacheConstants";
 import JsonLd from "@/ui/components/JsonLd";

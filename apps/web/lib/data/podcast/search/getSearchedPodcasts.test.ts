@@ -25,6 +25,7 @@ const canonicalComedianWhere = {
 };
 
 const publicAttributionWhere = {
+    curationIdentity: { is: { disposition: "approved" } },
     denyListEntries: {
         none: {
             restoredAt: null,

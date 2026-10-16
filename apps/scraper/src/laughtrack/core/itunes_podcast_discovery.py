@@ -92,22 +92,6 @@ _FIND_PODCAST_BY_FEED_URL_SQL = """
     LIMIT 1
 """
 
-_FIND_PODCAST_BY_TITLE_ACCEPTED_HOST_SQL = """
-    SELECT p.id, p.external_ids
-    FROM podcasts p
-    JOIN comedian_podcasts cp ON cp.podcast_id = p.id
-    WHERE cp.comedian_id = %s
-      AND cp.association_type = 'host'
-      AND cp.review_status = 'accepted'
-      AND NOT (p.source = %s AND p.source_podcast_id = %s)
-      AND (
-          LOWER(BTRIM(p.title)) = LOWER(BTRIM(%s))
-          OR BTRIM(regexp_replace(LOWER(p.title), '[^a-z0-9]+', ' ', 'g')) = %s
-      )
-    ORDER BY p.id
-    LIMIT 1
-"""
-
 _INSERT_OR_UPDATE_ITUNES_PODCAST_SQL = """
     INSERT INTO podcasts (
         source,
@@ -629,29 +613,6 @@ def _find_existing_podcast_by_feed_url(
     return int(row[0]), _json_mapping(row[1])
 
 
-def _find_existing_podcast_by_title_accepted_host(
-    conn: Any, candidate: ItunesPodcastCandidate
-) -> Optional[tuple[int, dict[str, Any]]]:
-    normalized_title = normalize_match_text(candidate.title)
-    if not normalized_title:
-        return None
-    with conn.cursor() as cur:
-        cur.execute(
-            _FIND_PODCAST_BY_TITLE_ACCEPTED_HOST_SQL,
-            (
-                candidate.comedian_id,
-                candidate.source,
-                candidate.source_podcast_id,
-                candidate.title,
-                normalized_title,
-            ),
-        )
-        row = cur.fetchone()
-    if not row:
-        return None
-    return int(row[0]), _json_mapping(row[1])
-
-
 def _upsert_itunes_podcast(conn: Any, candidate: ItunesPodcastCandidate) -> int:
     with conn.cursor() as cur:
         cur.execute(
@@ -711,18 +672,14 @@ def _upsert_candidate_review(conn: Any, podcast_id: int, candidate: ItunesPodcas
 
 
 def upsert_candidate_with_conn(conn: Any, candidate: ItunesPodcastCandidate) -> UpsertResult:
-    existing = _find_existing_podcast_by_feed_url(conn, candidate)
-    if existing:
-        podcast_id = _merge_itunes_id_into_existing_podcast(conn, existing[0], existing[1], candidate)
-        action = "merged_feed_url"
+    from laughtrack.core.podcast_curation import resolve_candidate
+    with conn.cursor() as cur:
+        podcast_id = resolve_candidate(cur, candidate)
+    if podcast_id is None:
+        podcast_id = _upsert_itunes_podcast(conn, candidate)
+        action = "upserted_source"
     else:
-        existing = _find_existing_podcast_by_title_accepted_host(conn, candidate)
-        if existing:
-            podcast_id = _merge_itunes_id_into_existing_podcast(conn, existing[0], existing[1], candidate)
-            action = "matched_title_host"
-        else:
-            podcast_id = _upsert_itunes_podcast(conn, candidate)
-            action = "upserted_source"
+        action = "matched_identity"
     _upsert_candidate_review(conn, podcast_id, candidate)
     return UpsertResult(podcast_id=podcast_id, action=action)
 

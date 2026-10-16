@@ -21,8 +21,8 @@ vi.mock("@/auth", () => ({
     auth: vi.fn(() => Promise.resolve(null)),
 }));
 
-vi.mock("next/cache", () => ({
-    unstable_cache: <T,>(fn: () => Promise<T>) => fn,
+vi.mock("@/lib/data/show/publicationCache", () => ({
+    publicationCache: <T,>(fn: () => Promise<T>) => fn,
 }));
 
 vi.mock("@/ui/components/JsonLd", () => ({

@@ -185,7 +185,7 @@ def test_parse_search_payload_stores_source_fields_and_image_url():
 def test_persist_candidates_upserts_podcasts_and_candidate_reviews(monkeypatch):
     conn = _FakeConnection(
         fetchall_results=[[]],
-        fetchone_results=[None, (42,)],
+        fetchone_results=[("pending", None, None), (42,)],
     )
     candidate = mod.PodcastCandidate(
         comedian_id=12,
@@ -209,15 +209,15 @@ def test_persist_candidates_upserts_podcasts_and_candidate_reviews(monkeypatch):
 
     assert written == 1
     assert conn.commits == 1
-    assert len(conn.cursor_obj.executed) == 4
+    assert len(conn.cursor_obj.executed) == 6
     deny_query, _ = conn.cursor_obj.executed[0]
-    existing_query, existing_params = conn.cursor_obj.executed[1]
-    podcast_query, podcast_params = conn.cursor_obj.executed[2]
-    review_query, review_params = conn.cursor_obj.executed[3]
+    existing_query, existing_params = conn.cursor_obj.executed[2]
+    podcast_query, podcast_params = conn.cursor_obj.executed[4]
+    review_query, review_params = conn.cursor_obj.executed[5]
     assert "FROM podcast_deny_list" in deny_query
     assert "restored_at IS NULL" in deny_query
-    assert "JOIN comedian_podcasts" in existing_query
-    assert existing_params[:3] == (12, mod._SOURCE, "101")
+    assert "curation_podcast_policy" in existing_query
+    assert json.loads(existing_params[0])["source_podcast_id"] == "101"
     assert "INSERT INTO podcasts" in podcast_query
     assert "ON CONFLICT (source, source_podcast_id)" in podcast_query
     assert podcast_params[:7] == (
@@ -238,10 +238,10 @@ def test_persist_candidates_upserts_podcasts_and_candidate_reviews(monkeypatch):
     assert evidence["confidence_band"] == "title_exact"
 
 
-def test_persist_candidates_reuses_existing_accepted_host_title_match(monkeypatch):
+def test_persist_candidates_reuses_verified_identity(monkeypatch):
     conn = _FakeConnection(
         fetchall_results=[[]],
-        fetchone_results=[(767,)],
+        fetchone_results=[("approved", "identity-767", 767)],
     )
     candidate = mod.PodcastCandidate(
         comedian_id=14676,
@@ -378,7 +378,7 @@ def test_persist_candidates_skips_deny_listed_feed_url(monkeypatch):
 def test_persist_candidates_writes_allowed_candidate_alongside_denied_one(monkeypatch):
     conn = _FakeConnection(
         fetchall_results=[[(mod._SOURCE, "blocked-101", None)]],
-        fetchone_results=[None, (42,)],
+        fetchone_results=[("pending", None, None), (42,)],
     )
     monkeypatch.setattr(mod, "get_connection", lambda: conn)
 
@@ -407,7 +407,7 @@ def test_persist_candidates_does_not_treat_restored_entries_as_denied(monkeypatc
     # restore path proceeds with a normal write.
     conn = _FakeConnection(
         fetchall_results=[[]],
-        fetchone_results=[None, (42,)],
+        fetchone_results=[("pending", None, None), (42,)],
     )
     monkeypatch.setattr(mod, "get_connection", lambda: conn)
 

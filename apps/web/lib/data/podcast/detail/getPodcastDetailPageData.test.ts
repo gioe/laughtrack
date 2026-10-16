@@ -53,6 +53,7 @@ describe("getPodcastDetailPageData", () => {
             expect.objectContaining({
                 where: {
                     slug: "chrissy-chaos",
+                    curationIdentity: { is: { disposition: "approved" } },
                     denyListEntries: {
                         none: {
                             restoredAt: null,
@@ -114,6 +115,7 @@ describe("getPodcastDetailPageData", () => {
             expect.objectContaining({
                 where: {
                     id: 42,
+                    curationIdentity: { is: { disposition: "approved" } },
                     denyListEntries: {
                         none: {
                             restoredAt: null,

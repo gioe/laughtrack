@@ -98,7 +98,8 @@ beforeEach(() => {
 async function buildFixture() {
     const database = new PGlite();
     await database.exec(`
-        CREATE TABLE clubs (id INTEGER PRIMARY KEY, visible BOOLEAN NOT NULL);
+        CREATE FUNCTION curation_podcast_allowed(id integer) RETURNS boolean LANGUAGE sql AS $$ SELECT true $$;
+                CREATE TABLE clubs (id INTEGER PRIMARY KEY, visible BOOLEAN NOT NULL);
         CREATE TABLE shows (
             id INTEGER PRIMARY KEY,
             date TIMESTAMPTZ NOT NULL,
