@@ -24,6 +24,10 @@ vi.mock("next/navigation", () => ({
     }),
 }));
 
+vi.mock("./ParentRelationshipHistory", () => ({
+    ParentRelationshipHistory: () => null,
+}));
+
 const comedians: AdminComedianListItem[] = [
     {
         id: 1,
@@ -180,6 +184,50 @@ function expandAllPodcastSections() {
 
 function summaryValue(row: HTMLElement, label: string) {
     return within(row).getByText(label).parentElement?.textContent;
+}
+
+async function previewAndApplyParent(clear = false) {
+    fireEvent.change(screen.getByLabelText("Relationship reason"), {
+        target: { value: "Verified same performer" },
+    });
+    if (!clear) {
+        fireEvent.change(screen.getByLabelText("Same-performer evidence URL"), {
+            target: { value: "https://example.org/bio" },
+        });
+        fireEvent.change(
+            screen.getByLabelText(
+                "Why these names identify the same performer",
+            ),
+            {
+                target: {
+                    value: "Official biography explicitly lists both stage names.",
+                },
+            },
+        );
+        vi.mocked(global.fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ relationshipId: "edge" }),
+        } as never);
+    }
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+            previewToken: "preview",
+            effects: ["Preserve original appearances"],
+        }),
+    } as never);
+    fireEvent.click(
+        screen.getByRole("button", { name: "Preview relationship" }),
+    );
+    await screen.findByText("Preserve original appearances");
+    expect(
+        vi
+            .mocked(global.fetch)
+            .mock.calls.filter(([url]) => url === "/api/admin/comedians"),
+    ).toHaveLength(0);
+    fireEvent.click(
+        screen.getByRole("button", { name: "Apply relationship change" }),
+    );
 }
 
 beforeEach(() => {
@@ -896,22 +944,14 @@ describe("AdminComedianManager", () => {
             target: { value: "Parent" },
         });
         fireEvent.click(screen.getByRole("button", { name: "Parent Comic" }));
-        fireEvent.click(
-            screen.getAllByRole("button", {
-                name: "Save relationship",
-            })[0],
-        );
+        await previewAndApplyParent();
 
         await waitFor(() => {
             expect(global.fetch).toHaveBeenCalledWith(
                 "/api/admin/comedians",
                 expect.objectContaining({
                     method: "PATCH",
-                    body: JSON.stringify({
-                        action: "set-parent",
-                        comedianId: 2,
-                        parentComedianId: 1,
-                    }),
+                    body: expect.stringContaining('"previewToken":"preview"'),
                 }),
             );
         });
@@ -941,9 +981,7 @@ describe("AdminComedianManager", () => {
             },
         );
         fireEvent.click(screen.getByRole("button", { name: "Parent Comic" }));
-        fireEvent.click(
-            screen.getAllByRole("button", { name: "Save relationship" })[0],
-        );
+        await previewAndApplyParent();
 
         await waitFor(() => {
             expect(
@@ -1012,7 +1050,7 @@ describe("AdminComedianManager", () => {
     });
 
     it("removes a child parent relationship via the Relationship dropdown and promotes the child to the top level", async () => {
-        vi.mocked(global.fetch).mockResolvedValueOnce({
+        vi.mocked(global.fetch).mockResolvedValue({
             ok: true,
             json: async () => ({
                 ok: true,
@@ -1047,22 +1085,14 @@ describe("AdminComedianManager", () => {
                 name: "Clear parent for Alias Comic",
             }),
         );
-        fireEvent.click(
-            within(childRow!).getByRole("button", {
-                name: "Save relationship",
-            }),
-        );
+        await previewAndApplyParent(true);
 
         await waitFor(() => {
             expect(global.fetch).toHaveBeenCalledWith(
                 "/api/admin/comedians",
                 expect.objectContaining({
                     method: "PATCH",
-                    body: JSON.stringify({
-                        action: "set-parent",
-                        comedianId: 2,
-                        parentComedianId: null,
-                    }),
+                    body: expect.stringContaining('"parentComedianId":null'),
                 }),
             );
         });
@@ -1075,7 +1105,7 @@ describe("AdminComedianManager", () => {
     });
 
     it("updates parent counts and canonical-filter membership when removing a relationship", async () => {
-        vi.mocked(global.fetch).mockResolvedValueOnce({
+        vi.mocked(global.fetch).mockResolvedValue({
             ok: true,
             json: async () => ({
                 ok: true,
@@ -1113,11 +1143,7 @@ describe("AdminComedianManager", () => {
                 name: "Clear parent for Alias Comic",
             }),
         );
-        fireEvent.click(
-            within(childRow!).getByRole("button", {
-                name: "Save relationship",
-            }),
-        );
+        await previewAndApplyParent(true);
 
         await waitFor(() => {
             expect(

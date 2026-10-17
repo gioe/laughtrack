@@ -5,12 +5,12 @@ For each deny list entry, extracts embedded real comedian names using multiple
 pattern-matching strategies and cross-references them against existing legitimate
 comedian records in the database.
 
-Pattern Categories (alias-generating)
+Pattern Categories (investigation only)
 ======================================
 
 These patterns embed a real comedian name inside a promotional string. When matched
-against a legitimate DB record, the deny list entry is re-inserted as an alias
-comedian record with parent_comedian_id set to the canonical comedian.
+against a legitimate DB record, the match is reported for investigation only.
+An embedded performer name is not alias evidence; denied names stay denied.
 
   CATEGORY          EXAMPLE                                      EXTRACTED
   ──────────────────────────────────────────────────────────────────────────
@@ -42,8 +42,8 @@ require a lineup-splitting enhancement to the scraper pipeline.
   MULTI_WITH        "Brent Terhune with Eli Wilz"                [Brent Terhune, Eli Wilz]
   MULTI_SLASH       "Dave Herrero / Pete Galanis"                [Dave Herrero, Pete Galanis]
 
-  When only ONE of the extracted names matches a DB record, the entry IS aliased
-  to that single comedian. When BOTH match, the entry is document-only.
+  All matches are document-only; identity approval and same-performer evidence
+  must be reviewed separately in admin.
 
 Usage:
     cd apps/scraper
@@ -51,7 +51,7 @@ Usage:
     # Dry-run — prints matches, no DB changes:
     .venv/bin/python scripts/core/reconcile_deny_list.py
 
-    # Execute — re-inserts as aliases, removes from deny list:
+    # Legacy execution is disabled and fails without changing records:
     .venv/bin/python scripts/core/reconcile_deny_list.py --confirm
 """
 
@@ -487,7 +487,7 @@ def _print_report(
 
     if aliasable:
         print(f"\n## ALIASABLE — {len(aliasable)} entries → single comedian alias records")
-        print("   (will be re-inserted as alias records with parent_comedian_id)")
+        print("   (investigation only; no aliases or deny-list removals)")
         _print_section("Aliasable", aliasable)
 
     if multi_only:
@@ -506,61 +506,10 @@ def _print_report(
 
 
 def _apply_aliases(cur, aliasable: list[dict]) -> tuple[int, int]:
-    """Re-insert aliasable deny list entries as alias comedian records.
-
-    Only processes single-comedian matches (one deny entry → one parent).
-    Multi-comedian entries are skipped (they need lineup splitting, not aliasing).
-
-    Returns (aliases_created, deny_entries_removed).
-    """
-    aliases_created = 0
-    deny_removed = 0
-
-    for m in aliasable:
-        deny_name = m["deny_entry"]
-        parent_id = m["parent_id"]
-
-        # Check if the name already exists in comedians (shouldn't, but guard)
-        cur.execute("SELECT id FROM comedians WHERE name = %s", (deny_name,))
-        if cur.fetchone():
-            continue
-
-        # Insert as alias comedian record with parent_comedian_id set.
-        # UUID is derived from the deny-list name (not the parent's UUID) so
-        # future scrapes that encounter this exact string find the alias record
-        # and the ON CONFLICT path sets parent_comedian_id.
-        # The web app filters WHERE parent_comedian_id IS NULL, hiding aliases.
-        cur.execute(
-            """
-            INSERT INTO comedians (uuid, name, parent_comedian_id, sold_out_shows, total_shows)
-            VALUES (
-                md5(lower(regexp_replace(%s, '[^a-zA-Z0-9]', '', 'g'))),
-                %s,
-                %s,
-                0, 0
-            )
-            ON CONFLICT (uuid) DO UPDATE SET parent_comedian_id = %s
-            RETURNING id
-            """,
-            (deny_name, deny_name, parent_id, parent_id),
-        )
-        result = cur.fetchone()
-        if result:
-            aliases_created += 1
-
-        # Remove from deny list so future scrapes aren't blocked
-        cur.execute(
-            "DELETE FROM comedian_deny_list WHERE name = %s",
-            (deny_name,),
-        )
-        deny_removed += cur.rowcount
-
-    return aliases_created, deny_removed
-
-
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
+    """Fail closed: name containment cannot resurrect a denied identity."""
+    if aliasable:
+        raise ValueError("Automatic resurrection of denied names as aliases is disabled. Review identity and propose a parent relationship with independent performer evidence in admin.")
+    return (0, 0)
 
 
 def main() -> None:
@@ -568,7 +517,7 @@ def main() -> None:
     parser.add_argument(
         "--confirm",
         action="store_true",
-        help="Apply changes: re-insert aliases and remove from deny list (default: dry-run).",
+        help="Legacy flag: fails closed; automatic resurrection of denied names is disabled.",
     )
     args = parser.parse_args()
 

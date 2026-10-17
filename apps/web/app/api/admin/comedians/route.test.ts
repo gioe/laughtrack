@@ -29,6 +29,10 @@ vi.mock("@/lib/instagram/instagramFollowerResolver", () => ({
     resolveInstagramFollowerCount: vi.fn(),
 }));
 
+vi.mock("@/lib/admin/curation/runtime", () => ({
+    parentRelationships: { submit: vi.fn() },
+}));
+import { parentRelationships } from "@/lib/admin/curation/runtime";
 import { PATCH, POST, PUT } from "./route";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
@@ -128,56 +132,63 @@ describe("PATCH /api/admin/comedians", () => {
         expect(res.status).toBe(401);
     });
 
-    it("saves a parent relationship and writes an audit entry", async () => {
+    it("delegates parent changes to the reviewed relationship service", async () => {
         mockAuth.mockResolvedValue(adminSession as never);
-        const auditCreate = vi.fn();
-        const update = vi.fn();
+        vi.mocked(parentRelationships.submit).mockResolvedValue({
+            status: "applied",
+        } as never);
         const findUnique = vi
             .fn()
-            .mockResolvedValueOnce(makeComedian())
-            .mockResolvedValueOnce(
-                makeComedian({ id: 1, name: "Parent Comic" }),
-            )
-            .mockResolvedValueOnce({ parentComedianId: null })
-            .mockResolvedValueOnce(
+            .mockResolvedValue(
                 makeComedian({
                     parentComedianId: 1,
                     parentComedian: { id: 1, name: "Parent Comic" },
                 }),
             );
-        const txQueryRaw = vi.fn().mockResolvedValueOnce([]);
+        const update = vi.fn();
         mockTransaction.mockImplementation(async (callback) =>
-            callback({
-                comedian: { findUnique, update },
-                $queryRaw: txQueryRaw,
-                adminActionAudit: { create: auditCreate },
-            } as never),
+            callback({ comedian: { findUnique, update } } as never),
         );
-
-        const res = await PATCH(
-            makeRequest({
-                action: "set-parent",
-                comedianId: 2,
-                parentComedianId: 1,
-            }),
-        );
-        const body = await res.json();
-
+        const command = {
+            action: "set-parent",
+            comedianId: 2,
+            parentComedianId: 1,
+            reason: "Verified same person",
+            requestId: "6e1b1252-05b6-4aa9-a416-93f7593c6fa6",
+            previewToken: "preview",
+        };
+        const res = await PATCH(makeRequest(command));
         expect(res.status).toBe(200);
-        expect(update).toHaveBeenCalledWith({
-            where: { id: 2 },
-            data: { parentComedianId: 1 },
-        });
-        expect(body.comedian.parent).toEqual({ id: 1, name: "Parent Comic" });
-        expect(auditCreate).toHaveBeenCalledWith(
-            expect.objectContaining({
-                data: expect.objectContaining({
-                    action: "comedian.parent.update",
-                    entityType: "comedian",
-                    entityId: "2",
-                }),
-            }),
+        expect(parentRelationships.submit).toHaveBeenCalledWith(
+            {
+                childId: 2,
+                parentId: 1,
+                reason: command.reason,
+                requestId: command.requestId,
+                previewToken: "preview",
+            },
+            "profile-1",
         );
+        expect(update).not.toHaveBeenCalled();
+        expect((await res.json()).comedian.parent).toEqual({
+            id: 1,
+            name: "Parent Comic",
+        });
+    });
+    it("rejects legacy parent writes without a preview", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+        expect(
+            (
+                await PATCH(
+                    makeRequest({
+                        action: "set-parent",
+                        comedianId: 2,
+                        parentComedianId: 1,
+                    }),
+                )
+            ).status,
+        ).toBe(400);
+        expect(parentRelationships.submit).not.toHaveBeenCalled();
     });
 
     it("blocks an existing comedian through visibility", async () => {

@@ -1,3 +1,5 @@
+import { parentAdapter } from "./parentAdapter";
+import { createParentRelationshipService } from "./parentRelationships";
 import { db } from "@/lib/db";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { createCurationService } from "./decisions";
@@ -19,15 +21,17 @@ export const curation = createCurationService({
             }),
     },
     adapter: (target) =>
-        target.type === "entity" && target.kind === "podcast"
-            ? podcastAdapter
-            : target.type === "entity" && target.kind === "show"
-              ? showAdapter
-              : target.type === "entity" && target.kind === "club"
-                ? clubAdapter
-                : target.type === "entity" && target.kind === "comedian"
-                  ? comedianAdapter
-                  : undefined,
+        target.type === "relationship" && target.kind === "alias_of"
+            ? parentAdapter
+            : target.type === "entity" && target.kind === "podcast"
+              ? podcastAdapter
+              : target.type === "entity" && target.kind === "show"
+                ? showAdapter
+                : target.type === "entity" && target.kind === "club"
+                  ? clubAdapter
+                  : target.type === "entity" && target.kind === "comedian"
+                    ? comedianAdapter
+                    : undefined,
     async invalidate() {
         revalidateTag("show-detail-data");
         revalidateTag("show-metadata");
@@ -43,3 +47,14 @@ export const curation = createCurationService({
             revalidatePath(path, "layout");
     },
 });
+
+export const parentRelationships = createParentRelationshipService(
+    {
+        $queryRaw: (query) => db.$queryRaw(query),
+        $transaction: (fn) => db.$transaction((tx) => fn(tx)),
+    },
+    async () => {
+        for (const path of ["/admin", "/comedian", "/show", "/podcast"])
+            revalidatePath(path, "layout");
+    },
+);

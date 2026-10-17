@@ -1,3 +1,5 @@
+import { parentRelationships } from "@/lib/admin/curation/runtime";
+import { CurationError } from "@/lib/admin/curation/decisions";
 import { writeAdminActionAudit } from "@/lib/admin/audit";
 import type { AdminComedianListItem } from "@/lib/admin/comedianManagement";
 import { requireAdminForApi } from "@/lib/auth/requireAdmin";
@@ -143,7 +145,9 @@ const mutationSchema = z.discriminatedUnion("action", [
             action: z.literal("set-parent"),
             comedianId: z.number().int().positive(),
             parentComedianId: z.number().int().positive().nullable(),
-            reason: z.string().trim().max(1000).optional(),
+            reason: z.string().trim().min(1).max(2000),
+            requestId: z.string().uuid(),
+            previewToken: z.string().min(1),
         })
         .strict(),
     z
@@ -609,30 +613,6 @@ async function findDenyListEntry(
     return rows[0] ?? null;
 }
 
-async function createsParentCycle(
-    tx: Pick<Prisma.TransactionClient, "comedian">,
-    comedianId: number,
-    parentComedianId: number,
-) {
-    let nextParentId: number | null = parentComedianId;
-    const seen = new Set<number>();
-
-    while (nextParentId) {
-        if (nextParentId === comedianId) return true;
-        if (seen.has(nextParentId)) return true;
-        seen.add(nextParentId);
-
-        const parent: { parentComedianId: number | null } | null =
-            await tx.comedian.findUnique({
-                where: { id: nextParentId },
-                select: { parentComedianId: true },
-            });
-        nextParentId = parent?.parentComedianId ?? null;
-    }
-
-    return false;
-}
-
 function revalidateComedianSurfaces(name: string) {
     revalidateTag("comedian-search-data");
     revalidateTag("comedian-detail-data");
@@ -654,6 +634,32 @@ export const PATCH = withRequestMetrics(async function PATCH(req: NextRequest) {
     }
 
     try {
+        if (parsed.data.action === "set-parent") {
+            await parentRelationships.submit(
+                {
+                    childId: parsed.data.comedianId,
+                    parentId: parsed.data.parentComedianId,
+                    reason: parsed.data.reason,
+                    requestId: parsed.data.requestId,
+                    previewToken: parsed.data.previewToken,
+                },
+                profileId,
+            );
+            const after = await db.$transaction((tx) =>
+                findComedianSnapshot(tx, parsed.data.comedianId),
+            );
+            if (!after)
+                return NextResponse.json(
+                    { error: "Comedian not found" },
+                    { status: 404 },
+                );
+            revalidateComedianSurfaces(after.name);
+            return NextResponse.json({
+                ok: true,
+                comedian: serializeComedian(after),
+            });
+        }
+
         const result = await db.$transaction(
             async (tx: ComedianAdminWriter) => {
                 const before = await findComedianSnapshot(
@@ -896,67 +902,6 @@ export const PATCH = withRequestMetrics(async function PATCH(req: NextRequest) {
                     };
                 }
 
-                if (parsed.data.action === "set-parent") {
-                    const parentComedianId = parsed.data.parentComedianId;
-
-                    if (parentComedianId === before.id) {
-                        return {
-                            error: "A comedian cannot be their own parent",
-                            status: 400,
-                        };
-                    }
-
-                    if (parentComedianId) {
-                        const parent = await findComedianSnapshot(
-                            tx,
-                            parentComedianId,
-                        );
-                        if (!parent) {
-                            return {
-                                error: "Parent comedian not found",
-                                status: 404,
-                            };
-                        }
-                        if (
-                            await createsParentCycle(
-                                tx,
-                                before.id,
-                                parentComedianId,
-                            )
-                        ) {
-                            return {
-                                error: "That parent relationship would create a cycle",
-                                status: 400,
-                            };
-                        }
-                    }
-
-                    await tx.comedian.update({
-                        where: { id: before.id },
-                        data: { parentComedianId },
-                    });
-
-                    const after = await findComedianSnapshot(tx, before.id);
-                    if (!after) {
-                        return { error: "Comedian not found", status: 404 };
-                    }
-
-                    await writeAdminActionAudit(tx, {
-                        actorProfileId: profileId,
-                        action: "comedian.parent.update",
-                        entityType: "comedian",
-                        entityId: before.id,
-                        reason: parsed.data.reason?.trim() || null,
-                        before: snapshotForAudit(before),
-                        after: snapshotForAudit(after),
-                    });
-
-                    return {
-                        comedian: serializeComedian(after),
-                        name: after.name,
-                    };
-                }
-
                 if (parsed.data.action === "blocklist-remove") {
                     if (before.visible) {
                         return {
@@ -1037,6 +982,11 @@ export const PATCH = withRequestMetrics(async function PATCH(req: NextRequest) {
                 : {}),
         });
     } catch (error) {
+        if (error instanceof CurationError)
+            return NextResponse.json(
+                { error: error.message },
+                { status: error.status },
+            );
         console.error("Admin comedians PATCH failed:", error);
         return NextResponse.json({ error: "Update failed" }, { status: 500 });
     }

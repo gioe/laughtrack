@@ -127,15 +127,15 @@ def _print_table(links: list[dict]) -> None:
 
 
 def _apply_links(cur, links: list[dict]) -> int:
-    """Set parent_comedian_id on each child. Returns number of rows updated."""
+    """Propose pairs without overriding negative decisions or assigning parents."""
     if not links:
         return 0
 
     updated = 0
     for link in links:
         cur.execute(
-            "UPDATE comedians SET parent_comedian_id = %s WHERE id = %s",
-            (link["parent_id"], link["child_id"]),
+            "SELECT curation_propose_parent(%s,%s,jsonb_build_object('method','alias-name-match'),'automation:link-comedian-aliases','Suggested alias; requires independent evidence','automatic-alias-suggestion')",
+            (link["child_id"], link["parent_id"]),
         )
         updated += cur.rowcount
 
@@ -147,7 +147,7 @@ def main() -> None:
     parser.add_argument(
         "--confirm",
         action="store_true",
-        help="Apply parent_comedian_id updates to the DB (default: dry-run only).",
+        help="Stage alias proposals for review (default: dry-run only).",
     )
     args = parser.parse_args()
 
@@ -166,14 +166,14 @@ def main() -> None:
         return
 
     if not args.confirm:
-        print("\nDry-run: pass --confirm to apply.")
+        print("\nDry-run: pass --confirm to stage proposals for review.")
         return
 
     with get_transaction() as conn:
         with conn.cursor() as cur:
             updated = _apply_links(cur, links)
 
-    print(f"\nLinked {updated} alias record(s) to their canonical parent.")
+    print(f"\nObserved {updated} proposed alias pair(s); existing decisions remain unchanged.")
 
 
 if __name__ == "__main__":

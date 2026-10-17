@@ -20,6 +20,7 @@ import { BlockedComedianRow } from "./BlockedComedianRow";
 import { ComedianImageSection } from "./ComedianImageSection";
 import { ComedianPodcastSection } from "./ComedianPodcastSection";
 import { ComedianProfileSection } from "./ComedianProfileSection";
+import { ParentRelationshipHistory } from "./ParentRelationshipHistory";
 import { ComedianRelationshipSection } from "./ComedianRelationshipSection";
 import { ComedianSocialSection } from "./ComedianSocialSection";
 
@@ -150,6 +151,21 @@ export function AdminComedianRow({
     onStatusChange,
 }: Props) {
     const router = useRouter();
+    const [parentReason, setParentReason] = useState("");
+    const [parentSourceUrl, setParentSourceUrl] = useState("");
+    const [parentExplanation, setParentExplanation] = useState("");
+    const [parentPreview, setParentPreview] = useState<{
+        row: AdminComedianListItem;
+        input: {
+            childId: number;
+            parentId: number | null;
+            reason: string;
+            requestId: string;
+        };
+        previewToken: string;
+        effects: string[];
+    } | null>(null);
+    const [parentHistoryVersion, setParentHistoryVersion] = useState(0);
     const [openChildrenSections, setOpenChildrenSections] = useState<
         Set<number>
     >(() => new Set<number>());
@@ -346,49 +362,123 @@ export function AdminComedianRow({
             .slice(0, 8);
     }
 
+    function chooseParent(id: number, value: AdminComedianListItem["parent"]) {
+        setParentPreview(null);
+        setSelectedParents((current) => ({ ...current, [id]: value }));
+    }
+
     async function saveParent(
-        row: AdminComedianListItem,
+        targetRow: AdminComedianListItem,
         parentOverride?: AdminComedianListItem["parent"],
     ) {
         const parent =
-            parentOverride === undefined ? parentValue(row) : parentOverride;
-        setStatus({ kind: "idle" });
-        setPendingId(row.id);
-
-        let body: { comedian: AdminComedianListItem };
-        try {
-            body = await adminRequest<{ comedian: AdminComedianListItem }>(
-                "/api/admin/comedians",
-                {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        action: "set-parent",
-                        comedianId: row.id,
-                        parentComedianId: parent?.id ?? null,
-                    }),
-                },
-            );
-        } catch (error) {
-            setPendingId(null);
+            parentOverride === undefined
+                ? parentValue(targetRow)
+                : parentOverride;
+        if (!parentReason.trim()) {
             setStatus({
                 kind: "error",
-                message:
-                    error instanceof Error ? error.message : "Network error",
+                message: "Enter a reason for this relationship decision.",
             });
             return;
         }
-
-        setPendingId(null);
-        onRowChange(body.comedian);
-        setSelectedParents((current) => {
-            const next = { ...current };
-            delete next[row.id];
-            return next;
-        });
-        setParentSearches((current) => ({ ...current, [row.id]: "" }));
-        setStatus({ kind: "ok", message: `${row.name} relationship saved.` });
-        startTransition(() => router.refresh());
+        setPendingId(targetRow.id);
+        setParentPreview(null);
+        try {
+            const input = {
+                childId: targetRow.id,
+                parentId: parent?.id ?? null,
+                reason: parentReason.trim(),
+                requestId: crypto.randomUUID(),
+            };
+            if (parent) {
+                await adminRequest("/api/admin/curation/parents", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        operation: "propose",
+                        childId: targetRow.id,
+                        parentId: parent.id,
+                        reason: input.reason,
+                        evidence: {
+                            samePerformer: true,
+                            sourceUrl: parentSourceUrl.trim(),
+                            explanation: parentExplanation.trim(),
+                        },
+                    }),
+                });
+                setParentHistoryVersion((v) => v + 1);
+            }
+            const preview = await adminRequest<{
+                previewToken: string;
+                effects: string[];
+            }>("/api/admin/curation/parents", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ operation: "preview", ...input }),
+            });
+            setParentPreview({ row: targetRow, input, ...preview });
+            setParentHistoryVersion((v) => v + 1);
+        } catch (error) {
+            setStatus({
+                kind: "error",
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : "Unable to preview relationship",
+            });
+        } finally {
+            setPendingId(null);
+        }
+    }
+    async function applyParentPreview() {
+        if (!parentPreview) return;
+        const preview = parentPreview;
+        setPendingId(preview.row.id);
+        try {
+            const body = await adminRequest<{
+                comedian: AdminComedianListItem;
+            }>("/api/admin/comedians", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    action: "set-parent",
+                    comedianId: preview.input.childId,
+                    parentComedianId: preview.input.parentId,
+                    reason: preview.input.reason,
+                    requestId: preview.input.requestId,
+                    previewToken: preview.previewToken,
+                }),
+            });
+            onRowChange(body.comedian);
+            setParentPreview(null);
+            setParentHistoryVersion((v) => v + 1);
+            setSelectedParents((current) => {
+                const next = { ...current };
+                delete next[preview.row.id];
+                return next;
+            });
+            setParentSearches((current) => ({
+                ...current,
+                [preview.row.id]: "",
+            }));
+            setStatus({
+                kind: "ok",
+                message: `${preview.row.name} relationship decision saved.`,
+            });
+            startTransition(() => router.refresh());
+        } catch (error) {
+            setParentPreview(null);
+            setStatus({
+                kind: "error",
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : "Unable to apply relationship",
+            });
+        } finally {
+            setPendingId(null);
+        }
     }
 
     async function saveComedianRecord(
@@ -1525,12 +1615,7 @@ export function AdminComedianRow({
                                             <button
                                                 type="button"
                                                 onClick={() =>
-                                                    setSelectedParents(
-                                                        (current) => ({
-                                                            ...current,
-                                                            [row.id]: null,
-                                                        }),
-                                                    )
+                                                    chooseParent(row.id, null)
                                                 }
                                                 className="ml-auto shrink-0 rounded-sm p-1 text-green-950 hover:bg-green-100"
                                                 aria-label={`Clear parent for ${row.name}`}
@@ -1569,15 +1654,10 @@ export function AdminComedianRow({
                                                     key={candidate.id}
                                                     type="button"
                                                     onClick={() =>
-                                                        setSelectedParents(
-                                                            (current) => ({
-                                                                ...current,
-                                                                [row.id]: {
-                                                                    id: candidate.id,
-                                                                    name: candidate.name,
-                                                                },
-                                                            }),
-                                                        )
+                                                        chooseParent(row.id, {
+                                                            id: candidate.id,
+                                                            name: candidate.name,
+                                                        })
                                                     }
                                                     className="rounded-md border border-copper/40 bg-surface-elevated px-3 py-2 font-dmSans text-body font-semibold text-foreground hover:bg-copper/10"
                                                 >
@@ -1586,6 +1666,88 @@ export function AdminComedianRow({
                                             ))}
                                         </div>
                                     )}
+                                    <label className="grid gap-1">
+                                        Relationship reason
+                                        <input
+                                            value={parentReason}
+                                            onChange={(e) => {
+                                                setParentReason(e.target.value);
+                                                setParentPreview(null);
+                                            }}
+                                            className="rounded border border-input bg-background p-2"
+                                        />
+                                    </label>
+                                    <label className="grid gap-1">
+                                        Same-performer evidence URL
+                                        <input
+                                            type="url"
+                                            value={parentSourceUrl}
+                                            onChange={(e) => {
+                                                setParentSourceUrl(
+                                                    e.target.value,
+                                                );
+                                                setParentPreview(null);
+                                            }}
+                                            placeholder="https://official-profile.example"
+                                            className="rounded border border-input bg-background p-2"
+                                        />
+                                    </label>
+                                    <label className="grid gap-1">
+                                        Why these names identify the same
+                                        performer
+                                        <textarea
+                                            value={parentExplanation}
+                                            onChange={(e) => {
+                                                setParentExplanation(
+                                                    e.target.value,
+                                                );
+                                                setParentPreview(null);
+                                            }}
+                                            className="rounded border border-input bg-background p-2"
+                                        />
+                                    </label>
+                                    <p className="text-caption text-muted-foreground">
+                                        Evidence is required when establishing a
+                                        parent. A name appearing in an event
+                                        title is not evidence of an alias.
+                                    </p>
+                                    {parentPreview && (
+                                        <div
+                                            role="status"
+                                            className="space-y-2 rounded border border-copper/40 p-3"
+                                        >
+                                            <ul>
+                                                {parentPreview.effects.map(
+                                                    (effect) => (
+                                                        <li key={effect}>
+                                                            {effect}
+                                                        </li>
+                                                    ),
+                                                )}
+                                            </ul>
+                                            <Button
+                                                disabled={pendingId !== null}
+                                                onClick={() =>
+                                                    void applyParentPreview()
+                                                }
+                                            >
+                                                Apply relationship change
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                onClick={() =>
+                                                    setParentPreview(null)
+                                                }
+                                            >
+                                                Cancel preview
+                                            </Button>
+                                        </div>
+                                    )}
+                                    <ParentRelationshipHistory
+                                        childId={row.id}
+                                        reason={parentReason}
+                                        refreshKey={parentHistoryVersion}
+                                    />
                                     <Button
                                         type="button"
                                         variant="outline"
@@ -1598,7 +1760,7 @@ export function AdminComedianRow({
                                         onClick={() => void saveParent(row)}
                                     >
                                         <Save className="h-4 w-4" />
-                                        Save relationship
+                                        Preview relationship
                                     </Button>
                                     {children.length > 0 ? (
                                         <ul className="divide-y divide-copper/15 overflow-hidden rounded-md border border-copper/20 bg-surface-elevated">
