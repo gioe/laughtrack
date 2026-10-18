@@ -7,7 +7,11 @@ import {
     type SqlClient,
     type Store,
 } from "./decisions";
-import { parentAdapter, validateParentEligibility } from "./parentAdapter";
+import {
+    parentAdapter,
+    validateParentEligibility,
+    previewParentHostEffects,
+} from "./parentAdapter";
 export const parentEvidenceSchema = z
     .object({
         samePerformer: z.literal(true),
@@ -79,7 +83,17 @@ async function plan(tx: SqlClient, x: Change) {
             "This pair is already decided. Explicitly restore a rejected or severed relationship before confirming it.",
         );
     if (x.parentId !== null) await validateParentEligibility(tx, desired.id);
+    const hostEffects = await previewParentHostEffects(
+        tx,
+        x.childId,
+        x.parentId,
+    );
     const effects = [
+        ...(hostEffects.length
+            ? [
+                  `Place ${hostEffects.length} affected host source identities on hold for explicit canonical reconciliation; preserve their separate decisions and evidence.`,
+              ]
+            : []),
         ...(active && x.parentId !== null
             ? [
                   `Sever ${child.name} → ${active.parent_name}; retain this negative decision.`,
@@ -97,6 +111,7 @@ async function plan(tx: SqlClient, x: Change) {
         previewToken: hash({
             people,
             edges,
+            hostEffects,
             childId: x.childId,
             parentId: x.parentId,
             reason: x.reason,

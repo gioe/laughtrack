@@ -8,11 +8,7 @@ import {
     buildComedianImageAssetUrl,
     buildComedianImageUrls,
 } from "@/lib/data/comedian/imageAssets";
-import {
-    preserveCanonicalComedianProvenance,
-    resolvePodcastAttributionComedian,
-    type ResolvedPodcastAttributionComedian,
-} from "@/lib/data/podcast/resolvePodcastAttributionComedian";
+
 import type { Prisma } from "@prisma/client";
 import { resolveInstagramFollowerCount } from "@/lib/instagram/instagramFollowerResolver";
 import { recalculatePopularityForInstagramFollowers } from "@/lib/popularity/comedianPopularity";
@@ -660,6 +656,18 @@ export const PATCH = withRequestMetrics(async function PATCH(req: NextRequest) {
             });
         }
 
+        if (
+            parsed.data.action === "podcast-review-accept-host" ||
+            parsed.data.action === "podcast-review-reject-host"
+        ) {
+            return NextResponse.json(
+                {
+                    error: "Use a versioned host relationship decision in Review Inbox.",
+                    code: "relationship_review_required",
+                },
+                { status: 409 },
+            );
+        }
         const result = await db.$transaction(
             async (tx: ComedianAdminWriter) => {
                 const before = await findComedianSnapshot(
@@ -669,11 +677,7 @@ export const PATCH = withRequestMetrics(async function PATCH(req: NextRequest) {
                 if (!before)
                     return { error: "Comedian not found", status: 404 };
 
-                if (
-                    parsed.data.action === "podcast-review-accept-host" ||
-                    parsed.data.action === "podcast-review-reject-host" ||
-                    parsed.data.action === "podcast-review-block-podcast"
-                ) {
+                if (parsed.data.action === "podcast-review-block-podcast") {
                     const review = await tx.podcastCandidateReview.findUnique({
                         where: { id: parsed.data.candidateReviewId },
                         select: {
@@ -716,153 +720,34 @@ export const PATCH = withRequestMetrics(async function PATCH(req: NextRequest) {
                         "reason" in parsed.data
                             ? parsed.data.reason?.trim() || null
                             : null;
-                    let attributionResolution: ResolvedPodcastAttributionComedian | null =
-                        null;
-
-                    if (parsed.data.action === "podcast-review-accept-host") {
-                        const resolution =
-                            await resolvePodcastAttributionComedian(
-                                tx,
-                                before.id,
-                            );
-                        if (!resolution.ok) {
-                            return {
-                                error: "Comedian is not eligible for podcast attribution",
-                                status: 422,
-                                reason: resolution.reason,
-                            };
-                        }
-                        attributionResolution = resolution;
-                        const canonicalComedianId = resolution.comedian.id;
-                        const ownershipEvidence =
-                            preserveCanonicalComedianProvenance(
-                                review.evidence === null ? {} : review.evidence,
-                                resolution,
-                            );
-                        await tx.podcastCandidateReview.update({
-                            where: { id: review.id },
-                            data: {
-                                candidateStatus: "accepted",
-                                associationType: "host",
-                                reviewedAt,
-                                reviewedBy: profileId,
-                            },
-                        });
-                        const aliasComedianIds = resolution.aliasPath.filter(
-                            (comedianId) => comedianId !== canonicalComedianId,
-                        );
-                        await tx.comedianPodcast.deleteMany({
-                            where:
-                                aliasComedianIds.length > 0
-                                    ? {
-                                          podcastId: review.podcastId,
-                                          associationType: "host",
-                                          reviewStatus: "accepted",
-                                          OR: [
-                                              {
-                                                  comedianId:
-                                                      canonicalComedianId,
-                                                  source: {
-                                                      not: review.source,
-                                                  },
-                                              },
-                                              {
-                                                  comedianId: {
-                                                      in: aliasComedianIds,
-                                                  },
-                                              },
-                                          ],
-                                      }
-                                    : {
-                                          comedianId: canonicalComedianId,
-                                          podcastId: review.podcastId,
-                                          associationType: "host",
-                                          source: { not: review.source },
-                                          reviewStatus: "accepted",
-                                      },
-                        });
-                        await tx.comedianPodcast.upsert({
-                            where: {
-                                comedianId_podcastId_associationType_source: {
-                                    comedianId: canonicalComedianId,
-                                    podcastId: review.podcastId,
-                                    associationType: "host",
-                                    source: review.source,
-                                },
-                            },
-                            create: {
-                                comedianId: canonicalComedianId,
-                                podcastId: review.podcastId,
-                                associationType: "host",
-                                source: review.source,
-                                reviewStatus: "accepted",
-                                confidence: review.confidence,
-                                evidence: ownershipEvidence,
-                                reviewedAt,
-                                reviewedBy: profileId,
-                            },
-                            update: {
-                                reviewStatus: "accepted",
-                                confidence: review.confidence,
-                                evidence: ownershipEvidence,
-                                reviewedAt,
-                                reviewedBy: profileId,
-                            },
-                        });
-                    } else if (
-                        parsed.data.action === "podcast-review-reject-host"
-                    ) {
-                        await tx.podcastCandidateReview.update({
-                            where: { id: review.id },
-                            data: {
-                                candidateStatus: "rejected",
-                                associationType: "host",
-                                reviewedAt,
-                                reviewedBy: profileId,
-                            },
-                        });
-                    } else {
-                        if (review.candidateStatus !== "rejected") {
-                            return {
-                                error: "Reject this host review before blocking the podcast",
-                                status: 409,
-                            };
-                        }
-                        await tx.podcastDenyList.upsert({
-                            where: { podcastId: review.podcastId },
-                            create: {
-                                podcastId: review.podcastId,
-                                source: review.podcast.source,
-                                sourcePodcastId: review.podcast.sourcePodcastId,
-                                feedUrl: review.podcast.feedUrl,
-                                reason,
-                                deniedAt: reviewedAt,
-                                deniedBy: profileId,
-                            },
-                            update: {
-                                source: review.podcast.source,
-                                sourcePodcastId: review.podcast.sourcePodcastId,
-                                feedUrl: review.podcast.feedUrl,
-                                reason,
-                                deniedAt: reviewedAt,
-                                deniedBy: profileId,
-                                restoredAt: null,
-                                restoredBy: null,
-                            },
-                        });
-                        await tx.podcastCandidateReview.updateMany({
-                            where: {
-                                podcastId: review.podcastId,
-                                candidateStatus: "pending",
-                            },
-                            data: {
-                                candidateStatus: "rejected",
-                                reviewedAt,
-                                reviewedBy: profileId,
-                            },
-                        });
+                    if (review.candidateStatus !== "rejected") {
+                        return {
+                            error: "Reject this host review before blocking the podcast",
+                            status: 409,
+                        };
                     }
-
+                    await tx.podcastDenyList.upsert({
+                        where: { podcastId: review.podcastId },
+                        create: {
+                            podcastId: review.podcastId,
+                            source: review.podcast.source,
+                            sourcePodcastId: review.podcast.sourcePodcastId,
+                            feedUrl: review.podcast.feedUrl,
+                            reason,
+                            deniedAt: reviewedAt,
+                            deniedBy: profileId,
+                        },
+                        update: {
+                            source: review.podcast.source,
+                            sourcePodcastId: review.podcast.sourcePodcastId,
+                            feedUrl: review.podcast.feedUrl,
+                            reason,
+                            deniedAt: reviewedAt,
+                            deniedBy: profileId,
+                            restoredAt: null,
+                            restoredBy: null,
+                        },
+                    });
                     const after = await findComedianSnapshot(tx, before.id);
                     if (!after) {
                         return { error: "Comedian not found", status: 404 };
@@ -870,13 +755,7 @@ export const PATCH = withRequestMetrics(async function PATCH(req: NextRequest) {
 
                     await writeAdminActionAudit(tx, {
                         actorProfileId: profileId,
-                        action:
-                            parsed.data.action === "podcast-review-accept-host"
-                                ? "podcast_candidate_review.accept_host"
-                                : parsed.data.action ===
-                                    "podcast-review-reject-host"
-                                  ? "podcast_candidate_review.reject_host"
-                                  : "podcast_candidate_review.block_podcast",
+                        action: "podcast_candidate_review.block_podcast",
                         entityType: "podcast_candidate_review",
                         entityId: review.id,
                         reason,
@@ -887,17 +766,14 @@ export const PATCH = withRequestMetrics(async function PATCH(req: NextRequest) {
                         after: {
                             comedian: snapshotForAudit(after),
                             podcastId: review.podcastId,
-                            attributionComedian:
-                                attributionResolution?.comedian ?? null,
-                            attributionAliasPath:
-                                attributionResolution?.aliasPath ?? null,
+                            attributionComedian: null,
+                            attributionAliasPath: null,
                         },
                     });
 
                     return {
                         comedian: serializeComedian(after),
-                        attributionComedian:
-                            attributionResolution?.comedian ?? null,
+                        attributionComedian: null,
                         name: after.name,
                     };
                 }
@@ -977,9 +853,6 @@ export const PATCH = withRequestMetrics(async function PATCH(req: NextRequest) {
         return NextResponse.json({
             ok: true,
             comedian: result.comedian,
-            ...("attributionComedian" in result && result.attributionComedian
-                ? { attributionComedian: result.attributionComedian }
-                : {}),
         });
     } catch (error) {
         if (error instanceof CurationError)

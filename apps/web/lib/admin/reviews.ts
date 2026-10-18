@@ -238,6 +238,8 @@ export async function getReview(
         workflow,
         title: d.title,
         subtitle: `${d.name} · ${d.association_type}`,
+        actions: [],
+        notice: "This legacy source review is read-only. Host decisions are now shared across sources.",
         status: row.review_status,
         token: token(row),
         matches: [],
@@ -343,6 +345,10 @@ export async function decideReview(
             throw error;
         }
     }
+    if (x.workflow === "podcast_association")
+        throw new ReviewConflict(
+            "Host relationships require a versioned relationship decision; this legacy review is read-only.",
+        );
     return db.$transaction(async (tx) => {
         const before = await current(tx, x.workflow, x.id, true);
         if (
@@ -404,22 +410,6 @@ export async function decideReview(
                 effects.comedianAfter = plain(await canonical(tx, target!.id));
             }
             await tx.$queryRaw`UPDATE comedian_identity_candidates SET status=${x.action === "reject" ? "rejected" : "accepted"},canonical_comedian_id=${target?.id ?? null},version=version+1,reviewed_by=${actor},reviewed_at=now(),reason=${x.reason},updated_at=now() WHERE uuid=${x.id} RETURNING uuid`;
-        } else {
-            if (x.action === "link")
-                throw new ReviewConflict(
-                    "Link is not supported for podcast relationships.",
-                );
-            if (x.action === "approve") {
-                await canonical(tx, before.comedian_id);
-                const denied = await tx.$queryRaw<
-                    Row[]
-                >`SELECT id FROM podcast_deny_list WHERE podcast_id=${before.podcast_id} LIMIT 1`;
-                if (denied.length)
-                    throw new ReviewConflict(
-                        "This podcast is denied. Resolve the block first.",
-                    );
-            }
-            await tx.$queryRaw`UPDATE comedian_podcasts SET review_status=${x.action === "reject" ? "rejected" : "accepted"},reviewed_by=${actor},reviewed_at=now(),updated_at=now() WHERE id=${before.id} RETURNING id`;
         }
         if (x.workflow === "comedian_identity") {
             const versions = await tx.$queryRaw<
@@ -442,6 +432,10 @@ export async function undoReview(decisionId: string, actor: string) {
         const d = decisions[0];
         if (!d || d.actor !== actor || d.undone_at)
             throw new ReviewConflict("This decision cannot be undone.");
+        if (d.workflow === "podcast_association")
+            throw new ReviewConflict(
+                "Restore or sever the host relationship explicitly; legacy undo cannot overwrite a pair decision.",
+            );
         const row = await current(tx, d.workflow, d.item_id, true);
         if (!row || token(row) !== token(d.after_json.row))
             throw new ReviewConflict(
@@ -481,8 +475,6 @@ export async function undoReview(decisionId: string, actor: string) {
             if (!e.comedianAfter)
                 await tx.$queryRaw`SELECT curation_reopen_comedian(${d.item_id},${actor},'Undo identity rejection',${e.curationVersion ?? null}::integer)`;
             await tx.$queryRaw`UPDATE comedian_identity_candidates SET status='pending',canonical_comedian_id=NULL,reviewed_at=NULL,reviewed_by=NULL,reason=NULL,version=version+1,updated_at=now() WHERE uuid=${d.item_id} RETURNING uuid`;
-        } else {
-            await tx.$queryRaw`UPDATE comedian_podcasts SET review_status=${b.review_status},reviewed_at=${b.reviewed_at}::timestamptz,reviewed_by=${b.reviewed_by},updated_at=now() WHERE id=${b.id} RETURNING id`;
         }
         await tx.$queryRaw`UPDATE admin_review_decisions SET undone_at=now() WHERE id=${decisionId} RETURNING id`;
         return { workflow: d.workflow, id: d.item_id };

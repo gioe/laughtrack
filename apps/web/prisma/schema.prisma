@@ -390,6 +390,8 @@ model ClubImageAsset {
 }
 
 model Comedian {
+  curationHostBindings CurationHostBinding[]
+  curationHostReconciliations CurationHostReconciliation[]
   curationIdentity CurationEntity?
   identityValidatedAt DateTime? @map("identity_validated_at") @db.Timestamptz
   identityValidatedBy String? @map("identity_validated_by")
@@ -548,6 +550,8 @@ model ComedianImageAsset {
 }
 
 model Podcast {
+  curationHostBindings CurationHostBinding[]
+  curationHostReconciliations CurationHostReconciliation[]
   curationIdentity CurationEntity?
   id               Int                      @id @default(autoincrement())
   slug             String                   @unique
@@ -1657,7 +1661,41 @@ model CurationIdentityKey {
  @@index([entityId],map:"curation_identity_keys_entity")
  @@map("curation_identity_keys")
 }
+model CurationHostBinding {
+ comedianId Int @map("comedian_id")
+ podcastId Int @map("podcast_id")
+ role String
+ relationshipId String @map("relationship_id")
+ comedian Comedian @relation(fields:[comedianId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+ podcast Podcast @relation(fields:[podcastId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+ relationship CurationRelationship @relation(fields:[relationshipId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+ @@id([comedianId,podcastId,role])
+ @@map("curation_host_bindings")
+}
+model CurationHostReconciliation {
+ id String @id
+ comedianId Int @map("comedian_id")
+ podcastId Int @map("podcast_id")
+ role String
+ oldRelationshipId String @map("old_relationship_id")
+ newRelationshipId String @map("new_relationship_id")
+ createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+ resolvedAt DateTime? @map("resolved_at") @db.Timestamptz
+ actor String?
+ reason String?
+ reviewedStates Json? @map("reviewed_states")
+ requestId String? @unique @map("request_id")
+ previewToken String? @map("preview_token")
+ comedian Comedian @relation(fields:[comedianId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+ podcast Podcast @relation(fields:[podcastId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+ oldRelationship CurationRelationship @relation("PreviousHostIdentity",fields:[oldRelationshipId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+ newRelationship CurationRelationship @relation("CurrentHostIdentity",fields:[newRelationshipId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+ @@map("curation_host_reconciliations")
+}
 model CurationRelationship {
+ hostBindings CurationHostBinding[]
+ previousHostReconciliations CurationHostReconciliation[] @relation("PreviousHostIdentity")
+ currentHostReconciliations CurationHostReconciliation[] @relation("CurrentHostIdentity")
  id String @id @default(uuid())
  kind String
  sourceId String @map("source_id")

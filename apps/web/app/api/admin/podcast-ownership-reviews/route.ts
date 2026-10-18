@@ -1,3 +1,4 @@
+import { POST as reviewHostRelationship } from "../curation/hosts/route";
 import {
     resolvePodcastIntake,
     lockPodcastIntake,
@@ -67,77 +68,12 @@ type ParsedRssFeed = {
     episodes: RssEpisode[];
 };
 
-async function readBody(req: NextRequest) {
+async function readBody(req: Request) {
     try {
         return await req.json();
     } catch {
         return null;
     }
-}
-
-function candidateSnapshot(candidate: {
-    id: number;
-    comedianId: number;
-    podcastId: number | null;
-    source: string;
-    sourcePodcastId: string;
-    candidateStatus: string;
-    associationType: string | null;
-    confidence: number;
-    evidence: Prisma.JsonValue;
-    reviewedAt: Date | null;
-    reviewedBy: string | null;
-    comedian: { id: number; name: string; uuid: string };
-    podcast: { id: number; slug: string; title: string } | null;
-}) {
-    return {
-        id: candidate.id,
-        comedianId: candidate.comedianId,
-        podcastId: candidate.podcastId,
-        source: candidate.source,
-        sourcePodcastId: candidate.sourcePodcastId,
-        candidateStatus: candidate.candidateStatus,
-        associationType: candidate.associationType,
-        confidence: candidate.confidence,
-        evidence: jsonForWrite(candidate.evidence),
-        reviewedAt: candidate.reviewedAt?.toISOString() ?? null,
-        reviewedBy: candidate.reviewedBy,
-        comedian: candidate.comedian,
-        podcast: candidate.podcast,
-    };
-}
-
-function hostshipSnapshot(hostship: {
-    id: number;
-    comedianId: number;
-    podcastId: number;
-    associationType: string;
-    source: string;
-    reviewStatus: string;
-    confidence: number;
-    evidence?: Prisma.JsonValue;
-    reviewedAt: Date | null;
-    reviewedBy: string | null;
-}) {
-    return {
-        id: hostship.id,
-        comedianId: hostship.comedianId,
-        podcastId: hostship.podcastId,
-        associationType: hostship.associationType,
-        source: hostship.source,
-        reviewStatus: hostship.reviewStatus,
-        confidence: hostship.confidence,
-        evidence:
-            "evidence" in hostship
-                ? jsonForWrite(hostship.evidence ?? {})
-                : undefined,
-        reviewedAt: hostship.reviewedAt?.toISOString() ?? null,
-        reviewedBy: hostship.reviewedBy,
-    };
-}
-
-function jsonForWrite(value: Prisma.JsonValue): Prisma.InputJsonValue {
-    return value === null ? {} : value;
 }
 
 function hashValue(value: string) {
@@ -447,44 +383,33 @@ export const GET = withRequestMetrics(async function GET() {
 export const POST = withRequestMetrics(async function POST(req: NextRequest) {
     const gate = await requireAdminForApi();
     if (!gate.ok) return gate.response;
-    const { profileId } = gate.context;
-
-    const parsed = decisionSchema.safeParse(await readBody(req));
-    if (!parsed.success) {
+    const body = await readBody(req.clone());
+    if (body && typeof body === "object" && "operation" in body)
+        return reviewHostRelationship(req);
+    const parsed = decisionSchema.safeParse(body);
+    if (!parsed.success)
         return NextResponse.json(
             { error: "Invalid payload", issues: parsed.error.issues },
             { status: 400 },
         );
-    }
-
-    const { podcastId, hostComedianIds, cohostComedianIds } = parsed.data;
-    const requestedRoleRows = [
-        ...hostComedianIds.map((comedianId) => ({
-            comedianId,
-            associationType: "host",
-        })),
-        ...cohostComedianIds.map((comedianId) => ({
-            comedianId,
-            associationType: "cohost",
-        })),
-    ] as const;
-    const requestedComedianIds = requestedRoleRows.map((row) => row.comedianId);
-    const denyListed = parsed.data.denyListed ?? false;
-    const reason = parsed.data.reason?.trim() || null;
-    const decisionReason =
-        reason ?? (denyListed ? "No accepted host after review" : null);
-    if (denyListed && requestedComedianIds.length > 0) {
+    const x = parsed.data;
+    if (
+        x.denyListed === undefined ||
+        x.hostComedianIds.length ||
+        x.cohostComedianIds.length
+    )
         return NextResponse.json(
-            { error: "A deny-listed podcast cannot also have hosts" },
-            { status: 400 },
+            {
+                error: "Host decisions require a versioned relationship review. Refresh the Review Inbox.",
+                code: "relationship_review_required",
+            },
+            { status: 409 },
         );
-    }
-
     try {
-        const result = await db.$transaction(async (tx) => {
+        const podcast = await db.$transaction(async (tx) => {
             await lockPodcastIntake(tx);
-            const podcast = await tx.podcast.findUnique({
-                where: { id: podcastId },
+            const p = await tx.podcast.findUnique({
+                where: { id: x.podcastId },
                 select: {
                     id: true,
                     slug: true,
@@ -494,385 +419,48 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
                     feedUrl: true,
                 },
             });
-            if (!podcast) return null;
-
-            const resolvedRoleRows = [];
-            for (const requestedRole of requestedRoleRows) {
-                const resolution = await resolvePodcastAttributionComedian(
-                    tx,
-                    requestedRole.comedianId,
-                );
-                if (!resolution.ok) {
-                    return {
-                        ineligibleHost: true,
-                        reason: resolution.reason,
-                        podcast,
-                    };
-                }
-                resolvedRoleRows.push({ requestedRole, resolution });
-            }
-
-            const canonicalRoleMap = new Map<
-                string,
-                (typeof resolvedRoleRows)[number] & {
-                    requestedComedianIds: number[];
-                    resolutions: Array<
-                        (typeof resolvedRoleRows)[number]["resolution"]
-                    >;
-                }
-            >();
-            for (const row of resolvedRoleRows) {
-                const key = `${row.resolution.comedian.id}:${row.requestedRole.associationType}`;
-                const existing = canonicalRoleMap.get(key);
-                if (existing) {
-                    existing.requestedComedianIds.push(
-                        row.requestedRole.comedianId,
-                    );
-                    existing.resolutions.push(row.resolution);
-                    continue;
-                }
-                canonicalRoleMap.set(key, {
-                    ...row,
-                    requestedComedianIds: [row.requestedRole.comedianId],
-                    resolutions: [row.resolution],
-                });
-            }
-            const selectedRoleRows = [...canonicalRoleMap.values()].map(
-                (row) => ({
-                    comedianId: row.resolution.comedian.id,
-                    associationType: row.requestedRole.associationType,
-                    requestedComedianIds: row.requestedComedianIds,
-                    resolutions: row.resolutions,
-                }),
-            );
-            const canonicalRoleByComedian = new Map<number, string>();
-            for (const row of selectedRoleRows) {
-                const existingRole = canonicalRoleByComedian.get(
-                    row.comedianId,
-                );
-                if (existingRole && existingRole !== row.associationType) {
-                    return { canonicalRoleConflict: true, podcast };
-                }
-                canonicalRoleByComedian.set(
-                    row.comedianId,
-                    row.associationType,
-                );
-            }
-            const comedianById = new Map(
-                resolvedRoleRows.map((row) => [
-                    row.resolution.comedian.id,
-                    row.resolution.comedian,
-                ]),
-            );
-
-            const beforeCandidates = await tx.podcastCandidateReview.findMany({
-                where: {
-                    podcastId,
-                    candidateStatus: "pending",
-                },
-                select: {
-                    id: true,
-                    comedianId: true,
-                    podcastId: true,
-                    source: true,
-                    sourcePodcastId: true,
-                    candidateStatus: true,
-                    associationType: true,
-                    confidence: true,
-                    evidence: true,
-                    reviewedAt: true,
-                    reviewedBy: true,
-                    comedian: {
-                        select: {
-                            id: true,
-                            name: true,
-                            uuid: true,
-                        },
-                    },
-                    podcast: {
-                        select: {
-                            id: true,
-                            slug: true,
-                            title: true,
-                        },
-                    },
-                },
-                orderBy: [{ confidence: "desc" }, { id: "asc" }],
-            });
-
-            const beforeHostships = await tx.comedianPodcast.findMany({
-                where: { podcastId },
-                select: {
-                    id: true,
-                    comedianId: true,
-                    podcastId: true,
-                    source: true,
-                    associationType: true,
-                    reviewStatus: true,
-                    confidence: true,
-                    evidence: true,
-                    reviewedAt: true,
-                    reviewedBy: true,
-                },
-            });
-            const beforeDenyListEntries = await tx.podcastDenyList.findMany({
-                where: { podcastId, restoredAt: null },
-                select: {
-                    id: true,
-                    podcastId: true,
-                    source: true,
-                    sourcePodcastId: true,
-                    feedUrl: true,
-                    reason: true,
-                    deniedAt: true,
-                    deniedBy: true,
-                    restoredAt: true,
-                    restoredBy: true,
-                },
-            });
-
+            if (!p) return null;
             const reviewedAt = new Date();
-
-            if (selectedRoleRows.length > 0) {
-                for (const selectedRole of selectedRoleRows) {
-                    for (const requestedComedianId of selectedRole.requestedComedianIds) {
-                        await tx.podcastCandidateReview.updateMany({
-                            where: {
-                                podcastId,
-                                candidateStatus: "pending",
-                                comedianId: requestedComedianId,
-                            },
-                            data: {
-                                candidateStatus: "accepted",
-                                associationType: selectedRole.associationType,
-                                reviewedAt,
-                                reviewedBy: profileId,
-                            },
-                        });
-                    }
-                }
-                await tx.podcastCandidateReview.updateMany({
-                    where: {
-                        podcastId,
-                        candidateStatus: "pending",
-                        comedianId: { notIn: requestedComedianIds },
+            if (x.denyListed)
+                await tx.podcastDenyList.upsert({
+                    where: { podcastId: p.id },
+                    create: {
+                        podcastId: p.id,
+                        source: p.source,
+                        sourcePodcastId: p.sourcePodcastId,
+                        feedUrl: p.feedUrl,
+                        reason: x.reason ?? null,
+                        deniedAt: reviewedAt,
+                        deniedBy: gate.context.profileId,
                     },
-                    data: {
-                        candidateStatus: "rejected",
-                        reviewedAt,
-                        reviewedBy: profileId,
+                    update: {
+                        reason: x.reason ?? null,
+                        deniedAt: reviewedAt,
+                        deniedBy: gate.context.profileId,
+                        restoredAt: null,
+                        restoredBy: null,
                     },
                 });
-                await tx.comedianPodcast.deleteMany({
-                    where: {
-                        podcastId,
-                        reviewStatus: "accepted",
-                        associationType: { in: ["host", "cohost"] },
-                    },
-                });
-            } else {
-                await tx.podcastCandidateReview.updateMany({
-                    where: {
-                        podcastId,
-                        candidateStatus: "pending",
-                    },
-                    data: {
-                        candidateStatus: "rejected",
-                        reviewedAt,
-                        reviewedBy: profileId,
-                    },
-                });
-                await tx.comedianPodcast.deleteMany({
-                    where: {
-                        podcastId,
-                        reviewStatus: "accepted",
-                        associationType: { in: ["host", "cohost"] },
-                    },
-                });
-            }
-
-            const hostships = [];
-            for (const selectedRole of selectedRoleRows) {
-                const hostCandidate =
-                    beforeCandidates.find((candidate) =>
-                        selectedRole.requestedComedianIds.includes(
-                            candidate.comedianId,
-                        ),
-                    ) ?? null;
-                const hostSource = hostCandidate?.source ?? "manual";
-                const hostConfidence = hostCandidate?.confidence ?? 1;
-                const originalHostEvidence = hostCandidate
-                    ? jsonForWrite(hostCandidate.evidence)
-                    : {
-                          adminAdded: true,
-                          reason,
-                      };
-                const hostEvidence = preserveCanonicalComedianProvenance(
-                    originalHostEvidence,
-                    selectedRole.resolutions,
-                );
-                hostships.push(
-                    await tx.comedianPodcast.upsert({
-                        where: {
-                            comedianId_podcastId_associationType_source: {
-                                comedianId: selectedRole.comedianId,
-                                podcastId,
-                                associationType: selectedRole.associationType,
-                                source: hostSource,
-                            },
-                        },
-                        create: {
-                            comedianId: selectedRole.comedianId,
-                            podcastId,
-                            associationType: selectedRole.associationType,
-                            source: hostSource,
-                            reviewStatus: "accepted",
-                            confidence: hostConfidence,
-                            evidence: hostEvidence,
-                            reviewedAt,
-                            reviewedBy: profileId,
-                        },
-                        update: {
-                            reviewStatus: "accepted",
-                            confidence: hostConfidence,
-                            evidence: hostEvidence,
-                            reviewedAt,
-                            reviewedBy: profileId,
-                        },
-                    }),
-                );
-            }
-            const denyListEntry = denyListed
-                ? await tx.podcastDenyList.upsert({
-                      where: { podcastId },
-                      create: {
-                          podcastId,
-                          source: podcast.source,
-                          sourcePodcastId: podcast.sourcePodcastId,
-                          feedUrl: podcast.feedUrl,
-                          reason: decisionReason,
-                          deniedAt: reviewedAt,
-                          deniedBy: profileId,
-                      },
-                      update: {
-                          source: podcast.source,
-                          sourcePodcastId: podcast.sourcePodcastId,
-                          feedUrl: podcast.feedUrl,
-                          reason: decisionReason,
-                          deniedAt: reviewedAt,
-                          deniedBy: profileId,
-                          restoredAt: null,
-                          restoredBy: null,
-                      },
-                  })
-                : null;
-
-            if (parsed.data.denyListed === false) {
+            else
                 await tx.podcastDenyList.updateMany({
-                    where: { podcastId, restoredAt: null },
+                    where: { podcastId: p.id, restoredAt: null },
                     data: {
                         restoredAt: reviewedAt,
-                        restoredBy: profileId,
+                        restoredBy: gate.context.profileId,
                     },
                 });
-            }
-
-            await writeAdminActionAudit(tx, {
-                actorProfileId: profileId,
-                action:
-                    selectedRoleRows.length > 0
-                        ? "podcast_hostship_review.approve"
-                        : denyListed
-                          ? "podcast_hostship_review.deny_list"
-                          : parsed.data.denyListed === false
-                            ? "podcast_hostship_review.restore"
-                            : "podcast_hostship_review.reject",
-                entityType: "podcast",
-                entityId: podcastId,
-                reason: decisionReason,
-                before: {
-                    podcast,
-                    candidates: beforeCandidates.map(candidateSnapshot),
-                    hostships: beforeHostships.map(hostshipSnapshot),
-                    denyListEntries: beforeDenyListEntries,
-                },
-                after: {
-                    podcast,
-                    hosts: selectedRoleRows
-                        .filter((row) => row.associationType === "host")
-                        .map((row) => comedianById.get(row.comedianId))
-                        .filter(
-                            (
-                                comedian,
-                            ): comedian is {
-                                id: number;
-                                name: string;
-                                uuid: string;
-                            } => Boolean(comedian),
-                        ),
-                    cohosts: selectedRoleRows
-                        .filter((row) => row.associationType === "cohost")
-                        .map((row) => comedianById.get(row.comedianId))
-                        .filter(
-                            (
-                                comedian,
-                            ): comedian is {
-                                id: number;
-                                name: string;
-                                uuid: string;
-                            } => Boolean(comedian),
-                        ),
-                    attributionResolutions: selectedRoleRows.map((row) => ({
-                        associationType: row.associationType,
-                        canonicalComedianId: row.comedianId,
-                        requestedComedianIds: row.requestedComedianIds,
-                        aliasPaths: row.resolutions.map(
-                            (resolution) => resolution.aliasPath,
-                        ),
-                    })),
-                    hostships: hostships.map(hostshipSnapshot),
-                    denyListEntry,
-                },
-            });
-
-            return { podcast, hostships, denyListEntry };
+            return p;
         });
-
-        if (!result) {
+        if (!podcast)
             return NextResponse.json(
                 { error: "Podcast not found" },
                 { status: 404 },
             );
-        }
-        if ("ineligibleHost" in result) {
-            return NextResponse.json(
-                {
-                    error: "Host comedian is not eligible for podcast attribution",
-                    reason: result.reason,
-                },
-                { status: 422 },
-            );
-        }
-        if ("canonicalRoleConflict" in result) {
-            return NextResponse.json(
-                {
-                    error: "A canonical comedian cannot be both host and co-host",
-                },
-                { status: 400 },
-            );
-        }
-
-        revalidatePodcastReviewSurfaces(result.podcast.slug);
-
-        return NextResponse.json({
-            ok: true,
-            podcast: result.podcast,
-            hostships: result.hostships,
-            denyListEntry: result.denyListEntry,
-        });
+        revalidatePodcastReviewSurfaces(podcast.slug);
+        return NextResponse.json({ ok: true, podcast });
     } catch (error) {
-        console.error("Admin podcast hostship review failed:", error);
-        return NextResponse.json({ error: "Review failed" }, { status: 500 });
+        console.error("Podcast entity review failed", error);
+        return NextResponse.json({ error: "Review failed" }, { status: 409 });
     }
 });
 
@@ -1028,61 +616,9 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
                           },
                       });
 
-            const reviewedAt = new Date();
-            const aliasComedianIds = resolution.aliasPath.filter(
-                (comedianId) => comedianId !== comedian.id,
+            await tx.$queryRaw(
+                Prisma.sql`SELECT curation_observe_host(${parsed.data.comedianId},${podcast.id},'host',${source},${feedUrl},${JSON.stringify(manualEvidence)}::jsonb)`,
             );
-            await tx.comedianPodcast.deleteMany({
-                where:
-                    aliasComedianIds.length > 0
-                        ? {
-                              podcastId: podcast.id,
-                              associationType: "host",
-                              reviewStatus: "accepted",
-                              OR: [
-                                  {
-                                      comedianId: comedian.id,
-                                      source: { not: source },
-                                  },
-                                  { comedianId: { in: aliasComedianIds } },
-                              ],
-                          }
-                        : {
-                              comedianId: comedian.id,
-                              podcastId: podcast.id,
-                              associationType: "host",
-                              source: { not: source },
-                              reviewStatus: "accepted",
-                          },
-            });
-            await tx.comedianPodcast.upsert({
-                where: {
-                    comedianId_podcastId_associationType_source: {
-                        comedianId: comedian.id,
-                        podcastId: podcast.id,
-                        associationType: "host",
-                        source,
-                    },
-                },
-                create: {
-                    comedianId: comedian.id,
-                    podcastId: podcast.id,
-                    associationType: "host",
-                    source,
-                    reviewStatus: "accepted",
-                    confidence: 1,
-                    evidence: manualEvidence,
-                    reviewedAt,
-                    reviewedBy: profileId,
-                },
-                update: {
-                    reviewStatus: "accepted",
-                    confidence: 1,
-                    evidence: manualEvidence,
-                    reviewedAt,
-                    reviewedBy: profileId,
-                },
-            });
 
             await writeAdminActionAudit(tx, {
                 actorProfileId: profileId,
@@ -1140,7 +676,7 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
         } catch (error) {
             episodeRefreshFailed = true;
             console.error(
-                "Manual RSS host association saved, but episode refresh failed:",
+                "Manual RSS host proposal saved, but episode refresh failed:",
                 {
                     podcastId: result.podcast.id,
                     comedianId: result.comedian.id,
@@ -1158,6 +694,7 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
             episodeCount,
             episodeRefreshFailed,
             episodeIntakeHeld,
+            hostReviewRequired: true,
         });
     } catch (error) {
         if (error instanceof CurationError)

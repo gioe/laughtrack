@@ -29,6 +29,21 @@ export async function validateParentEligibility(
     }
 }
 
+export async function previewParentHostEffects(
+    tx: SqlClient,
+    childId: number,
+    parentId: number | null,
+) {
+    const [installed] = await tx.$queryRaw<{ available: boolean }[]>(
+        Prisma.sql`SELECT to_regprocedure('curation_preview_host_rekey(integer,integer)') IS NOT NULL available`,
+    );
+    if (!installed.available) return [];
+    const [row] = await tx.$queryRaw<{ impacts: unknown[] }[]>(
+        Prisma.sql`SELECT curation_preview_host_rekey(${childId},${parentId}::integer) impacts`,
+    );
+    return row.impacts;
+}
+
 export const parentAdapter: Adapter = {
     mode: "immediate",
     async validate(tx, target, _snapshot, command) {
@@ -41,10 +56,29 @@ export const parentAdapter: Adapter = {
             await validateParentEligibility(tx, target.id);
     },
     async preview(tx, target, _snapshot, command) {
-        const [row] = await tx.$queryRaw<{ child: string; parent: string }[]>(
-            Prisma.sql`SELECT s.label child,t.label parent FROM curation_relationships r JOIN curation_entities s ON s.id=r.source_id JOIN curation_entities t ON t.id=r.target_id WHERE r.id=${target.id}`,
+        const [row] = await tx.$queryRaw<
+            {
+                child: string;
+                parent: string;
+                child_id: number;
+                parent_id: number;
+            }[]
+        >(
+            Prisma.sql`SELECT s.label child,t.label parent,s.comedian_id child_id,t.comedian_id parent_id FROM curation_relationships r JOIN curation_entities s ON s.id=r.source_id JOIN curation_entities t ON t.id=r.target_id WHERE r.id=${target.id}`,
         );
+        const hostEffects = ["confirm", "sever"].includes(command.action)
+            ? await previewParentHostEffects(
+                  tx,
+                  row.child_id,
+                  command.action === "sever" ? null : row.parent_id,
+              )
+            : [];
         return [
+            ...(hostEffects.length
+                ? [
+                      `Place ${hostEffects.length} affected host source identities on hold for explicit canonical reconciliation; preserve their separate decisions and evidence.`,
+                  ]
+                : []),
             `${row.child} → ${row.parent}: ${command.action}.`,
             "Update canonical resolution and public grouping. Preserve original lineup, appearance, host, favorite and attribution records; do not transfer or delete them.",
             "Neither performer is blocked, deleted or identity-approved. Restore reopens this pair for review only.",

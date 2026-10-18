@@ -177,30 +177,27 @@ it("undo refuses later identity changes and another reviewer's request", async (
     await pg.exec("UPDATE comedians SET name='Updated name'");
     await expect(undoReview(decisionId!, "admin")).rejects.toThrow("changed");
 });
-it("podcast adapter approves only a relationship and supports undo", async () => {
+it("legacy source review cannot approve or undo a durable host pair", async () => {
     await pg.exec(
         "INSERT INTO comedians(id,uuid,name) VALUES(9,'existing','New Person'); INSERT INTO podcasts(id,title) VALUES(5,'A podcast'); INSERT INTO comedian_podcasts(id,comedian_id,podcast_id,association_type,source,evidence) VALUES(3,9,5,'host','test','{}')",
     );
-    expect((await listReviews({ workflow: "podcast_association" })).total).toBe(
-        1,
-    );
     const item = (await getReview("podcast_association", "3"))!;
-    const { decisionId } = await decideReview(
-        {
-            workflow: item.workflow,
-            id: item.id,
-            token: item.token,
-            action: "approve",
-            reason: "Checked credits",
-        },
-        "admin",
-    );
-    expect((await getReview(item.workflow, item.id))!.status).toBe("accepted");
+    expect(item.actions).toEqual([]);
+    await expect(
+        decideReview(
+            {
+                workflow: item.workflow,
+                id: item.id,
+                token: item.token,
+                action: "approve",
+                reason: "Reviewed",
+            },
+            "admin",
+        ),
+    ).rejects.toThrow(/versioned relationship/);
     expect(
-        (await pg.query("SELECT identity_validated_at FROM comedians")).rows[0],
-    ).toEqual({ identity_validated_at: null });
-    await undoReview(decisionId!, "admin");
-    expect((await getReview(item.workflow, item.id))!.status).toBe("pending");
+        (await pg.query("SELECT review_status FROM comedian_podcasts")).rows,
+    ).toEqual([{ review_status: "pending" }]);
 });
 
 it("allows a reviewer to approve again after undoing creation", async () => {

@@ -1,3 +1,5 @@
+import { hostAdapter } from "./hostAdapter";
+import { createHostRelationshipService } from "./hostRelationships";
 import { parentAdapter } from "./parentAdapter";
 import { createParentRelationshipService } from "./parentRelationships";
 import { db } from "@/lib/db";
@@ -21,17 +23,20 @@ export const curation = createCurationService({
             }),
     },
     adapter: (target) =>
-        target.type === "relationship" && target.kind === "alias_of"
-            ? parentAdapter
-            : target.type === "entity" && target.kind === "podcast"
-              ? podcastAdapter
-              : target.type === "entity" && target.kind === "show"
-                ? showAdapter
-                : target.type === "entity" && target.kind === "club"
-                  ? clubAdapter
-                  : target.type === "entity" && target.kind === "comedian"
-                    ? comedianAdapter
-                    : undefined,
+        target.type === "relationship" &&
+        (target.kind === "host_of" || target.kind === "cohost_of")
+            ? hostAdapter
+            : target.type === "relationship" && target.kind === "alias_of"
+              ? parentAdapter
+              : target.type === "entity" && target.kind === "podcast"
+                ? podcastAdapter
+                : target.type === "entity" && target.kind === "show"
+                  ? showAdapter
+                  : target.type === "entity" && target.kind === "club"
+                    ? clubAdapter
+                    : target.type === "entity" && target.kind === "comedian"
+                      ? comedianAdapter
+                      : undefined,
     async invalidate() {
         revalidateTag("show-detail-data");
         revalidateTag("show-metadata");
@@ -55,6 +60,21 @@ export const parentRelationships = createParentRelationshipService(
     },
     async () => {
         for (const path of ["/admin", "/comedian", "/show", "/podcast"])
+            revalidatePath(path, "layout");
+    },
+);
+
+export const hostRelationships = createHostRelationshipService(
+    {
+        $queryRaw: (q) => db.$queryRaw(q),
+        $transaction: (fn) =>
+            db.$transaction(async (tx) => {
+                await tx.$queryRaw`SELECT curation_lock_intake()`;
+                return fn(tx);
+            }),
+    },
+    async () => {
+        for (const path of ["/admin", "/comedian", "/podcast"])
             revalidatePath(path, "layout");
     },
 );
