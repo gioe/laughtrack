@@ -353,6 +353,12 @@ jobs:
       # Applies pending migrations against the prod copy. Fails the build on any
       # migration error (DDL, backfill collision, constraint violation) BEFORE
       # the migration can reach prod via the Vercel deploy.
+      - name: Recover the known rolled-back club migration on the prod copy
+        env:
+          DATABASE_URL: ${{ steps.neon.outputs.db_url }}
+          DIRECT_URL: ${{ steps.neon.outputs.db_url }}
+        run: node bin/recover-curation-migration.mjs --apply
+
       - name: Apply pending migrations to the prod copy
         env:
           DATABASE_URL: ${{ steps.neon.outputs.db_url }}

@@ -61,8 +61,6 @@ type ManualImageUrls = {
 };
 
 type AttributedPodcast = AdminComedianListItem["attributedPodcasts"][number];
-type PodcastCandidateReview =
-    AdminComedianListItem["podcastCandidateReviews"][number];
 
 function acceptedAttributedPodcasts(row: AdminComedianListItem) {
     return row.attributedPodcasts.filter(
@@ -95,10 +93,6 @@ function currentAvatarUrl(row: AdminComedianListItem) {
 function currentHeroUrl(row: AdminComedianListItem) {
     if (row.activeImageAsset) return row.activeImageAsset.heroUrl ?? "";
     return row.hasImage ? nameComedianImageUrl(row) : "";
-}
-
-function compareByName(a: AdminComedianListItem, b: AdminComedianListItem) {
-    return a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
 }
 
 function ComedianRowHeadshot({ row }: { row: AdminComedianListItem }) {

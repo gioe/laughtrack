@@ -270,7 +270,9 @@ export default function CurationWorkspace({
         setReceipt("");
         try {
             sessionStorage.removeItem(storageKey);
-        } catch {}
+        } catch {
+            // Storage can be unavailable; the in-memory decision state remains usable.
+        }
     }
     function recover() {
         clearPending();
@@ -329,7 +331,9 @@ export default function CurationWorkspace({
         setReceipt("unknown");
         try {
             sessionStorage.setItem(storageKey, JSON.stringify(pending));
-        } catch {}
+        } catch {
+            // Storage can be unavailable; the in-memory decision state remains usable.
+        }
         try {
             await result(await inboxRequest(pending.url, pending.body));
         } catch (e) {

@@ -171,7 +171,7 @@ describe("source comedy policy migration", () => {
             .trim();
         const aggregate = queryModule
             .split('GET_ALL_SOURCE_TARGETS = """')[1]
-            .match(/json_build_object\([\s\S]*?\n                    \)/)![0];
+            .match(/json_build_object\([\s\S]*?\n {20}\)/)![0];
         for (const migrated of [false, true]) {
             if (migrated) {
                 await db.exec(migration);

@@ -53,7 +53,6 @@ vi.mock("@/lib/db", () => ({
 
 import {
     podcastEpisodesAllowed,
-    lockPodcastIntake,
 } from "@/lib/admin/curation/podcastIntake";
 import { GET, POST, PUT } from "./route";
 import { db } from "@/lib/db";

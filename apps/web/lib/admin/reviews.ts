@@ -441,8 +441,7 @@ export async function undoReview(decisionId: string, actor: string) {
             throw new ReviewConflict(
                 "This item has changed since your decision.",
             );
-        const e = d.after_json.effects,
-            b = d.before_json;
+        const e = d.after_json.effects;
         if (d.workflow === "comedian_identity") {
             if (e.comedianAfter) {
                 const c = await canonical(tx, e.comedianAfter.id);

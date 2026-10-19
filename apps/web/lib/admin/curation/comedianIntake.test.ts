@@ -45,6 +45,12 @@ beforeAll(async () => {
         ),
     );
     await pg.exec(migration);
+    await pg.exec(
+        readFileSync(
+            "prisma/migrations/20261015100000_curation_comedian_lookup_performance/migration.sql",
+            "utf8",
+        ),
+    );
 }, 30000);
 afterAll(async () => pg.close());
 beforeEach(async () => {
