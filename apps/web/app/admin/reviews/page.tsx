@@ -1,5 +1,5 @@
 import AdminPageHeader from "@/ui/pages/admin/shared/AdminPageHeader";
-import ReviewWorkspace from "@/ui/pages/admin/reviews/ReviewWorkspace";
+import CurationWorkspace from "@/ui/pages/admin/reviews/CurationWorkspace";
 export default async function ReviewsPage({
     searchParams,
 }: {
@@ -18,7 +18,7 @@ export default async function ReviewsPage({
                 title="Review inbox"
                 description="Check the source, resolve matches, and approve what belongs in LaughTrack."
             />
-            <ReviewWorkspace initialFilters={initialFilters} />
+            <CurationWorkspace initialFilters={initialFilters} />
         </div>
     );
 }

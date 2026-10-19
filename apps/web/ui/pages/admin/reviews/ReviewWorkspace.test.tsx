@@ -54,7 +54,11 @@ it("loads evidence in place and links the selected canonical profile", async () 
     await screen.findByText("Featuring Robin Tran");
     fireEvent.click(screen.getByRole("button", { name: "Robin Tran" }));
     fireEvent.click(screen.getByLabelText("Also confirm this show appearance"));
+    fireEvent.change(screen.getByLabelText(/Decision note/), {
+        target: { value: "Verified performer evidence" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "Link existing" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm review" }));
     await waitFor(() =>
         expect(mocks.request).toHaveBeenCalledWith(
             "/api/admin/reviews",
@@ -96,7 +100,11 @@ it("shows failed decisions and keeps evidence available", async () => {
     );
     render(<ReviewWorkspace />);
     await screen.findByText("Featuring Robin Tran");
+    fireEvent.change(screen.getByLabelText(/Decision note/), {
+        target: { value: "Verified performer evidence" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "Approve new" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm review" }));
     expect((await screen.findByRole("alert")).textContent).toContain(
         "This item changed",
     );
@@ -321,13 +329,16 @@ it.each(["comedian_visibility", "club_visibility"])(
         render(<ReviewWorkspace initialFilters={{ workflow, id: "9" }} />);
         await screen.findByText("Featuring Robin Tran");
         expect(
-            (screen.getByRole("button", { name: "Block" }) as HTMLButtonElement)
-                .disabled,
+            (
+                screen.getByRole("button", {
+                    name: "Hide publicly",
+                }) as HTMLButtonElement
+            ).disabled,
         ).toBe(true);
         fireEvent.change(screen.getByLabelText(/Decision note/), {
             target: { value: "Duplicate public record" },
         });
-        fireEvent.click(screen.getByRole("button", { name: "Block" }));
+        fireEvent.click(screen.getByRole("button", { name: "Hide publicly" }));
         expect(
             mocks.request.mock.calls.some(([, i]) => i?.method === "POST"),
         ).toBe(false);
@@ -372,11 +383,11 @@ it("offers unblock for a blocked record and preserves evidence on conflict", asy
         />,
     );
     await screen.findByText("Featuring Robin Tran");
-    expect(screen.queryByRole("button", { name: "Block" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Hide publicly" })).toBeNull();
     fireEvent.change(screen.getByLabelText(/Decision note/), {
         target: { value: "Validated venue" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Unblock" }));
+    fireEvent.click(screen.getByRole("button", { name: "Show publicly" }));
     fireEvent.click(screen.getByRole("button", { name: "Confirm review" }));
     await screen.findByText("This item changed. Refresh it before deciding.");
     expect(screen.getByText("Featuring Robin Tran")).toBeTruthy();

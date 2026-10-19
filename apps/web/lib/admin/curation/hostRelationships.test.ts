@@ -506,3 +506,56 @@ it("previews host attribution holds before an alias change", async () => {
     );
     expect(await accepted(p)).toHaveLength(1);
 });
+
+it("lists shared Inbox identities and relationships with evidence, durable blocked history and endpoint filters", async () => {
+    const { createInbox } = await import("./inbox");
+    const inbox = createInbox(store);
+    const comic = await person("Inbox Comic"),
+        pod = await podcast();
+    const edge = await observe(comic, pod);
+    await decide(edge.relationshipId, "confirm");
+    const queue = (await inbox.get({
+        view: "relationships",
+        recordId: pod,
+        endpointKind: "podcast",
+        state: "confirmed",
+    })) as import("./inboxTypes").InboxPage;
+    expect(queue.items).toHaveLength(1);
+    expect(queue.items[0]).toMatchObject({
+        sourceRecordId: comic,
+        targetRecordId: pod,
+        state: "confirmed",
+    });
+    const detail = (await inbox.get({
+        view: "relationships",
+        id: edge.relationshipId,
+    })) as import("./inboxTypes").InboxDetail;
+    expect(detail.observations).toHaveLength(1);
+    expect(detail.decisions[0].actor).toBe("admin");
+    await entity(pod, "block");
+    const blocked = (await inbox.get({
+        view: "intake",
+        kind: "podcast",
+        state: "blocked",
+        q: "podcast",
+    })) as import("./inboxTypes").InboxPage;
+    expect(blocked.items).toHaveLength(1);
+    const podcastDetail = (await inbox.get({
+        view: "intake",
+        id: blocked.items[0].target.id,
+    })) as import("./inboxTypes").InboxDetail;
+    expect(podcastDetail.keys.length).toBeGreaterThan(0);
+    expect(podcastDetail.decisions[0].action).toBe("block");
+    const matches = (await inbox.get({
+        lookup: "comedian",
+        q: "Inbox Comic",
+    })) as import("./inboxTypes").InboxPage;
+    expect(matches.items[0].recordId).toBe(comic);
+    expect(
+        (
+            (await inbox.get({
+                q: "' OR 1=1 --",
+            })) as import("./inboxTypes").InboxPage
+        ).items,
+    ).toHaveLength(0);
+});

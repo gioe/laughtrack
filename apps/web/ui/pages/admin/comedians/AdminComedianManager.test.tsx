@@ -186,50 +186,6 @@ function summaryValue(row: HTMLElement, label: string) {
     return within(row).getByText(label).parentElement?.textContent;
 }
 
-async function previewAndApplyParent(clear = false) {
-    fireEvent.change(screen.getByLabelText("Relationship reason"), {
-        target: { value: "Verified same performer" },
-    });
-    if (!clear) {
-        fireEvent.change(screen.getByLabelText("Same-performer evidence URL"), {
-            target: { value: "https://example.org/bio" },
-        });
-        fireEvent.change(
-            screen.getByLabelText(
-                "Why these names identify the same performer",
-            ),
-            {
-                target: {
-                    value: "Official biography explicitly lists both stage names.",
-                },
-            },
-        );
-        vi.mocked(global.fetch).mockResolvedValueOnce({
-            ok: true,
-            json: async () => ({ relationshipId: "edge" }),
-        } as never);
-    }
-    vi.mocked(global.fetch).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-            previewToken: "preview",
-            effects: ["Preserve original appearances"],
-        }),
-    } as never);
-    fireEvent.click(
-        screen.getByRole("button", { name: "Preview relationship" }),
-    );
-    await screen.findByText("Preserve original appearances");
-    expect(
-        vi
-            .mocked(global.fetch)
-            .mock.calls.filter(([url]) => url === "/api/admin/comedians"),
-    ).toHaveLength(0);
-    fireEvent.click(
-        screen.getByRole("button", { name: "Apply relationship change" }),
-    );
-}
-
 beforeEach(() => {
     vi.clearAllMocks();
     global.fetch = vi.fn().mockResolvedValue({
@@ -931,245 +887,41 @@ describe("AdminComedianManager", () => {
         ).toBeNull();
     });
 
-    it("saves a parent relationship", async () => {
-        render(<AdminComedianManager comedians={comedians} />);
-        expandAllRows();
-        fireEvent.click(
-            screen.getAllByRole("button", { name: /^Relationship/ })[0],
+    it("routes parent and child relationship decisions to the shared Inbox", () => {
+        render(
+            <AdminComedianManager
+                comedians={[
+                    comedians[0],
+                    {
+                        ...comedians[1],
+                        parent: { id: 1, name: "Parent Comic" },
+                    },
+                ]}
+            />,
         );
-
-        const parentInputs =
-            screen.getAllByPlaceholderText("Search parent name");
-        fireEvent.change(parentInputs[0], {
-            target: { value: "Parent" },
-        });
-        fireEvent.click(screen.getByRole("button", { name: "Parent Comic" }));
-        await previewAndApplyParent();
-
-        await waitFor(() => {
-            expect(global.fetch).toHaveBeenCalledWith(
-                "/api/admin/comedians",
-                expect.objectContaining({
-                    method: "PATCH",
-                    body: expect.stringContaining('"previewToken":"preview"'),
-                }),
-            );
-        });
-        // router.refresh() fires only after res.json() settles — same
-        // post-response race class as the headshot-upload flake, so poll
-        // instead of asserting synchronously after the fetch waitFor.
-        await waitFor(() => expect(mocks.refresh).toHaveBeenCalled());
-    });
-
-    it("updates parent counts and canonical-filter membership when setting a relationship", async () => {
-        render(<AdminComedianManager comedians={comedians} />);
         expandAllRows();
-
-        const parentRow = screen
+        const row = screen
             .getByRole("heading", { level: 2, name: "Parent Comic" })
-            .closest("li");
-        expect(parentRow).not.toBeNull();
-        expect(summaryValue(parentRow!, "Children")).toBe("Children0");
-
+            .closest("li")!;
         fireEvent.click(
-            screen.getAllByRole("button", { name: /^Relationship/ })[0],
+            within(row).getByRole("button", { name: /^Relationship/ }),
         );
-        fireEvent.change(
-            screen.getAllByPlaceholderText("Search parent name")[0],
-            {
-                target: { value: "Parent" },
-            },
-        );
-        fireEvent.click(screen.getByRole("button", { name: "Parent Comic" }));
-        await previewAndApplyParent();
-
-        await waitFor(() => {
-            expect(
-                screen.getByRole("heading", {
-                    level: 2,
-                    name: "Alias Comic",
-                }),
-            ).toBeTruthy();
-            expect(summaryValue(parentRow!, "Children")).toBe("Children1");
-        });
-
-        fireEvent.change(screen.getByLabelText("Record type"), {
-            target: { value: "canonical" },
-        });
         expect(
-            screen.queryByRole("heading", {
-                level: 2,
-                name: "Alias Comic",
-            }),
+            within(row)
+                .getByRole("link", {
+                    name: "Review parent relationships in Inbox",
+                })
+                .getAttribute("href"),
+        ).toContain("recordId=1");
+        expect(
+            within(row)
+                .getByRole("link", { name: "Review relationship" })
+                .getAttribute("href"),
+        ).toContain("recordId=2");
+        expect(screen.queryByPlaceholderText("Search parent name")).toBeNull();
+        expect(
+            screen.queryByRole("button", { name: "Remove parent" }),
         ).toBeNull();
-        expect(
-            screen.getByRole("heading", { level: 2, name: "Parent Comic" }),
-        ).toBeTruthy();
-    });
-
-    it("groups parent selection and children under one Relationship dropdown", () => {
-        render(
-            <AdminComedianManager
-                comedians={[
-                    comedians[0],
-                    {
-                        ...comedians[1],
-                        parent: { id: 1, name: "Parent Comic" },
-                    },
-                ]}
-            />,
-        );
-
-        // The unfiltered list shows every record, including the child profile.
-        expect(
-            screen.getByRole("heading", { level: 2, name: "Parent Comic" }),
-        ).toBeTruthy();
-        expect(
-            screen.getByRole("heading", { level: 2, name: "Alias Comic" }),
-        ).toBeTruthy();
-
-        // Expand the parent and the Relationship sub-dropdown.
-        expandAllRows();
-        const parentRow = screen
-            .getByRole("heading", { level: 2, name: "Parent Comic" })
-            .closest("li");
-        expect(parentRow).not.toBeNull();
-        fireEvent.click(
-            within(parentRow!).getByRole("button", {
-                name: /^Relationship/,
-            }),
-        );
-
-        expect(within(parentRow!).getByText("Current parent")).toBeTruthy();
-        expect(within(parentRow!).getByText("Find parent")).toBeTruthy();
-        expect(within(parentRow!).getByText("Alias Comic")).toBeTruthy();
-        expect(
-            within(parentRow!).getByRole("button", { name: "Remove parent" }),
-        ).toBeTruthy();
-        expect(screen.queryByRole("button", { name: /^Children/ })).toBeNull();
-    });
-
-    it("removes a child parent relationship via the Relationship dropdown and promotes the child to the top level", async () => {
-        vi.mocked(global.fetch).mockResolvedValue({
-            ok: true,
-            json: async () => ({
-                ok: true,
-                comedian: {
-                    ...comedians[1],
-                    parent: null,
-                },
-            }),
-        } as never);
-        render(
-            <AdminComedianManager
-                comedians={[
-                    comedians[0],
-                    {
-                        ...comedians[1],
-                        parent: { id: 1, name: "Parent Comic" },
-                    },
-                ]}
-            />,
-        );
-        expandAllRows();
-        const childRow = screen
-            .getByRole("heading", { level: 2, name: "Alias Comic" })
-            .closest("li");
-        expect(childRow).not.toBeNull();
-        fireEvent.click(
-            within(childRow!).getByRole("button", { name: /^Relationship/ }),
-        );
-
-        fireEvent.click(
-            within(childRow!).getByRole("button", {
-                name: "Clear parent for Alias Comic",
-            }),
-        );
-        await previewAndApplyParent(true);
-
-        await waitFor(() => {
-            expect(global.fetch).toHaveBeenCalledWith(
-                "/api/admin/comedians",
-                expect.objectContaining({
-                    method: "PATCH",
-                    body: expect.stringContaining('"parentComedianId":null'),
-                }),
-            );
-        });
-        // The child is now its own top-level row with the full editor.
-        await waitFor(() => {
-            expect(
-                screen.getByRole("heading", { level: 2, name: "Alias Comic" }),
-            ).toBeTruthy();
-        });
-    });
-
-    it("updates parent counts and canonical-filter membership when removing a relationship", async () => {
-        vi.mocked(global.fetch).mockResolvedValue({
-            ok: true,
-            json: async () => ({
-                ok: true,
-                comedian: { ...comedians[1], parent: null },
-            }),
-        } as never);
-        render(
-            <AdminComedianManager
-                comedians={[
-                    comedians[0],
-                    {
-                        ...comedians[1],
-                        parent: { id: 1, name: "Parent Comic" },
-                    },
-                ]}
-            />,
-        );
-        expandAllRows();
-
-        const parentRow = screen
-            .getByRole("heading", { level: 2, name: "Parent Comic" })
-            .closest("li");
-        expect(parentRow).not.toBeNull();
-        expect(summaryValue(parentRow!, "Children")).toBe("Children1");
-
-        const childRow = screen
-            .getByRole("heading", { level: 2, name: "Alias Comic" })
-            .closest("li");
-        expect(childRow).not.toBeNull();
-        fireEvent.click(
-            within(childRow!).getByRole("button", { name: /^Relationship/ }),
-        );
-        fireEvent.click(
-            within(childRow!).getByRole("button", {
-                name: "Clear parent for Alias Comic",
-            }),
-        );
-        await previewAndApplyParent(true);
-
-        await waitFor(() => {
-            expect(
-                screen.getByRole("heading", {
-                    level: 2,
-                    name: "Alias Comic",
-                }),
-            ).toBeTruthy();
-            expect(summaryValue(parentRow!, "Children")).toBe("Children0");
-        });
-
-        fireEvent.change(screen.getByLabelText("Record type"), {
-            target: { value: "canonical" },
-        });
-        expect(
-            screen.getByRole("heading", {
-                level: 2,
-                name: "Parent Comic",
-            }),
-        ).toBeTruthy();
-        expect(
-            screen.getByRole("heading", {
-                level: 2,
-                name: "Alias Comic",
-            }),
-        ).toBeTruthy();
     });
 
     it("reconciles fresh canonical props without discarding an unsaved row draft", async () => {
@@ -1748,80 +1500,21 @@ describe("AdminComedianManager", () => {
     // the worst observed 10.2s wall time. If a fourth test in this file ever
     // shows the same shape, file a follow-up to widen the override rather than
     // bumping the global config.
-    it("reviews podcast host candidates from the comedian row", async () => {
-        vi.mocked(global.fetch).mockResolvedValueOnce({
-            ok: true,
-            json: async () => ({
-                ok: true,
-                comedian: {
-                    ...comedians[0],
-                    podcastCandidateReviews: [],
-                },
-            }),
-        } as never);
+    it("routes host candidates into the shared relationship Inbox", () => {
         render(<AdminComedianManager comedians={comedians} />);
         expandAllRows();
         expandAllPodcastSections();
-
-        expect(screen.getByText("Podcast host reviews")).toBeTruthy();
-        expect(screen.getByText("Candidate Podcast")).toBeTruthy();
-        expect(
-            screen.getByRole("link", {
-                name: /RSS: https:\/\/feeds\.example\.com\/candidate\.xml/,
-            }),
-        ).toBeTruthy();
-        fireEvent.click(screen.getByRole("button", { name: "Accept as host" }));
-
-        await waitFor(() => {
-            expect(global.fetch).toHaveBeenCalledWith(
-                "/api/admin/comedians",
-                expect.objectContaining({
-                    method: "PATCH",
-                    body: JSON.stringify({
-                        action: "podcast-review-accept-host",
-                        comedianId: 1,
-                        candidateReviewId: 1001,
-                    }),
-                }),
-            );
+        const links = screen.getAllByRole("link", {
+            name: "Review host relationships in Inbox",
         });
-        await waitFor(() => {
-            expect(screen.queryByText("Podcast host reviews")).toBeNull();
-            expect(screen.queryByText("Candidate Podcast")).toBeNull();
-        });
-    }, 15000);
-
-    // 15s timeout: see TASK-2658 rationale block above "reviews podcast host
-    // candidates from the comedian row" — parallel-suite CPU starvation.
-    it("removes a host candidate after rejection", async () => {
-        const rejectedComedian = {
-            ...comedians[0],
-            podcastCandidateReviews: [],
-        };
-        vi.mocked(global.fetch).mockResolvedValueOnce({
-            ok: true,
-            json: async () => ({
-                ok: true,
-                comedian: rejectedComedian,
-            }),
-        } as never);
-        render(<AdminComedianManager comedians={comedians} />);
-        expandAllRows();
-        expandAllPodcastSections();
-
+        expect(links[0].getAttribute("href")).toContain("view=relationships");
         expect(
-            screen.queryByRole("button", { name: "Block podcast" }),
+            screen.queryByRole("button", { name: "Accept as host" }),
         ).toBeNull();
-        fireEvent.click(screen.getByRole("button", { name: "Reject as host" }));
-
-        await waitFor(() => {
-            expect(screen.queryByText("Podcast host reviews")).toBeNull();
-        });
-        expect(screen.queryByText("Candidate Podcast")).toBeNull();
         expect(
-            screen.queryByRole("button", { name: "Block podcast" }),
+            screen.queryByRole("button", { name: "Reject as host" }),
         ).toBeNull();
-    }, 15000);
+    });
 
     it("links to the latest ticket purchase url", () => {
         render(<AdminComedianManager comedians={comedians} />);

@@ -201,13 +201,19 @@ export function AdminClubRow({ club }: { club: AdminClubListItem }) {
                 </label>
                 <div className="grid gap-1 font-dmSans text-body">
                     <span className="font-semibold">
-                        Visibility: {club.visible ? "Active" : "Blocked"}
+                        Visibility: {club.visible ? "Shown" : "Hidden"}
                     </span>
                     <a
                         className="text-copper underline"
                         href={`/admin/reviews?workflow=club_visibility&id=${club.id}`}
                     >
                         Review visibility
+                    </a>
+                    <a
+                        className="text-copper underline"
+                        href={`/admin/reviews?view=intake&kind=club&recordId=${club.id}`}
+                    >
+                        Review intake approval / blocking
                     </a>
                 </div>
                 <label className="grid gap-1 font-dmSans text-body font-semibold text-foreground">

@@ -20,7 +20,6 @@ import { BlockedComedianRow } from "./BlockedComedianRow";
 import { ComedianImageSection } from "./ComedianImageSection";
 import { ComedianPodcastSection } from "./ComedianPodcastSection";
 import { ComedianProfileSection } from "./ComedianProfileSection";
-import { ParentRelationshipHistory } from "./ParentRelationshipHistory";
 import { ComedianRelationshipSection } from "./ComedianRelationshipSection";
 import { ComedianSocialSection } from "./ComedianSocialSection";
 
@@ -151,30 +150,10 @@ export function AdminComedianRow({
     onStatusChange,
 }: Props) {
     const router = useRouter();
-    const [parentReason, setParentReason] = useState("");
-    const [parentSourceUrl, setParentSourceUrl] = useState("");
-    const [parentExplanation, setParentExplanation] = useState("");
-    const [parentPreview, setParentPreview] = useState<{
-        row: AdminComedianListItem;
-        input: {
-            childId: number;
-            parentId: number | null;
-            reason: string;
-            requestId: string;
-        };
-        previewToken: string;
-        effects: string[];
-    } | null>(null);
-    const [parentHistoryVersion, setParentHistoryVersion] = useState(0);
     const [openChildrenSections, setOpenChildrenSections] = useState<
         Set<number>
     >(() => new Set<number>());
-    const [parentSearches, setParentSearches] = useState<
-        Record<number, string>
-    >({});
-    const [selectedParents, setSelectedParents] = useState<
-        Record<number, AdminComedianListItem["parent"]>
-    >({});
+
     const [nameEdits, setNameEdits] = useState<Record<number, string>>({});
     const [profileEdits, setProfileEdits] = useState<
         Record<number, ProfileEdit>
@@ -217,17 +196,6 @@ export function AdminComedianRow({
         );
         return () => onPendingChange(row.id, false);
     }, [isPending, onPendingChange, pendingId, row.id, savingWebSubKey]);
-
-    function parentValue(row: AdminComedianListItem) {
-        return Object.hasOwn(selectedParents, row.id)
-            ? selectedParents[row.id]
-            : row.parent;
-    }
-
-    function isParentDirty(row: AdminComedianListItem) {
-        if (!Object.hasOwn(selectedParents, row.id)) return false;
-        return selectedParents[row.id]?.id !== row.parent?.id;
-    }
 
     function nameValue(row: AdminComedianListItem) {
         return Object.hasOwn(nameEdits, row.id) ? nameEdits[row.id] : row.name;
@@ -346,139 +314,6 @@ export function AdminComedianRow({
             else next.add(rowId);
             return next;
         });
-    }
-
-    function parentCandidates(row: AdminComedianListItem) {
-        const search = parentSearches[row.id]?.trim().toLowerCase() ?? "";
-        if (!search) return [];
-        return allRows
-            .filter((candidate) => {
-                return (
-                    candidate.id !== row.id &&
-                    candidate.name.toLowerCase().includes(search)
-                );
-            })
-            .sort(compareByName)
-            .slice(0, 8);
-    }
-
-    function chooseParent(id: number, value: AdminComedianListItem["parent"]) {
-        setParentPreview(null);
-        setSelectedParents((current) => ({ ...current, [id]: value }));
-    }
-
-    async function saveParent(
-        targetRow: AdminComedianListItem,
-        parentOverride?: AdminComedianListItem["parent"],
-    ) {
-        const parent =
-            parentOverride === undefined
-                ? parentValue(targetRow)
-                : parentOverride;
-        if (!parentReason.trim()) {
-            setStatus({
-                kind: "error",
-                message: "Enter a reason for this relationship decision.",
-            });
-            return;
-        }
-        setPendingId(targetRow.id);
-        setParentPreview(null);
-        try {
-            const input = {
-                childId: targetRow.id,
-                parentId: parent?.id ?? null,
-                reason: parentReason.trim(),
-                requestId: crypto.randomUUID(),
-            };
-            if (parent) {
-                await adminRequest("/api/admin/curation/parents", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        operation: "propose",
-                        childId: targetRow.id,
-                        parentId: parent.id,
-                        reason: input.reason,
-                        evidence: {
-                            samePerformer: true,
-                            sourceUrl: parentSourceUrl.trim(),
-                            explanation: parentExplanation.trim(),
-                        },
-                    }),
-                });
-                setParentHistoryVersion((v) => v + 1);
-            }
-            const preview = await adminRequest<{
-                previewToken: string;
-                effects: string[];
-            }>("/api/admin/curation/parents", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ operation: "preview", ...input }),
-            });
-            setParentPreview({ row: targetRow, input, ...preview });
-            setParentHistoryVersion((v) => v + 1);
-        } catch (error) {
-            setStatus({
-                kind: "error",
-                message:
-                    error instanceof Error
-                        ? error.message
-                        : "Unable to preview relationship",
-            });
-        } finally {
-            setPendingId(null);
-        }
-    }
-    async function applyParentPreview() {
-        if (!parentPreview) return;
-        const preview = parentPreview;
-        setPendingId(preview.row.id);
-        try {
-            const body = await adminRequest<{
-                comedian: AdminComedianListItem;
-            }>("/api/admin/comedians", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    action: "set-parent",
-                    comedianId: preview.input.childId,
-                    parentComedianId: preview.input.parentId,
-                    reason: preview.input.reason,
-                    requestId: preview.input.requestId,
-                    previewToken: preview.previewToken,
-                }),
-            });
-            onRowChange(body.comedian);
-            setParentPreview(null);
-            setParentHistoryVersion((v) => v + 1);
-            setSelectedParents((current) => {
-                const next = { ...current };
-                delete next[preview.row.id];
-                return next;
-            });
-            setParentSearches((current) => ({
-                ...current,
-                [preview.row.id]: "",
-            }));
-            setStatus({
-                kind: "ok",
-                message: `${preview.row.name} relationship decision saved.`,
-            });
-            startTransition(() => router.refresh());
-        } catch (error) {
-            setParentPreview(null);
-            setStatus({
-                kind: "error",
-                message:
-                    error instanceof Error
-                        ? error.message
-                        : "Unable to apply relationship",
-            });
-        } finally {
-            setPendingId(null);
-        }
     }
 
     async function saveComedianRecord(
@@ -602,61 +437,6 @@ export function AdminComedianRow({
         setStatus({
             kind: "ok",
             message: `${row.name} YouTube WebSub flag saved.`,
-        });
-        startTransition(() => router.refresh());
-    }
-
-    async function reviewPodcastCandidate(
-        row: AdminComedianListItem,
-        review: PodcastCandidateReview,
-        action:
-            | "podcast-review-accept-host"
-            | "podcast-review-reject-host"
-            | "podcast-review-block-podcast",
-    ) {
-        setStatus({ kind: "idle" });
-        setPendingId(row.id);
-
-        let body: { comedian: AdminComedianListItem };
-        try {
-            body = await adminRequest<{ comedian: AdminComedianListItem }>(
-                "/api/admin/comedians",
-                {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        action,
-                        comedianId: row.id,
-                        candidateReviewId: review.id,
-                        ...(action === "podcast-review-block-podcast"
-                            ? {
-                                  reason: `Blocked from comedian podcast review for ${row.name}`,
-                              }
-                            : {}),
-                    }),
-                },
-            );
-        } catch (error) {
-            setPendingId(null);
-            setStatus({
-                kind: "error",
-                message:
-                    error instanceof Error ? error.message : "Network error",
-            });
-            return;
-        }
-
-        setPendingId(null);
-        onRowChange(body.comedian);
-        const title = review.podcast?.title ?? review.sourcePodcastId;
-        setStatus({
-            kind: "ok",
-            message:
-                action === "podcast-review-accept-host"
-                    ? `${title} accepted as a host podcast for ${row.name}.`
-                    : action === "podcast-review-reject-host"
-                      ? `${title} rejected as a host podcast for ${row.name}.`
-                      : `${title} blocked from podcast ingestion.`,
         });
         startTransition(() => router.refresh());
     }
@@ -1136,8 +916,6 @@ export function AdminComedianRow({
         startTransition(() => router.refresh());
     }
 
-    const parent = parentValue(row);
-    const candidates = parentCandidates(row);
     const disabled = globallyDisabled || pendingId !== null || isPending;
     const rowOpen = openComedianRows.has(row.id);
     const currentAvatar = currentAvatarUrl(row);
@@ -1313,6 +1091,12 @@ export function AdminComedianRow({
                                         href={`/admin/reviews?workflow=comedian_visibility&id=${row.id}`}
                                     >
                                         Review visibility
+                                    </a>
+                                    <a
+                                        className="text-copper underline"
+                                        href={`/admin/reviews?view=intake&kind=comedian&recordId=${row.id}`}
+                                    >
+                                        Review intake approval / blocking
                                     </a>
                                 </div>
                             </ComedianProfileSection>
@@ -1604,164 +1388,16 @@ export function AdminComedianRow({
                                         toggleChildrenSection(row.id)
                                     }
                                 >
-                                    <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-muted-foreground">
-                                        Current parent
-                                    </div>
-                                    {parent ? (
-                                        <div className="flex max-w-full items-center gap-2 rounded-md border border-green-700/40 bg-green-50 px-3 py-2 font-dmSans text-body font-semibold text-green-950">
-                                            <span className="min-w-0 truncate">
-                                                {parent.name}
-                                            </span>
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    chooseParent(row.id, null)
-                                                }
-                                                className="ml-auto shrink-0 rounded-sm p-1 text-green-950 hover:bg-green-100"
-                                                aria-label={`Clear parent for ${row.name}`}
-                                            >
-                                                <X className="h-4 w-4" />
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <div className="rounded-md border border-subtle bg-surface-muted px-3 py-2 font-dmSans text-body text-muted-foreground">
-                                            No parent assigned
-                                        </div>
-                                    )}
-
-                                    <label className="grid gap-1 font-dmSans text-body font-semibold text-foreground">
-                                        Find parent
-                                        <input
-                                            type="search"
-                                            value={parentSearches[row.id] ?? ""}
-                                            onChange={(event) =>
-                                                setParentSearches(
-                                                    (current) => ({
-                                                        ...current,
-                                                        [row.id]:
-                                                            event.target.value,
-                                                    }),
-                                                )
-                                            }
-                                            className="rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body text-foreground outline-none placeholder:text-muted-foreground focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                            placeholder="Search parent name"
-                                        />
-                                    </label>
-                                    {candidates.length > 0 && (
-                                        <div className="flex flex-wrap gap-2">
-                                            {candidates.map((candidate) => (
-                                                <button
-                                                    key={candidate.id}
-                                                    type="button"
-                                                    onClick={() =>
-                                                        chooseParent(row.id, {
-                                                            id: candidate.id,
-                                                            name: candidate.name,
-                                                        })
-                                                    }
-                                                    className="rounded-md border border-copper/40 bg-surface-elevated px-3 py-2 font-dmSans text-body font-semibold text-foreground hover:bg-copper/10"
-                                                >
-                                                    {candidate.name}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                    <label className="grid gap-1">
-                                        Relationship reason
-                                        <input
-                                            value={parentReason}
-                                            onChange={(e) => {
-                                                setParentReason(e.target.value);
-                                                setParentPreview(null);
-                                            }}
-                                            className="rounded border border-input bg-background p-2"
-                                        />
-                                    </label>
-                                    <label className="grid gap-1">
-                                        Same-performer evidence URL
-                                        <input
-                                            type="url"
-                                            value={parentSourceUrl}
-                                            onChange={(e) => {
-                                                setParentSourceUrl(
-                                                    e.target.value,
-                                                );
-                                                setParentPreview(null);
-                                            }}
-                                            placeholder="https://official-profile.example"
-                                            className="rounded border border-input bg-background p-2"
-                                        />
-                                    </label>
-                                    <label className="grid gap-1">
-                                        Why these names identify the same
-                                        performer
-                                        <textarea
-                                            value={parentExplanation}
-                                            onChange={(e) => {
-                                                setParentExplanation(
-                                                    e.target.value,
-                                                );
-                                                setParentPreview(null);
-                                            }}
-                                            className="rounded border border-input bg-background p-2"
-                                        />
-                                    </label>
-                                    <p className="text-caption text-muted-foreground">
-                                        Evidence is required when establishing a
-                                        parent. A name appearing in an event
-                                        title is not evidence of an alias.
+                                    <p>
+                                        Current parent:{" "}
+                                        {row.parent?.name ?? "None"}
                                     </p>
-                                    {parentPreview && (
-                                        <div
-                                            role="status"
-                                            className="space-y-2 rounded border border-copper/40 p-3"
-                                        >
-                                            <ul>
-                                                {parentPreview.effects.map(
-                                                    (effect) => (
-                                                        <li key={effect}>
-                                                            {effect}
-                                                        </li>
-                                                    ),
-                                                )}
-                                            </ul>
-                                            <Button
-                                                disabled={pendingId !== null}
-                                                onClick={() =>
-                                                    void applyParentPreview()
-                                                }
-                                            >
-                                                Apply relationship change
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                onClick={() =>
-                                                    setParentPreview(null)
-                                                }
-                                            >
-                                                Cancel preview
-                                            </Button>
-                                        </div>
-                                    )}
-                                    <ParentRelationshipHistory
-                                        childId={row.id}
-                                        reason={parentReason}
-                                        refreshKey={parentHistoryVersion}
-                                    />
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        className="gap-2 border-copper/40 bg-surface-elevated text-foreground hover:bg-copper/10 disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
-                                        disabled={
-                                            disabled ||
-                                            !isParentDirty(row) ||
-                                            pendingId === row.id
-                                        }
-                                        onClick={() => void saveParent(row)}
+                                    <a
+                                        className="text-copper underline"
+                                        href={`/admin/reviews?view=relationships&kind=alias_of&recordId=${row.id}&endpointKind=comedian`}
                                     >
-                                        <Save className="h-4 w-4" />
-                                        Preview relationship
-                                    </Button>
+                                        Review parent relationships in Inbox
+                                    </a>
                                     {children.length > 0 ? (
                                         <ul className="divide-y divide-copper/15 overflow-hidden rounded-md border border-copper/20 bg-surface-elevated">
                                             {children.map((child) => (
@@ -1778,25 +1414,12 @@ export function AdminComedianRow({
                                                     <span className="shrink-0 font-dmSans text-caption font-semibold text-muted-foreground">
                                                         ID {child.id}
                                                     </span>
-                                                    <Button
-                                                        type="button"
-                                                        variant="outline"
-                                                        className="shrink-0 gap-2 border-copper/40 bg-surface-elevated text-foreground hover:bg-copper/10 disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
-                                                        disabled={
-                                                            disabled ||
-                                                            pendingId ===
-                                                                child.id
-                                                        }
-                                                        onClick={() =>
-                                                            void saveParent(
-                                                                child,
-                                                                null,
-                                                            )
-                                                        }
+                                                    <a
+                                                        className="text-copper underline"
+                                                        href={`/admin/reviews?view=relationships&kind=alias_of&recordId=${child.id}&endpointKind=comedian`}
                                                     >
-                                                        <X className="h-4 w-4" />
-                                                        Remove parent
-                                                    </Button>
+                                                        Review relationship
+                                                    </a>
                                                 </li>
                                             ))}
                                         </ul>
@@ -2094,52 +1717,14 @@ export function AdminComedianRow({
                                                                         )}
                                                                     </div>
                                                                 </div>
-                                                                <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-                                                                    <Button
-                                                                        type="button"
-                                                                        variant="outline"
-                                                                        className="gap-2 border-green-400/50 bg-surface-elevated text-green-300 hover:bg-green-900/30 disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
-                                                                        disabled={
-                                                                            disabled ||
-                                                                            pendingId ===
-                                                                                row.id ||
-                                                                            isBlocked
-                                                                        }
-                                                                        onClick={() =>
-                                                                            void reviewPodcastCandidate(
-                                                                                row,
-                                                                                review,
-                                                                                "podcast-review-accept-host",
-                                                                            )
-                                                                        }
-                                                                    >
-                                                                        <Save className="h-4 w-4" />
-                                                                        Accept
-                                                                        as host
-                                                                    </Button>
-                                                                    <Button
-                                                                        type="button"
-                                                                        variant="outline"
-                                                                        className="gap-2 border-copper/40 bg-surface-elevated text-foreground hover:bg-copper/10 disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
-                                                                        disabled={
-                                                                            disabled ||
-                                                                            pendingId ===
-                                                                                row.id ||
-                                                                            isBlocked
-                                                                        }
-                                                                        onClick={() =>
-                                                                            void reviewPodcastCandidate(
-                                                                                row,
-                                                                                review,
-                                                                                "podcast-review-reject-host",
-                                                                            )
-                                                                        }
-                                                                    >
-                                                                        <X className="h-4 w-4" />
-                                                                        Reject
-                                                                        as host
-                                                                    </Button>
-                                                                </div>
+                                                                <a
+                                                                    className="text-copper underline"
+                                                                    href={`/admin/reviews?view=relationships&recordId=${row.id}&endpointKind=comedian`}
+                                                                >
+                                                                    Review host
+                                                                    relationships
+                                                                    in Inbox
+                                                                </a>
                                                             </div>
                                                         );
                                                     },

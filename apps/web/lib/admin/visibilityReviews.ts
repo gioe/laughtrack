@@ -63,15 +63,15 @@ function item(row: Snapshot, workflow: VisibilityWorkflow): ReviewItem {
         id: String(row.id),
         workflow,
         title: row.name,
-        subtitle: `ID ${row.id} · ${row.visible ? "Active" : "Blocked"} · ${row.total_shows} shows`,
+        subtitle: `ID ${row.id} · ${row.visible ? "Shown" : "Hidden"} · ${row.total_shows} shows`,
         status: row.visible ? "active" : "blocked",
         token: token(row),
         actions: [row.visible ? "block" : "unblock"],
         matches: [],
         history: [],
         notice: comic
-            ? "Blocking hides this comedian from public surfaces. Unblocking restores visibility; it does not validate identity or remove an ingestion deny-list entry."
-            : "Blocking hides this club from public surfaces. Its operating status and scraping source settings are managed separately.",
+            ? "Hiding removes this comedian from public surfaces. Showing restores visibility; it does not validate identity or remove an ingestion deny-list entry."
+            : "Hiding removes this club from public surfaces. Its operating status and scraping source settings are managed separately.",
         evidence: [
             {
                 id: "profile",
@@ -109,7 +109,7 @@ export async function listVisibilityReviews(
             id: String(r.id),
             workflow,
             title: r.name,
-            subtitle: `ID ${r.id} · ${r.visible ? "Active" : "Blocked"} · ${r.total_shows} shows`,
+            subtitle: `ID ${r.id} · ${r.visible ? "Shown" : "Hidden"} · ${r.total_shows} shows`,
             status: r.visible ? "active" : "blocked",
             evidence: [],
             matches: [],
@@ -141,9 +141,9 @@ export async function getVisibilityReview(
     result.history = history.map((h) => ({
         id: String(h.id),
         action: h.action.endsWith(".visibility.block")
-            ? "Blocked"
+            ? "Hidden publicly"
             : h.action.endsWith(".visibility.unblock")
-              ? "Unblocked"
+              ? "Shown publicly"
               : h.action.replaceAll(".", " ").replaceAll("_", " "),
         reason: h.reason ?? "No note recorded",
         actor: h.actor_profile_id ?? "Unknown admin",
@@ -161,7 +161,7 @@ export async function getVisibilityReview(
             kind: "Separate ingestion control",
             url: null,
             context: denied.length
-                ? "This name is also on the ingestion deny list. Unblocking visibility does not remove that entry."
+                ? "This name is also on the ingestion deny list. Showing publicly does not remove that entry."
                 : "No matching name deny-list entry.",
         });
     }
@@ -199,7 +199,7 @@ export async function decideVisibilityReview(
         await tx.$queryRaw`INSERT INTO admin_action_audits(actor_profile_id,action,entity_type,entity_id,reason,before_json,after_json)
             VALUES(${actor},${`${c.entity}.visibility.${input.action}`},${c.entity},${String(id)},${input.reason},${JSON.stringify(before)}::jsonb,${JSON.stringify(after)}::jsonb) RETURNING id`;
         return {
-            notice: `${before.name}: ${visible ? "unblocked" : "blocked"}.`,
+            notice: `${before.name}: ${visible ? "shown publicly" : "hidden publicly"}.`,
             revalidateTags: [
                 before.name,
                 `${c.entity}-detail-data`,

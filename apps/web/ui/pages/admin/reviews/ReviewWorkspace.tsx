@@ -343,12 +343,12 @@ export default function ReviewWorkspace({
                 <AdminSelectField
                     label="Review type"
                     value={workflow}
-                    options={Object.entries(workflowLabels).map(
-                        ([value, label]) => ({
+                    options={Object.entries(workflowLabels)
+                        .filter(([key]) => key !== "podcast_association")
+                        .map(([value, label]) => ({
                             value: value as ReviewWorkflow,
                             label,
-                        }),
-                    )}
+                        }))}
                     onChange={(v) => {
                         changeFilter();
                         setWorkflow(v);

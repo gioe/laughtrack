@@ -110,13 +110,13 @@ export const reviewDefinitions: Record<
     comedian_visibility: {
         statuses: [
             { value: "all", label: "All records" },
-            { value: "active", label: "Active" },
-            { value: "blocked", label: "Blocked" },
+            { value: "active", label: "Shown publicly" },
+            { value: "blocked", label: "Hidden publicly" },
         ],
         defaultStatus: "all",
         actions: [
-            { value: "block", label: "Block" },
-            { value: "unblock", label: "Unblock" },
+            { value: "block", label: "Hide publicly" },
+            { value: "unblock", label: "Show publicly" },
         ],
         identityFields: false,
         reasonRequired: true,
@@ -129,13 +129,13 @@ export const reviewDefinitions: Record<
     club_visibility: {
         statuses: [
             { value: "all", label: "All records" },
-            { value: "active", label: "Active" },
-            { value: "blocked", label: "Blocked" },
+            { value: "active", label: "Shown publicly" },
+            { value: "blocked", label: "Hidden publicly" },
         ],
         defaultStatus: "all",
         actions: [
-            { value: "block", label: "Block" },
-            { value: "unblock", label: "Unblock" },
+            { value: "block", label: "Hide publicly" },
+            { value: "unblock", label: "Show publicly" },
         ],
         identityFields: false,
         reasonRequired: true,
@@ -158,8 +158,11 @@ export const reviewDefinitions: Record<
             { value: "reject", label: "Reject" },
         ],
         identityFields: true,
-        reasonRequired: false,
+        reasonRequired: true,
         queued: false,
+        confirmationRequired: true,
+        confirmationNotice:
+            "Approval validates this performer identity and only the selected appearances. Rejection blocks this candidate identity from future intake; it does not block unrelated names or shows.",
         sourceFilters: false,
     },
     podcast_association: {

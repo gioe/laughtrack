@@ -60,7 +60,7 @@ export function BlockedComedianRow({ row, open, onToggle }: Props) {
                     </span>
                 </span>
                 <span className="shrink-0 rounded-md border border-red-700/30 bg-red-50 px-2.5 py-1 font-dmSans text-caption font-semibold text-red-900">
-                    Blocked
+                    Hidden
                 </span>
             </button>
             <div
@@ -86,6 +86,12 @@ export function BlockedComedianRow({ row, open, onToggle }: Props) {
                     href={`/admin/reviews?workflow=comedian_visibility&id=${row.id}`}
                 >
                     Review visibility
+                </a>
+                <a
+                    className="text-copper underline"
+                    href={`/admin/reviews?view=intake&kind=comedian&recordId=${row.id}`}
+                >
+                    Review intake approval / blocking
                 </a>
             </div>
         </li>
