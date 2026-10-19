@@ -74,9 +74,9 @@ DECLARE row record; edge text; s text; t text; prior record; comic integer;
 BEGIN
  IF to_regprocedure('curation_host_edge(integer,integer,text)') IS NOT NULL THEN RETURN; END IF;
  FOR row IN SELECT h.*,rr.root FROM rollout_hosts h JOIN rollout_roots rr ON rr.original=h.comedian_id ORDER BY h.source_table,h.source_id LOOP
-  -- A rejection follows both the observed performer and their old canonical root.
-  -- Removing an unverified alias must not allow that negative history to escape.
-  FOR comic IN SELECT row.comedian_id UNION SELECT row.root WHERE row.state='rejected' LOOP
+  -- A rejection follows the whole former alias family, including siblings.
+  -- Removing unverified aliases must not allow that negative history to escape.
+  FOR comic IN SELECT row.comedian_id UNION SELECT original FROM rollout_roots WHERE root=row.root AND row.state='rejected' LOOP
    s:=pg_temp.stage_entity('comedian',comic); t:=pg_temp.stage_entity('podcast',row.podcast_id);
    INSERT INTO curation_relationships(id,kind,source_id,target_id,target_kind)
    VALUES(gen_random_uuid()::text,row.role||'_of',s,t,'podcast') ON CONFLICT(kind,source_id,target_id) DO NOTHING;

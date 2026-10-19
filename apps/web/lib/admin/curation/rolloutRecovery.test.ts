@@ -18,11 +18,11 @@ it("quarantines legacy links without approving endpoints or losing source reject
         // Seed the real pre-enforcement state; subsequent migrations run normally.
         await pg.exec(`
           INSERT INTO comedians(id,uuid,name,parent_comedian_id) VALUES
-            (1,'root','Canonical Person',NULL),(2,'child','Legacy Alias',1),(3,'other','Other Person',NULL);
+            (1,'root','Canonical Person',NULL),(2,'child','Legacy Alias',1),(3,'other','Other Person',NULL),(4,'sibling','Sibling Alias',1);
           INSERT INTO podcasts(id,source,source_podcast_id,title) VALUES (1,'feed','p1','Podcast One');
           INSERT INTO comedian_podcasts(id,comedian_id,podcast_id,association_type,source,review_status,evidence) VALUES
             (1,2,1,'host','old-discovery','accepted','{"detail":"unverified"}'),
-            (2,3,1,'host','other-source','accepted','{}');
+            (2,3,1,'host','other-source','accepted','{}'),(3,4,1,'host','sibling-source','accepted','{}');
           INSERT INTO podcast_candidate_reviews(id,comedian_id,podcast_id,association_type,source,candidate_status,evidence,reviewed_by) VALUES
             (1,2,1,'host','manual-review','rejected','{"reason":"not a host"}','original-reviewer');
         `);
@@ -47,7 +47,7 @@ it("quarantines legacy links without approving endpoints or losing source reject
                     "SELECT disposition FROM curation_relationships WHERE kind='alias_of'",
                 )
             ).rows,
-        ).toEqual([{ disposition: "proposed" }]);
+        ).toEqual([{ disposition: "proposed" }, { disposition: "proposed" }]);
         expect(
             (
                 await pg.query(
@@ -57,6 +57,7 @@ it("quarantines legacy links without approving endpoints or losing source reject
         ).toEqual([
             { review_status: "rejected" },
             { review_status: "pending" },
+            { review_status: "rejected" },
         ]);
         expect(
             (
@@ -73,7 +74,7 @@ it("quarantines legacy links without approving endpoints or losing source reject
                     "SELECT count(*)::int AS n FROM curation_relationships WHERE kind='host_of' AND disposition='rejected'",
                 )
             ).rows,
-        ).toEqual([{ n: 2 }]);
+        ).toEqual([{ n: 3 }]);
         expect(
             (
                 await pg.query(

@@ -46,7 +46,7 @@ plans immediately before cutover. Retain timestamped output in the rollout recor
    captures legacy parent/source rows as immutable observations, proposes unverified
    relationships and removes their live parent/accepted-host projections. Existing
    rejections become negative ledger decisions, including the old canonical root
-   where an alias is quarantined; negative evidence wins across sources. No approvals
+   and sibling aliases where an alias family is quarantined; negative evidence wins across sources. No approvals
    are manufactured. Existing confirmed edges are retained. The parent and host
    preflights still run afterward. The staging migration alone temporarily suspends
    the comedian admission row trigger under an exclusive table lock, inside its
@@ -129,7 +129,7 @@ using a symlinked virtualenv):
 PYTHONPATH="$PWD/src" .venv/bin/python -m pytest tests/integration/test_curation_comedian_intake.py tests/integration/test_curation_club_intake.py tests/integration/test_curation_show_intake.py tests/integration/test_curation_podcast_intake.py tests/core/services/notification/test_notification_service.py tests/core/services/notification/test_curation_delivery.py
 ```
 
-`endToEnd.test.ts` installs all eleven migrations together, exercises the complete
+`endToEnd.test.ts` installs all thirteen migrations together, exercises the complete
 publication graph and legacy writes, and verifies worker restart, partial-effect
 rollback, idempotent replay, stale approval and policy outages. Domain suites add
 changed-key rediscovery, cross-source occurrences, negative edges, cycles, atomic
@@ -205,7 +205,7 @@ The harness ignores configured DSNs and uses a disposable native PostgreSQL serv
 It verifies preserved parent evidence, negative host ledger coverage, unchanged
 approval count, installed guards, and a 275-row bulk write under a 30-second timeout.
 Snapshots contain production data and must not be committed or uploaded. The initial
-rehearsal retained 490 parent observations and 12,530 host observations (including
+rehearsal retained 490 parent observations and 12,979 host observations (including
 negative propagation); 275 held updates took 0.47 seconds after optimization.
 These timings are local evidence, not a production latency guarantee.
 
