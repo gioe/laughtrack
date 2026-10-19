@@ -208,7 +208,7 @@ def _to_prepare_sql(sql: str, schema_columns: Dict[str, Dict[str, str]]) -> str:
         return f"VALUES ({_build_typed_values(cols, types)})) AS {alias}({cols_csv})"
 
     sql = re.sub(
-        r"VALUES\s+%s\s*\)\s+AS\s+(\w+)\s*\(\s*([^)]+?)\s*\)",
+        r"VALUES\s+%s\s*\)\s+(?:AS\s+)?(\w+)\s*\(\s*([^)]+?)\s*\)",
         _values_alias_replacer,
         sql,
         flags=re.IGNORECASE,
@@ -304,6 +304,21 @@ def pg_conn():
         )
     conn = psycopg2.connect(TEST_DATABASE_URL)
     conn.autocommit = False
+    # Prisma's schema diff creates tables, but omits SQL-owned functions. Install
+    # the real policy dependency closure for PREPARE; never substitute allow-all
+    # stubs. Enforcement itself is covered by the native curation contract suite.
+    migration = SQL_DIR.parents[1] / "web/prisma/migrations/20261014190000_comedian_curation_intake/migration.sql"
+    source = migration.read_text()
+    with conn.cursor() as cursor:
+        for name in ("curation_exact_name", "curation_comedian_matches", "curation_comedian_policy"):
+            definition = re.search(
+                rf"CREATE FUNCTION {name}\([\s\S]*?\$\$;", source
+            )
+            assert definition, f"Missing SQL policy function: {name}"
+            cursor.execute(definition.group().replace("CREATE FUNCTION", "CREATE OR REPLACE FUNCTION", 1))
+        performance = SQL_DIR.parents[1] / "web/prisma/migrations/20261015100000_curation_comedian_lookup_performance/migration.sql"
+        cursor.execute(performance.read_text())
+    conn.commit()
     try:
         yield conn
     finally:

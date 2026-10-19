@@ -1,6 +1,7 @@
 """Real PostgreSQL upserts preserve native performances and their relationships."""
 
 import os
+from contextlib import nullcontext
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from types import SimpleNamespace
@@ -11,10 +12,25 @@ import psycopg2
 from psycopg2.extras import RealDictCursor, execute_values
 import pytest
 
+from laughtrack.core.comedy_eligibility_gate import GateBatch
 from laughtrack.core.entities.show.handler import ShowHandler
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
 from sql.show_queries import ShowQueries
+
+
+@pytest.fixture(autouse=True)
+def approved_intake(monkeypatch):
+    # This fixture exercises storage/upsert identity after admission. Real curation
+    # policy and fail-closed behavior have their own database contract tests.
+    monkeypatch.setattr(
+        "laughtrack.core.entities.show.curation.screen_shows",
+        lambda transaction, shows: GateBatch(shows=shows),
+    )
+    monkeypatch.setattr(
+        "laughtrack.core.comedy_eligibility_gate.EligibilityGate.screen",
+        lambda self, shows: nullcontext(GateBatch(shows=shows)),
+    )
 
 
 @pytest.fixture
@@ -31,7 +47,7 @@ def database():
             CREATE TABLE shows (
                 id serial PRIMARY KEY, name text, show_page_url text, description text,
                 date timestamptz NOT NULL, club_id int NOT NULL, last_scraped_date timestamptz,
-                room text, is_cancelled boolean NOT NULL DEFAULT false, production_company_id int, last_scraped_by text,
+                room text, visible boolean NOT NULL DEFAULT true, is_cancelled boolean NOT NULL DEFAULT false, production_company_id int, last_scraped_by text,
                 scraped_by_organizer_id int, show_type text
             );
             CREATE UNIQUE INDEX shows_club_id_date_room_key ON shows(club_id,date,room);
@@ -66,6 +82,8 @@ def handler_for(connection):
     handler._collapse_cross_batch_duplicates = MagicMock()
     handler._reconcile_patronticket_instances = MagicMock()
     handler._reconcile_seatengine_classic_show_urls = MagicMock()
+    handler.transaction = MagicMock(side_effect=AssertionError("Admission is isolated in storage tests"))
+    handler.lineup_handler = MagicMock()
     handler.tag_handler = MagicMock()
     handler.update_show_lineups = MagicMock(return_value=(0, 0))
 

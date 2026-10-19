@@ -52,13 +52,6 @@ const payload = (extra = {}) => ({
     website: "https://example.com",
     ...extra,
 });
-const keys = [
-    {
-        namespace: "club-provider:ticketmaster_id:v1",
-        scope: "global",
-        value: "tm-42",
-    },
-];
 async function policy(
     p: Record<string, unknown> = payload(),
     k: unknown[] = [],
@@ -69,14 +62,6 @@ async function policy(
             [JSON.stringify(p), JSON.stringify(k)],
         )
     ).rows[0];
-}
-async function observe(p = payload(), k: unknown[] = []) {
-    return (
-        await pg.query<any>(
-            "SELECT curation_observe_club($1::jsonb,$2::jsonb) id",
-            [JSON.stringify(p), JSON.stringify(k)],
-        )
-    ).rows[0].id as string;
 }
 async function approve(p = payload()) {
     await pg.query(

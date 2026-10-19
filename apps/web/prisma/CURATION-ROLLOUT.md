@@ -1,8 +1,9 @@
 # Curation activation and recovery
 
-TASK-4186 verifies code and fixtures; it does **not** authorize production migration,
-backfill, restoration or cleanup. Production activation requires a separately scoped,
-reviewed dry run. TASK-4159 (historical shows) and TASK-3982 (lineup repair) remain separate.
+TASK-4187 authorizes recovery of the failed rollout and moves unverified legacy
+parent/host associations into pending review, preserving source evidence and negative
+decisions. It does not approve identities or relationships. Production recovery must
+pass the clone migration check and the disposable snapshot rehearsal below. TASK-4159 (historical shows) and TASK-3982 (lineup repair) remain separate.
 
 ## Current reconciliation baseline
 
@@ -41,10 +42,16 @@ plans immediately before cutover. Retain timestamped output in the rollout recor
    Re-scan all categories to account for writes before earlier cursors.
 3. Reconcile legacy clubs with reviewed venue evidence before enforcing admission.
    Preserve organizer/proxy routing flags; never approve all visible records.
-   Reconcile each of the 490 parent assignments against explicit same-performer
-   evidence and confirmed ledger edges. Reconcile accepted/rejected source host
-   rows with source-independent decisions; conflicting evidence stays held.
-   Migration preflights must pass without disabling triggers or rewriting history.
+   The authorized `20261016170000_stage_legacy_relationship_reviews` migration
+   captures legacy parent/source rows as immutable observations, proposes unverified
+   relationships and removes their live parent/accepted-host projections. Existing
+   rejections become negative ledger decisions, including the old canonical root
+   where an alias is quarantined; negative evidence wins across sources. No approvals
+   are manufactured. Existing confirmed edges are retained. The parent and host
+   preflights still run afterward. The staging migration alone temporarily suspends
+   the comedian admission row trigger under an exclusive table lock, inside its
+   transaction, to clear unverified parent FKs; it re-enables the trigger before commit.
+   Do not disable guards manually or restore projections from an old snapshot.
 4. Install schema in the order recorded in
    `lib/admin/curation/fixtures/migrations.json`: staging/event review, identity
    review, durable model, comedian intake, **show visibility foundation before
@@ -169,3 +176,39 @@ or promotional delivery resumes.
 Delivery checks are made immediately before handing off to the external provider.
 They cannot recall messages already handed off, nor make provider delivery atomic
 with a later database decision. Pausing delivery is required during cutover.
+
+## TASK-4187 recovery verification
+
+`node bin/recover-curation-migration.mjs` is read-only by default. With `--apply`,
+it resolves only the known club migration's zero-step PostgreSQL 42703 failure,
+first checking that every club function rolled back. Unexpected failures or partial
+DDL abort. It never marks a migration applied or changes checksums. CI runs this
+same recovery against its ephemeral production clone, then runs normal
+`prisma migrate deploy`; unrelated migration errors still fail CI.
+
+The additive lookup performance migration runs before the visibility/club repair.
+It uses indexed seed and denial lookups without changing admission semantics.
+The source-identity storage tests isolate admission; the separate intake suites
+continue exercising real enforcement and missing-policy failures. SQL CI installs
+real policy functions omitted by Prisma's schema diff, and Python CI installs the
+web dependencies needed by its cross-language contracts.
+
+To rehearse the quarantine and benchmark using locally retained JSON snapshots:
+
+```sh
+apps/scraper/.venv/bin/python apps/web/bin/verify-curation-rollout.py \
+  --policy-snapshot /private/tmp/task4187-policy-snapshot.json \
+  --host-snapshot /private/tmp/task4184-host-snapshot.json
+```
+
+The harness ignores configured DSNs and uses a disposable native PostgreSQL server.
+It verifies preserved parent evidence, negative host ledger coverage, unchanged
+approval count, installed guards, and a 275-row bulk write under a 30-second timeout.
+Snapshots contain production data and must not be committed or uploaded. The initial
+rehearsal retained 490 parent observations and 12,530 host observations (including
+negative propagation); 275 held updates took 0.47 seconds after optimization.
+These timings are local evidence, not a production latency guarantee.
+
+New intake and episode publication remain held until the corresponding identities
+are approved. Pending source rows and removed alias projections are intentional
+review outcomes, not permission to bypass the guards to restore ingestion volume.
