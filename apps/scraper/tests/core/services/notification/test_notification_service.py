@@ -1475,7 +1475,8 @@ class TestRunGroupsPushNotifications:
 def public_show_policy(monkeypatch):
     # Delivery/copy tests do not access live policy. Dedicated tests below
     # exercise the SQL reader and suppression after candidate retrieval.
-    monkeypatch.setattr(ComedianArrivalNotificationService, "_show_is_public", lambda self, show_id: True)
+    monkeypatch.setattr(YouTubeLiveNotificationService, "_comedian_is_public", lambda self, uuid: True)
+    monkeypatch.setattr(ComedianArrivalNotificationService, "_show_is_public", lambda self, show_id, comedian_uuids=None: True)
 
 
 def test_blocked_after_fetch_prevents_email_and_push():

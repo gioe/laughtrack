@@ -1,0 +1,13 @@
+[
+    "20261010223000_add_comedy_eligibility_staging",
+    "20261011010000_add_comedy_event_reviews",
+    "20261012210000_comedian_identity_review",
+    "20261014010000_durable_curation_model",
+    "20261014190000_comedian_curation_intake",
+    "20261015110000_show_publication_visibility",
+    "20261015120000_club_curation_intake",
+    "20261015180000_show_curation_intake",
+    "20261015210000_podcast_curation_intake",
+    "20261016180000_parent_relationship_curation",
+    "20261017150000_host_relationship_curation"
+]

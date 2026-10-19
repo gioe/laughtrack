@@ -166,6 +166,26 @@ UNION ALL
 ORDER BY user_id, show_date, comedian_name, notification_type, push_token_id
 """
 
+_SHOW_PROMOTION_SQL = """
+WITH RECURSIVE members AS (
+    SELECT c.uuid AS root_uuid, c.id, c.uuid
+    FROM comedians c CROSS JOIN LATERAL curation_comedian_policy(c.uuid,c.name,c.id) policy
+    WHERE c.uuid=ANY(%s) AND c.visible AND c.parent_comedian_id IS NULL AND policy.disposition='approved'
+    UNION
+    SELECT m.root_uuid, c.id, c.uuid FROM members m
+    JOIN comedians c ON c.parent_comedian_id=m.id
+), eligible AS (
+    SELECT DISTINCT m.root_uuid FROM members m
+    JOIN lineup_items li ON li.comedian_id=m.uuid
+    JOIN shows s ON s.id=li.show_id JOIN clubs c ON c.id=s.club_id
+    WHERE s.id=%s AND s.visible AND NOT s.is_cancelled AND c.visible
+)
+SELECT 1 WHERE NOT EXISTS (
+    SELECT uuid FROM unnest(%s::text[]) AS wanted(uuid)
+    WHERE NOT EXISTS (SELECT 1 FROM eligible e WHERE e.root_uuid=wanted.uuid)
+)
+"""
+
 _INSERT_SENT_NOTIFICATION_SQL = """
 INSERT INTO sent_notifications (user_id, comedian_id, show_id, notification_type, notification_group_id, sent_at)
 VALUES (%s, %s, %s, %s, %s, NOW())
@@ -212,6 +232,8 @@ WHERE ywe.event_status = 'verified'
   AND ywe.youtube_channel_id IS NOT NULL
   AND ywe.youtube_video_id IS NOT NULL
   AND ywe.video_url IS NOT NULL
+  AND c.visible = true AND c.parent_comedian_id IS NULL
+  AND EXISTS (SELECT 1 FROM curation_comedian_policy(c.uuid,c.name,c.id) p WHERE p.disposition='approved')
   AND c.youtube_live_notifications_enabled = true
   AND up.push_youtube_live_notifications = true
   AND yn.id IS NULL
@@ -1034,6 +1056,9 @@ class YouTubeLiveNotificationService:
             video_url = row["video_url"]
             push_tokens = row.get("push_tokens") or []
 
+            if not self._comedian_is_public(comedian_uuid):
+                continue
+
             if dry_run:
                 for push_token_row in push_tokens:
                     try:
@@ -1087,6 +1112,8 @@ class YouTubeLiveNotificationService:
                     summary["errors"] += 1
                     continue
 
+                if not self._comedian_is_public(comedian_uuid):
+                    continue
                 try:
                     result = self._send_push_notification(
                         platform=push_platform,
@@ -1151,6 +1178,17 @@ class YouTubeLiveNotificationService:
             f"errors={summary['errors']}"
         )
         return summary
+
+    def _comedian_is_public(self, comedian_uuid: str) -> bool:
+        """Hold queued live alerts when the identity is suppressed or unavailable."""
+        try:
+            with get_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT 1 FROM comedians c CROSS JOIN LATERAL curation_comedian_policy(c.uuid,c.name,c.id) p WHERE c.uuid=%s AND c.visible AND c.parent_comedian_id IS NULL AND p.disposition='approved'", (comedian_uuid,))
+                    return cur.fetchone() is not None
+        except Exception as exc:
+            Logger.warn(f"YouTube identity policy unavailable; holding delivery: {exc}")
+            return False
 
     def _merge_same_youtube_live_candidates(self, rows: list[dict]) -> list[dict]:
         merged: dict[tuple[object, object, object, object], dict] = {}
@@ -1459,6 +1497,7 @@ class ComedianArrivalNotificationService:
                 group["events"].append(
                     {
                         "comedian_uuid": comedian_uuid,
+                        "comedian_uuids": row.get("comedian_uuids") or [comedian_uuid],
                         "comedian_name": comedian_name,
                         "comedian_names": row.get("comedian_names") or [row["comedian_name"]],
                         "primary_comedian_name": primary_comedian_name,
@@ -1477,7 +1516,7 @@ class ComedianArrivalNotificationService:
                 )
                 continue
 
-            if not self._show_is_public(show_id):
+            if not self._show_is_public(show_id, row.get("comedian_uuids") or [comedian_uuid]):
                 continue
 
             # Email path — one send per show (unchanged; only push is grouped).
@@ -1561,7 +1600,12 @@ class ComedianArrivalNotificationService:
         push_platform = group["push_platform"]
         # Soonest show first; any show without a date sorts last.
         events = sorted(
-            [event for event in group["events"] if self._show_is_public(event["show_id"])],
+            [
+                event for event in group["events"]
+                if self._show_is_public(
+                    event["show_id"], event.get("comedian_uuids") or [event["comedian_uuid"]]
+                )
+            ],
             key=lambda e: (e.get("show_date") is None, e.get("show_date")),
         )
         if not events:
@@ -1679,12 +1723,17 @@ class ComedianArrivalNotificationService:
             return fallback_radius_miles
         return float(profile_radius)
 
-    def _show_is_public(self, show_id: int) -> bool:
+    def _show_is_public(self, show_id: int, comedian_uuids: list[str] | None = None) -> bool:
         """Recheck suppression after fetching, immediately before promotion."""
         try:
             with get_connection() as conn:
                 with conn.cursor() as cur:
-                    cur.execute("SELECT 1 FROM shows s JOIN clubs c ON c.id=s.club_id WHERE s.id=%s AND s.visible AND NOT s.is_cancelled AND c.visible", (show_id,))
+                    if comedian_uuids is None:
+                        cur.execute("SELECT 1 FROM shows s JOIN clubs c ON c.id=s.club_id WHERE s.id=%s AND s.visible AND NOT s.is_cancelled AND c.visible", (show_id,))
+                    else:
+                        # Rebuild canonical membership now: a detached alias must not
+                        # continue to advertise its former parent from a queued row.
+                        cur.execute(_SHOW_PROMOTION_SQL, (comedian_uuids, show_id, comedian_uuids))
                     return cur.fetchone() is not None
         except Exception as exc:
             Logger.warn(f"Notification visibility unavailable for show {show_id}; holding delivery: {exc}")
