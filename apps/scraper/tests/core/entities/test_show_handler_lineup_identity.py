@@ -179,3 +179,28 @@ def test_rejected_decorated_value_cannot_reenter_through_title_inference(blocked
     handler.update_show_lineups([show])
     assert show.lineup == []
     assert handler.lineup_handler.get_comedians_from_show_names.call_args.args[0] == []
+
+
+def test_joint_credit_does_not_infer_members_before_review():
+    title = "Josh Martier & Ben Staab"
+    show = _show(1, title)
+    h = _handler({title: [Comedian("Josh Martier"), Comedian("Ben Staab")]})
+    h.comedian_handler.resolve_joint_billings.return_value = {}
+    h.comedian_handler.stage_identity_candidates.return_value = {}
+    h.comedian_handler.stage_identity_candidates.side_effect = None
+    h._update_screened_show_lineups([show])
+    assert show.lineup == []
+    assert h.lineup_handler.get_comedians_from_show_names.call_args.args[0] == []
+
+
+def test_reviewed_joint_credit_adds_both_members_without_duplicate_lineup_entries():
+    show = _show(1, "Josh Martier & Ben Staab")
+    josh, ben = Comedian("Josh Martier"), Comedian("Ben Staab")
+    h = _handler({})
+    h.comedian_handler.resolve_joint_billings.return_value = {1: [josh, ben]}
+    h.comedian_handler.stage_identity_candidates.side_effect = None
+    h.comedian_handler.stage_identity_candidates.return_value = {}
+    h.lineup_handler.get_lineup.return_value = {1: [josh]}
+    h._update_screened_show_lineups([show])
+    assert {c.name for c in show.lineup} == {"Josh Martier", "Ben Staab"}
+    assert len(show.lineup) == 2

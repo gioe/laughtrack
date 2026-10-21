@@ -43,3 +43,24 @@ def test_pre_filtered_does_not_bypass_human_validation():
     h.stage_identity_candidates=MagicMock(return_value={})
     assert h.insert_comedians([Comedian(name="Unreviewed Person",uuid="candidate")],pre_filtered=True)==[]
     h.execute_batch_operation.assert_not_called()
+
+def test_joint_billing_resolves_members_and_preserves_source_credit_in_batch():
+    h = handler()
+    h.execute_with_cursor.side_effect = [
+        [{"credit_id": "joint", "show_id": 5, "uuid": "josh", "name": "Josh Martier"},
+         {"credit_id": "joint", "show_id": 5, "uuid": "ben", "name": "Ben Staab"}], None]
+    show = SimpleNamespace(id=5, club_id=42, last_scraped_by="venue", lineup=[Comedian(name="Josh Martier & Ben Staab", uuid="billing")])
+    result = h.resolve_joint_billings([show])
+    assert [c.name for c in result[5]] == ["Josh Martier", "Ben Staab"]
+    assert show.lineup[0].name == "Josh Martier & Ben Staab"
+    assert h.execute_with_cursor.call_args_list[0].args[1] == ([5], ["venue"], ["Josh Martier & Ben Staab"], [42])
+    assert h.execute_batch_operation.call_args.args[1] == [("joint", 5)]
+
+
+def test_unmatched_billing_returns_to_review_without_inventing_members():
+    h = handler()
+    show = SimpleNamespace(id=5, club_id=42, last_scraped_by="different-source", lineup=[Comedian(name="Josh Martier & Ben Staab",uuid="billing")])
+    assert h.resolve_joint_billings([show]) == {}
+    h.execute_batch_operation.assert_not_called()
+    assert "status='pending'" in h.execute_with_cursor.call_args.args[0]
+    assert h.execute_with_cursor.call_args.args[1] == (["billing"], ["different-source"], ["Josh Martier & Ben Staab"], [42])

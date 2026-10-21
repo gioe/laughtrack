@@ -16,6 +16,8 @@ import {
     type ReviewWorkflow,
 } from "./reviewTypes";
 
+import { resolveJointBilling, undoJointBilling } from "./jointBilling";
+
 type Tx = Pick<Prisma.TransactionClient, "$queryRaw">;
 type Row = Record<string, any>;
 import { ReviewConflict } from "./reviewErrors";
@@ -31,6 +33,7 @@ export const reviewFilters = z.object({
         .enum([
             "pending",
             "accepted",
+            "resolved",
             "rejected",
             "all",
             "active",
@@ -60,6 +63,8 @@ export const reviewSubmission = z
         action: z.enum([
             "approve",
             "link",
+            "resolve_multiple",
+            "revoke_billing",
             "reject",
             "defer",
             "block",
@@ -67,6 +72,9 @@ export const reviewSubmission = z
         ]),
         requestId: z.string().uuid().optional(),
         name: z.string().trim().min(1).max(200).optional(),
+        targetIds: z.array(z.number().int().positive()).max(20).default([]),
+        evidenceId: z.string().max(100).optional(),
+        billingId: z.string().uuid().optional(),
         targetId: z.number().int().positive().optional(),
         showIds: z.array(z.number().int().positive()).max(100).default([]),
         reason: z.string().trim().min(1).max(2000),
@@ -210,12 +218,29 @@ export async function getReview(
     if (workflow === "comedian_identity") {
         const evidence = await db.$queryRaw<
             Row[]
-        >`SELECT e.fingerprint AS id,e.raw_name AS title,e.context,e.source_url AS url,e.source_key AS source,e.extraction_kind AS kind,e.show_id AS "showId",s.date,s.name AS "showTitle"
+        >`SELECT e.fingerprint AS id,e.raw_name AS title,e.raw_name AS "rawName",s.club_id AS "clubId",e.context,e.source_url AS url,e.source_key AS source,e.extraction_kind AS kind,e.show_id AS "showId",s.date,s.name AS "showTitle"
  FROM comedian_identity_evidence e LEFT JOIN shows s ON s.id=e.show_id WHERE e.candidate_uuid=${id}
  ORDER BY (s.date>=now()) DESC NULLS LAST,s.date,e.fingerprint LIMIT 100`;
+        const billings = await db.$queryRaw<
+            Row[]
+        >`SELECT b.id,b.source_key AS source,b.raw_name AS "rawName",COALESCE((SELECT to_jsonb(c)->>'name' FROM clubs c WHERE c.id=b.club_id),'Venue '||b.club_id) AS venue,array_agg(c.name ORDER BY c.id) AS members
+            FROM billing_credits b JOIN billing_credit_members m ON m.credit_id=b.id JOIN comedians c ON c.id=m.comedian_id
+            WHERE b.candidate_uuid=${id} AND b.active GROUP BY b.id`;
         return plain({
             id,
             workflow,
+            billings,
+            actions: [
+                ...(row.status === "pending"
+                    ? reviewDefinitions.comedian_identity.actions
+                          .filter((a) => a.value !== "revoke_billing")
+                          .map((a) => a.value)
+                    : []),
+                ...(billings.length &&
+                ["pending", "resolved"].includes(row.status)
+                    ? ["revoke_billing"]
+                    : []),
+            ],
             title: row.name,
             subtitle:
                 "Approval validates this identity. Select only appearances supported by the source.",
@@ -349,18 +374,44 @@ export async function decideReview(
         throw new ReviewConflict(
             "Host relationships require a versioned relationship decision; this legacy review is read-only.",
         );
+    if (
+        ["resolve_multiple", "revoke_billing"].includes(x.action) &&
+        x.workflow !== "comedian_identity"
+    )
+        throw new ReviewConflict("Joint billing is an identity review action.");
     return db.$transaction(async (tx) => {
+        await tx.$queryRaw`SELECT 1 FROM curation_lock_intake()`;
         const before = await current(tx, x.workflow, x.id, true);
         if (
             !before ||
             token(before) !== x.token ||
-            (before.status ?? before.review_status) !== "pending"
+            ((before.status ?? before.review_status) !== "pending" &&
+                !(
+                    x.action === "revoke_billing" &&
+                    before.status === "resolved"
+                ))
         )
             throw new ReviewConflict(
                 "This item changed. Refresh it before deciding.",
             );
         const effects: Row = {};
-        if (x.workflow === "comedian_identity") {
+        if (
+            x.workflow === "comedian_identity" &&
+            x.action === "revoke_billing"
+        ) {
+            const revoked = await tx.$queryRaw<
+                Row[]
+            >`UPDATE billing_credits SET active=false WHERE id=${x.billingId ?? ""} AND candidate_uuid=${x.id} AND active RETURNING id`;
+            if (!revoked.length)
+                throw new ReviewConflict("Choose an active billing mapping.");
+            effects.revokedBillingId = revoked[0].id;
+            await tx.$queryRaw`UPDATE comedian_identity_candidates SET status='pending',version=version+1,updated_at=now() WHERE uuid=${x.id} RETURNING uuid`;
+        } else if (
+            x.workflow === "comedian_identity" &&
+            x.action === "resolve_multiple"
+        ) {
+            effects.jointBilling = await resolveJointBilling(tx, x, actor);
+        } else if (x.workflow === "comedian_identity") {
             let target: Row | undefined;
             if (x.action !== "reject") {
                 if (x.action === "link") {
@@ -421,17 +472,26 @@ export async function decideReview(
         const decisionId = randomUUID();
         await tx.$queryRaw`INSERT INTO admin_review_decisions(id,workflow,item_id,actor,action,reason,before_json,after_json)
  VALUES(${decisionId},${x.workflow},${x.id},${actor},${x.action},${x.reason},${JSON.stringify(before)}::jsonb,${JSON.stringify({ row: after, effects })}::jsonb) RETURNING id`;
-        return { decisionId };
+        return x.action === "revoke_billing"
+            ? {
+                  notice: "Billing reuse stopped. Historical appearances are preserved; future intake requires review.",
+              }
+            : { decisionId };
     });
 }
 export async function undoReview(decisionId: string, actor: string) {
     return db.$transaction(async (tx) => {
+        await tx.$queryRaw`SELECT 1 FROM curation_lock_intake()`;
         const decisions = await tx.$queryRaw<
             Row[]
         >`SELECT * FROM admin_review_decisions WHERE id=${decisionId} FOR UPDATE`;
         const d = decisions[0];
         if (!d || d.actor !== actor || d.undone_at)
             throw new ReviewConflict("This decision cannot be undone.");
+        if (d.action === "revoke_billing")
+            throw new ReviewConflict(
+                "Review this billing again to approve a new mapping.",
+            );
         if (d.workflow === "podcast_association")
             throw new ReviewConflict(
                 "Restore or sever the host relationship explicitly; legacy undo cannot overwrite a pair decision.",
@@ -443,6 +503,7 @@ export async function undoReview(decisionId: string, actor: string) {
             );
         const e = d.after_json.effects;
         if (d.workflow === "comedian_identity") {
+            if (e.jointBilling) await undoJointBilling(tx, e.jointBilling);
             if (e.comedianAfter) {
                 const c = await canonical(tx, e.comedianAfter.id);
                 if (token(c) !== token(e.comedianAfter))
@@ -471,7 +532,7 @@ export async function undoReview(decisionId: string, actor: string) {
                 if (e.created)
                     await tx.$queryRaw`UPDATE comedians SET visible=false,block_reason='Identity approval undone',block_added_by=${actor},block_added_at=now() WHERE id=${c.id} RETURNING id`;
             }
-            if (!e.comedianAfter)
+            if (!e.comedianAfter && !e.jointBilling)
                 await tx.$queryRaw`SELECT curation_reopen_comedian(${d.item_id},${actor},'Undo identity rejection',${e.curationVersion ?? null}::integer)`;
             await tx.$queryRaw`UPDATE comedian_identity_candidates SET status='pending',canonical_comedian_id=NULL,reviewed_at=NULL,reviewed_by=NULL,reason=NULL,version=version+1,updated_at=now() WHERE uuid=${d.item_id} RETURNING uuid`;
         }

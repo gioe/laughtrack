@@ -8,6 +8,7 @@ export const reviewWorkflows = [
 export type ReviewWorkflow = (typeof reviewWorkflows)[number];
 export type ReviewStatus =
     | "pending"
+    | "resolved"
     | "accepted"
     | "rejected"
     | "review"
@@ -23,6 +24,8 @@ export type ReviewStatus =
     | "blocked";
 export type ReviewAction =
     | "approve"
+    | "revoke_billing"
+    | "resolve_multiple"
     | "link"
     | "reject"
     | "defer"
@@ -35,6 +38,8 @@ export type ReviewResult = {
     revalidateTags?: string[];
 };
 export type ReviewEvidence = {
+    rawName?: string;
+    clubId?: number;
     id: string;
     title: string;
     context: string;
@@ -54,6 +59,13 @@ export type ReviewItem = {
     actions?: ReviewAction[];
     notice?: string;
     processing?: boolean;
+    billings?: {
+        venue: string;
+        id: string;
+        source: string;
+        rawName: string;
+        members: string[];
+    }[];
     evidence: ReviewEvidence[];
     matches: { id: number; name: string }[];
     history: {
@@ -79,6 +91,9 @@ export type ReviewSubmission = {
     action: ReviewAction;
     requestId?: string;
     name?: string;
+    targetIds?: number[];
+    evidenceId?: string;
+    billingId?: string;
     targetId?: number;
     showIds?: number[];
     reason: string;
@@ -149,12 +164,21 @@ export const reviewDefinitions: Record<
         statuses: [
             { value: "pending", label: "Needs review" },
             { value: "accepted", label: "Approved" },
+            { value: "resolved", label: "Joint billing resolved" },
             { value: "rejected", label: "Rejected" },
         ],
         defaultStatus: "pending",
         actions: [
             { value: "approve", label: "Approve new" },
             { value: "link", label: "Link existing" },
+            {
+                value: "revoke_billing",
+                label: "Stop reusing billing",
+            },
+            {
+                value: "resolve_multiple",
+                label: "Resolve to multiple performers",
+            },
             { value: "reject", label: "Reject" },
         ],
         identityFields: true,

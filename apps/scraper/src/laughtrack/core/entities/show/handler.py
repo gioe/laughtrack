@@ -1313,13 +1313,20 @@ class ShowHandler(BaseDatabaseHandler[Show]):
                 list({c for show in shows for c in show.lineup}), shows=shows
             )
 
+            joint_billings = self.comedian_handler.resolve_joint_billings(shows)
+            # Combined source credits need an explicit multi-person mapping.
+            # Also keep mapped stage labels out of title/name inference.
+            import re
+            joint_show_ids = {show.id for show in shows if show.id in joint_billings or
+                              any(len(split_combined_name(c.name)) > 1 or re.search(r"\s(?:&|and|with|w/)\s|\+", c.name, re.I) for c in show.lineup)}
+
             blocked_names = self.comedian_handler.blocked_identity_names(
                 [show.name for show in shows] + [c.name for show in shows for c in show.lineup]
             )
             # A rejected source value must not become a different identity through
             # title parsing, splitting or decoration removal. Explicit approved
             # performers can still resolve normally in the later staging pass.
-            inference_shows = [show for show in shows if show.name not in blocked_names
+            inference_shows = [show for show in shows if show.id not in joint_show_ids and show.name not in blocked_names
                                and not any(c.name in blocked_names for c in show.lineup)]
 
             # Reuse the batched identity lookup for source performer names too:
@@ -1340,8 +1347,7 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             self._reconcile_decorated_lineup_entries(inference_shows, show_name_comedians_map)
             self._seed_headliners_from_empty_lineup_titles(inference_shows)
 
-            # Split multi-comedian lineup entries (e.g. "X & Y") into individual items
-            self._expand_multi_comedian_lineups(inference_shows)
+            # Joint credits are expanded only through reviewed billing mappings.
 
             # Keep uncertain identities in staging. An extracted name is not a
             # validated person, even when it already exists in the legacy table.
@@ -1351,7 +1357,7 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             resolved = self.comedian_handler.stage_identity_candidates(allowed, shows=shows)
             for show in shows:
                 reviewed = [resolved[c.uuid] for c in show.lineup if c.uuid in resolved]
-                show.lineup = list({c.uuid: c for c in [*reviewed, *db_lineups.get(show.id, [])]}.values())
+                show.lineup = list({c.uuid: c for c in [*reviewed, *joint_billings.get(show.id, []), *db_lineups.get(show.id, [])]}.values())
             self.lineup_handler.clear_show_name_comedian_cache()
             comedians_inserted = 0  # Canonical creation belongs to admin approval.
 

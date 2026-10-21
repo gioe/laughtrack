@@ -392,3 +392,64 @@ it("offers unblock for a blocked record and preserves evidence on conflict", asy
     await screen.findByText("This item changed. Refresh it before deciding.");
     expect(screen.getByText("Featuring Robin Tran")).toBeTruthy();
 });
+it("keeps multiple performers selected across searches and previews joint resolution", async () => {
+    const joint = {
+        ...item,
+        title: "Josh Martier & Ben Staab",
+        matches: [{ id: 10, name: "Josh Martier" }],
+    };
+    mocks.request.mockImplementation(
+        async (url: string, init?: RequestInit) => {
+            if (init?.method === "POST")
+                return { decisionId: "joint-decision" };
+            if (url.includes("search=")) return [{ id: 11, name: "Ben Staab" }];
+            if (url.includes("id=")) return joint;
+            return { items: [joint], total: 1, page: 1 };
+        },
+    );
+    render(<ReviewWorkspace />);
+    fireEvent.click(
+        await screen.findByRole("button", {
+            name: "Add Josh Martier to billing",
+        }),
+    );
+    fireEvent.change(screen.getByLabelText("Match an existing comedian"), {
+        target: { value: "Ben" },
+    });
+    fireEvent.click(
+        await screen.findByRole("button", { name: "Add Ben Staab to billing" }),
+    );
+    fireEvent.change(screen.getByLabelText("Source billing observation"), {
+        target: { value: "e" },
+    });
+    fireEvent.click(screen.getByLabelText("Also confirm this show appearance"));
+    fireEvent.change(screen.getByLabelText(/Decision note/), {
+        target: { value: "Verified both co-headliners" },
+    });
+    fireEvent.click(
+        screen.getByRole("button", { name: "Resolve to multiple performers" }),
+    );
+    expect(
+        screen.getByText(/Josh Martier \+ Ben Staab for source/),
+    ).toBeTruthy();
+    expect(
+        mocks.request.mock.calls.some(([, init]) => init?.method === "POST"),
+    ).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Confirm review" }));
+    await waitFor(() =>
+        expect(
+            mocks.request.mock.calls.some(
+                ([, init]) => init?.method === "POST",
+            ),
+        ).toBe(true),
+    );
+    const call = mocks.request.mock.calls.find(
+        ([, init]) => init?.method === "POST",
+    )!;
+    expect(JSON.parse(call[1].body)).toMatchObject({
+        action: "resolve_multiple",
+        targetIds: [10, 11],
+        evidenceId: "e",
+        showIds: [1],
+    });
+});
