@@ -506,6 +506,43 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             )
         return {row["candidate_uuid"]: Comedian.from_db_row(row) for row in rows or []}
 
+    def resolve_joint_billings(self, shows):
+        """Resolve exact source credits in a batch, with current policy checks."""
+        observations = [
+            (show.id, str(getattr(show, "last_scraped_by", None) or "unknown"), c.name, c.uuid, show.club_id)
+            for show in shows if show.id is not None for c in show.lineup
+        ]
+        if not observations:
+            return {}
+        show_ids, sources, names, uuids, club_ids = map(list, zip(*observations))
+        resolved = {}
+        with self.transaction() as conn:
+            rows = self.execute_with_cursor(
+                """SELECT o.show_id,r.credit_id,c.*
+                FROM unnest(%s::int[],%s::text[],%s::text[],%s::int[]) o(show_id,source_key,raw_name,club_id)
+                CROSS JOIN LATERAL resolve_billing_credit(o.source_key,o.raw_name,o.club_id) r
+                JOIN comedians c ON c.id=r.comedian_id ORDER BY o.show_id,c.id""",
+                (show_ids, sources, names, club_ids), return_results=True, conn=conn,
+            ) or []
+            if rows:
+                self.execute_batch_operation(
+                    """INSERT INTO show_billing_credits(credit_id,show_id)
+                    VALUES %s ON CONFLICT DO NOTHING""",
+                    list({(r["credit_id"], r["show_id"]) for r in rows}), conn=conn,
+                )
+            # New sources/spellings or changed member policy need review again.
+            self.execute_with_cursor(
+                """UPDATE comedian_identity_candidates c SET status='pending',
+                version=version+1,updated_at=now()
+                FROM unnest(%s::text[],%s::text[],%s::text[],%s::int[]) o(uuid,source_key,raw_name,club_id)
+                WHERE c.uuid=o.uuid AND c.status='resolved' AND NOT EXISTS(
+                  SELECT 1 FROM resolve_billing_credit(o.source_key,o.raw_name,o.club_id))""",
+                (uuids, sources, names, club_ids), conn=conn,
+            )
+        for row in rows:
+            resolved.setdefault(row["show_id"], []).append(Comedian.from_db_row(row))
+        return resolved
+
     def _trigger_itunes_discovery_for_inserted(
         self, inserted_rows: List[DictRow]
     ) -> Optional[concurrent.futures.Future]:

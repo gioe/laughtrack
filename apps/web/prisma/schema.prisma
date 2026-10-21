@@ -324,6 +324,7 @@ model Club {
   @@index([visible])
   @@index([chainId])
   @@map("clubs")
+  billingCredits BillingCredit[]
 }
 
 model ClubDiscoveryProfile {
@@ -395,6 +396,7 @@ model Comedian {
   curationIdentity CurationEntity?
   identityValidatedAt DateTime? @map("identity_validated_at") @db.Timestamptz
   identityValidatedBy String? @map("identity_validated_by")
+  billingMemberships BillingCreditMember[]
   identityCandidates ComedianIdentityCandidate[]
   id                                   Int                               @id @default(autoincrement())
   name                                 String
@@ -963,6 +965,7 @@ model SavedShow {
 model Show {
   visible Boolean @default(true)
   curationIdentity CurationEntity?
+  billingCredits ShowBillingCredit[]
   identityEvidence ComedianIdentityEvidence[]
   comedyEventPublications   ComedyEventPublication[]
   // Explicit source cancellation retains the row and all historical references.
@@ -1579,6 +1582,7 @@ model ComedianIdentityCandidate {
   reason String?
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz
+  billingCredits BillingCredit[]
   evidence ComedianIdentityEvidence[]
   @@index([status, createdAt, uuid], map: "comedian_identity_candidates_queue")
   @@map("comedian_identity_candidates")
@@ -1811,4 +1815,39 @@ model ShowPublicationRevision {
   id Int @id
   revision BigInt @default(0)
   @@map("show_publication_revision")
+}
+
+model BillingCredit {
+  id String @id
+  clubId Int @map("club_id")
+  club Club @relation(fields:[clubId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  candidateUuid String @map("candidate_uuid")
+  candidate ComedianIdentityCandidate @relation(fields:[candidateUuid],references:[uuid],onDelete:Restrict,onUpdate:NoAction)
+  sourceKey String @map("source_key")
+  rawName String @map("raw_name")
+  active Boolean @default(true)
+  reviewedBy String @map("reviewed_by")
+  reason String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  members BillingCreditMember[]
+  shows ShowBillingCredit[]
+  @@index([sourceKey,clubId,rawName], map: "billing_credits_source_name")
+  @@index([candidateUuid], map: "billing_credits_candidate")
+  @@map("billing_credits")
+}
+model BillingCreditMember {
+  creditId String @map("credit_id")
+  credit BillingCredit @relation(fields:[creditId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  comedianId Int @map("comedian_id")
+  comedian Comedian @relation(fields:[comedianId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  @@id([creditId,comedianId])
+  @@map("billing_credit_members")
+}
+model ShowBillingCredit {
+  creditId String @map("credit_id")
+  credit BillingCredit @relation(fields:[creditId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  showId Int @map("show_id")
+  show Show @relation(fields:[showId],references:[id],onDelete:Cascade,onUpdate:NoAction)
+  @@id([creditId,showId])
+  @@map("show_billing_credits")
 }

@@ -23,6 +23,7 @@ function adapter(conn: Pick<PGlite, "query">) {
             ? Prisma.sql(arg as TemplateStringsArray, ...values)
             : (arg as Prisma.Sql);
         if (
+            sql.text.includes("curation_lock_intake") ||
             sql.text.includes("SELECT curation_approve_comedian") ||
             sql.text.includes("SELECT curation_observe_comedian") ||
             sql.text.includes("SELECT curation_reopen_comedian") ||
@@ -35,7 +36,8 @@ function adapter(conn: Pick<PGlite, "query">) {
 beforeAll(async () => {
     pg = new PGlite();
     await pg.exec(`CREATE TABLE comedians(id serial PRIMARY KEY,uuid text UNIQUE,name text,visible boolean DEFAULT true,parent_comedian_id int,total_shows int DEFAULT 0,block_reason text,block_added_by text,block_added_at timestamptz);
- CREATE TABLE shows(id serial PRIMARY KEY,name text,date timestamptz);
+ CREATE TABLE clubs(id int PRIMARY KEY); INSERT INTO clubs VALUES(42);
+ CREATE TABLE shows(id serial PRIMARY KEY,name text,date timestamptz,club_id int DEFAULT 42);
  CREATE TABLE lineup_items(show_id int REFERENCES shows(id),comedian_id text REFERENCES comedians(uuid),UNIQUE(show_id,comedian_id));
  CREATE TABLE comedian_deny_list(name text);
  CREATE TABLE podcasts(id serial PRIMARY KEY,title text,website_url text);
@@ -47,6 +49,15 @@ beforeAll(async () => {
     );
     await pg.exec(migration);
     await pg.exec(migration);
+    await pg.exec(`CREATE FUNCTION curation_comedian_policy(u text,n text,i integer DEFAULT NULL)
+      RETURNS TABLE(disposition text,comedian_id integer) LANGUAGE sql AS $$
+      SELECT CASE WHEN EXISTS(SELECT 1 FROM comedian_deny_list WHERE name=n) THEN 'blocked' ELSE 'approved' END, i $$;`);
+    await pg.exec(
+        readFileSync(
+            "prisma/migrations/20261021120000_joint_billing/migration.sql",
+            "utf8",
+        ),
+    );
 }, 30000);
 afterAll(async () => pg?.close());
 beforeEach(async () => {
@@ -216,4 +227,188 @@ it("suggests existing canonical names contained in decorated source names", asyn
     expect(await searchReviewComedians("Steve Marshall Comedy")).toEqual([
         { id: 1, name: "Steve Marshall" },
     ]);
+});
+
+async function jointDecision(extra = {}) {
+    await pg.exec(`INSERT INTO comedians(id,uuid,name,identity_validated_at) VALUES(10,'josh','Josh Martier',now()),(11,'ben','Ben Staab',now());
+      UPDATE comedian_identity_candidates SET name='Josh Martier & Ben Staab' WHERE uuid='candidate';
+      UPDATE comedian_identity_evidence SET raw_name='Josh Martier & Ben Staab' WHERE fingerprint='e1';`);
+    return {
+        ...(await decision()),
+        action: "resolve_multiple" as const,
+        targetIds: [10, 11],
+        evidenceId: "e1",
+        showIds: [1],
+        ...extra,
+    };
+}
+it("resolves joint billing without creating or approving a combined comedian, and preserves existing links on undo", async () => {
+    const input = await jointDecision();
+    await pg.exec("INSERT INTO lineup_items VALUES(1,'josh')");
+    const result = await decideReview(input, "admin");
+    expect((await pg.query("SELECT * FROM comedians")).rows).toHaveLength(2);
+    expect((await pg.query("SELECT * FROM lineup_items")).rows).toHaveLength(2);
+    expect((await getReview("comedian_identity", "candidate"))?.status).toBe(
+        "resolved",
+    );
+    expect(
+        (
+            await pg.query(
+                "SELECT * FROM resolve_billing_credit('test','Josh Martier & Ben Staab',42)",
+            )
+        ).rows,
+    ).toHaveLength(2);
+    expect(
+        (
+            await pg.query(
+                "SELECT * FROM resolve_billing_credit('other','Josh Martier & Ben Staab',42)",
+            )
+        ).rows,
+    ).toHaveLength(0);
+    expect(
+        (
+            await pg.query(
+                "SELECT * FROM resolve_billing_credit('test','Josh Martier and Ben Staab',42)",
+            )
+        ).rows,
+    ).toHaveLength(0);
+    await expect(decideReview(input, "admin")).rejects.toThrow("changed");
+    await undoReview(result.decisionId!, "admin");
+    expect((await pg.query("SELECT * FROM lineup_items")).rows).toEqual([
+        { show_id: 1, comedian_id: "josh" },
+    ]);
+    expect(
+        (
+            await pg.query(
+                "SELECT * FROM resolve_billing_credit('test','Josh Martier & Ben Staab',42)",
+            )
+        ).rows,
+    ).toHaveLength(0);
+});
+it("requires distinct validated members and evidence-scoped appearances", async () => {
+    const input = await jointDecision();
+    await expect(
+        decideReview({ ...input, targetIds: [10, 10] }, "admin"),
+    ).rejects.toThrow("distinct");
+    await expect(
+        decideReview({ ...input, evidenceId: "missing" }, "admin"),
+    ).rejects.toThrow("source");
+    await expect(
+        decideReview({ ...input, showIds: [2] }, "admin"),
+    ).rejects.toThrow("appearances");
+    await pg.exec(
+        "UPDATE comedians SET identity_validated_at=NULL WHERE id=11",
+    );
+    await expect(decideReview(input, "admin")).rejects.toThrow("validated");
+    expect((await pg.query("SELECT * FROM billing_credits")).rows).toHaveLength(
+        0,
+    );
+});
+it("resolves all members or nothing when policies or canonical identities change", async () => {
+    await decideReview(await jointDecision(), "admin");
+    await pg.exec("INSERT INTO comedian_deny_list VALUES('Ben Staab')");
+    expect(
+        (
+            await pg.query(
+                "SELECT * FROM resolve_billing_credit('test','Josh Martier & Ben Staab',42)",
+            )
+        ).rows,
+    ).toHaveLength(0);
+    await pg.exec(
+        "DELETE FROM comedian_deny_list; UPDATE comedians SET parent_comedian_id=10 WHERE id=11",
+    );
+    expect(
+        (
+            await pg.query(
+                "SELECT * FROM resolve_billing_credit('test','Josh Martier & Ben Staab',42)",
+            )
+        ).rows,
+    ).toHaveLength(0);
+});
+it("does not silently undo later appearances from reused mappings", async () => {
+    const result = await decideReview(await jointDecision(), "admin");
+    await pg.exec(
+        "INSERT INTO show_billing_credits SELECT id,2 FROM billing_credits",
+    );
+    await expect(undoReview(result.decisionId!, "admin")).rejects.toThrow(
+        "more shows",
+    );
+    expect(
+        (await pg.query("SELECT * FROM billing_credits WHERE active")).rows,
+    ).toHaveLength(1);
+});
+
+it("can stop future billing reuse after later ingestion without deleting appearances", async () => {
+    await decideReview(await jointDecision(), "admin");
+    const billing = (await getReview("comedian_identity", "candidate"))!;
+    await pg.exec(
+        "INSERT INTO show_billing_credits SELECT id,2 FROM billing_credits",
+    );
+    await decideReview(
+        {
+            workflow: "comedian_identity",
+            id: "candidate",
+            token: billing.token,
+            action: "revoke_billing",
+            billingId: billing.billings![0].id,
+            reason: "Membership changed",
+        },
+        "admin",
+    );
+    expect((await pg.query("SELECT * FROM lineup_items")).rows).toHaveLength(2);
+    expect(
+        (
+            await pg.query(
+                "SELECT * FROM resolve_billing_credit('test','Josh Martier & Ben Staab',42)",
+            )
+        ).rows,
+    ).toHaveLength(0);
+    expect((await getReview("comedian_identity", "candidate"))?.status).toBe(
+        "pending",
+    );
+});
+it("keeps another venue's observations pending and preserves mapping history after replacement", async () => {
+    const input = await jointDecision();
+    await pg.exec(`INSERT INTO clubs VALUES(43); UPDATE shows SET club_id=43 WHERE id=2;
+      INSERT INTO comedian_identity_evidence(fingerprint,candidate_uuid,show_id,source_url,source_key,extraction_kind,raw_name,context)
+      VALUES('other-venue','candidate',2,'https://other.test','test','extracted_lineup','Josh Martier & Ben Staab','Other venue');`);
+    await decideReview(input, "admin");
+    expect((await getReview("comedian_identity", "candidate"))!.status).toBe(
+        "pending",
+    );
+    expect(
+        (
+            await pg.query(
+                "SELECT * FROM resolve_billing_credit('test','Josh Martier & Ben Staab',43)",
+            )
+        ).rows,
+    ).toHaveLength(0);
+    const item = (await getReview("comedian_identity", "candidate"))!;
+    await decideReview(
+        {
+            workflow: "comedian_identity",
+            id: "candidate",
+            token: item.token,
+            action: "revoke_billing",
+            billingId: item.billings![0].id,
+            reason: "Review replacement",
+        },
+        "admin",
+    );
+    await decideReview(
+        {
+            ...input,
+            token: (await getReview("comedian_identity", "candidate"))!.token,
+        },
+        "admin",
+    );
+    expect((await pg.query("SELECT * FROM billing_credits")).rows).toHaveLength(
+        2,
+    );
+    expect(
+        (await pg.query("SELECT * FROM billing_credits WHERE active")).rows,
+    ).toHaveLength(1);
+    expect(
+        (await pg.query("SELECT * FROM billing_credit_members")).rows,
+    ).toHaveLength(4);
 });

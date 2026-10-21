@@ -29,7 +29,7 @@ const migration = readFileSync(
 beforeAll(async () => {
     pg = new PGlite();
     await pg.exec(`CREATE TABLE comedians(id serial PRIMARY KEY,uuid text UNIQUE,name text,visible boolean DEFAULT true,parent_comedian_id int,identity_validated_at timestamptz,identity_validated_by text,block_reason text,block_added_by text,block_added_at timestamptz,total_shows int DEFAULT 0,instagram_followers int,bandsintown_id text);
- CREATE TABLE clubs(id int PRIMARY KEY); CREATE TABLE podcasts(id int PRIMARY KEY); CREATE TABLE shows(id int PRIMARY KEY,name text,date timestamptz);
+ CREATE TABLE clubs(id int PRIMARY KEY); CREATE TABLE podcasts(id int PRIMARY KEY); CREATE TABLE shows(id int PRIMARY KEY,name text,date timestamptz,club_id int DEFAULT 42);
  CREATE TABLE comedian_deny_list(name text PRIMARY KEY);
  CREATE TABLE lineup_items(show_id int,comedian_id text REFERENCES comedians(uuid),UNIQUE(show_id,comedian_id));`);
     await pg.exec(
@@ -48,6 +48,12 @@ beforeAll(async () => {
     await pg.exec(
         readFileSync(
             "prisma/migrations/20261015100000_curation_comedian_lookup_performance/migration.sql",
+            "utf8",
+        ),
+    );
+    await pg.exec(
+        readFileSync(
+            "prisma/migrations/20261021120000_joint_billing/migration.sql",
             "utf8",
         ),
     );
@@ -333,4 +339,51 @@ it("does not infer an approved performer from a rejected show-title value", asyn
         "INSERT INTO comedian_identity_candidates(uuid,name,status,reviewed_by,reason) VALUES('title','Real Person Comedy','rejected','admin','Not a performer'); INSERT INTO shows(id,name) VALUES(10,'Real Person Comedy'); INSERT INTO lineup_items VALUES(10,'comic')",
     );
     expect((await pg.query("SELECT * FROM lineup_items")).rows).toHaveLength(0);
+});
+
+it("joint billing does not approve a combined identity and obeys real curation triggers", async () => {
+    await approve("josh", "Josh Martier");
+    await approve("ben", "Ben Staab");
+    await pg.exec(`INSERT INTO comedian_identity_candidates(uuid,name) VALUES('joint','Josh Martier & Ben Staab');
+      INSERT INTO clubs VALUES(42); INSERT INTO shows(id,name,date) VALUES(1,'Joint show',now());
+      INSERT INTO comedian_identity_evidence(fingerprint,candidate_uuid,show_id,source_url,source_key,extraction_kind,raw_name,context)
+      VALUES('joint-e','joint',1,'https://venue.test/show','venue','extracted_lineup','Josh Martier & Ben Staab','Both headline');`);
+    const ids = (
+        await pg.query<{ id: number }>(
+            "SELECT id FROM comedians WHERE uuid IN ('josh','ben') ORDER BY id",
+        )
+    ).rows.map((r) => r.id);
+    const result = await decideReview(
+        {
+            workflow: "comedian_identity",
+            id: "joint",
+            token: (await getReview("comedian_identity", "joint"))!.token,
+            action: "resolve_multiple",
+            targetIds: ids,
+            evidenceId: "joint-e",
+            showIds: [1],
+            reason: "Verified joint billing",
+        },
+        "admin",
+    );
+    expect(
+        (await policy("joint", "Josh Martier & Ben Staab")).disposition,
+    ).toBe("pending");
+    expect((await pg.query("SELECT * FROM lineup_items")).rows).toHaveLength(2);
+    expect(
+        (
+            await pg.query(
+                "SELECT * FROM resolve_billing_credit('venue','Josh Martier & Ben Staab',42)",
+            )
+        ).rows,
+    ).toHaveLength(2);
+    await pg.exec("INSERT INTO comedian_deny_list VALUES('Ben Staab')");
+    expect(
+        (
+            await pg.query(
+                "SELECT * FROM resolve_billing_credit('venue','Josh Martier & Ben Staab',42)",
+            )
+        ).rows,
+    ).toHaveLength(0);
+    expect(result.decisionId).toBeTruthy();
 });

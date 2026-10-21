@@ -76,6 +76,11 @@ export default function ReviewWorkspace({
     const [reason, setReason] = useState("");
     const [matchQuery, setMatchQuery] = useState("");
     const [matches, setMatches] = useState<{ id: number; name: string }[]>([]);
+    const [jointMembers, setJointMembers] = useState<
+        { id: number; name: string }[]
+    >([]);
+    const [billingId, setBillingId] = useState("");
+    const [billingEvidence, setBillingEvidence] = useState("");
     const [target, setTarget] = useState<number | null>(null);
     const [showIds, setShowIds] = useState<number[]>([]);
     const initialSelection = useRef<string | undefined>(initialFilters.id);
@@ -149,6 +154,9 @@ export default function ReviewWorkspace({
         setItem(null);
         setConfirmation(null);
         setTarget(null);
+        setJointMembers([]);
+        setBillingEvidence("");
+        setBillingId("");
         setShowIds([]);
         setReason("");
         setMatchQuery("");
@@ -199,6 +207,9 @@ export default function ReviewWorkspace({
         setSelected(remaining[0]?.id ?? null);
         detailRef.current?.focus();
     }, [selected, queue.items, skipped]);
+    const billingObservation = item?.evidence.find(
+        (e) => e.id === billingEvidence,
+    );
     const actions =
         item?.actions ??
         (item?.status === "pending"
@@ -218,6 +229,19 @@ export default function ReviewWorkspace({
         )
             return;
         if (definition.reasonRequired && !reason.trim()) return;
+        if (action === "revoke_billing" && !billingId) {
+            setError("Choose the billing mapping to stop reusing.");
+            return;
+        }
+        if (
+            action === "resolve_multiple" &&
+            (jointMembers.length < 2 || !billingEvidence)
+        ) {
+            setError(
+                "Select at least two performers and a source billing observation.",
+            );
+            return;
+        }
         if (
             (definition.queued || definition.confirmationRequired) &&
             !confirmed
@@ -233,7 +257,14 @@ export default function ReviewWorkspace({
             token: item.token,
             action,
             ...(definition.identityFields
-                ? { name, targetId: target ?? undefined, showIds }
+                ? {
+                      name,
+                      targetId: target ?? undefined,
+                      showIds,
+                      targetIds: jointMembers.map((m) => m.id),
+                      evidenceId: billingEvidence || undefined,
+                      billingId: billingId || undefined,
+                  }
                 : {}),
             reason:
                 reason.trim() ||
@@ -337,7 +368,7 @@ export default function ReviewWorkspace({
     return (
         <div className="space-y-4 font-dmSans text-foreground">
             <fieldset
-                disabled={busy}
+                disabled={busy || confirmation !== null}
                 className="grid gap-3 rounded-lg border border-strong bg-surface p-4 lg:grid-cols-[1fr_1fr_2fr_auto] lg:items-end"
             >
                 <AdminSelectField
@@ -377,7 +408,7 @@ export default function ReviewWorkspace({
                 />
                 <button
                     className={button}
-                    disabled={busy}
+                    disabled={busy || confirmation !== null}
                     onClick={() => setRefresh((v) => v + 1)}
                     aria-label="Refresh reviews"
                 >
@@ -386,7 +417,7 @@ export default function ReviewWorkspace({
             </fieldset>
             {definition.sourceFilters && (
                 <fieldset
-                    disabled={busy}
+                    disabled={busy || confirmation !== null}
                     className="flex flex-wrap items-end gap-3 rounded-lg border border-strong bg-surface p-4"
                 >
                     <label className="grid gap-1 font-semibold">
@@ -443,7 +474,7 @@ export default function ReviewWorkspace({
                 {undoId && (
                     <button
                         className="flex items-center gap-1 text-copper underline"
-                        disabled={busy}
+                        disabled={busy || confirmation !== null}
                         onClick={undo}
                     >
                         <Undo2 size={16} />
@@ -590,6 +621,37 @@ export default function ReviewWorkspace({
                                     {item.notice}
                                 </p>
                             )}
+                            {!!item.billings?.length && (
+                                <fieldset className="space-y-2">
+                                    <legend className="font-semibold">
+                                        Approved joint billings
+                                    </legend>
+                                    {item.billings.map((b) => (
+                                        <label key={b.id} className="block">
+                                            <input
+                                                type="radio"
+                                                name="billing-to-revoke"
+                                                checked={billingId === b.id}
+                                                onChange={() =>
+                                                    setBillingId(b.id)
+                                                }
+                                                disabled={
+                                                    busy ||
+                                                    confirmation !== null
+                                                }
+                                            />{" "}
+                                            {b.rawName} →{" "}
+                                            {b.members.join(" + ")} · {b.source}{" "}
+                                            · {b.venue}
+                                        </label>
+                                    ))}
+                                    <p className="text-sm">
+                                        Stopping reuse preserves historical
+                                        appearances and sends future billing
+                                        back to review.
+                                    </p>
+                                </fieldset>
+                            )}
                             {definition.identityFields &&
                                 item.status === "pending" && (
                                     <div className="grid gap-4">
@@ -598,7 +660,10 @@ export default function ReviewWorkspace({
                                             <input
                                                 className={field}
                                                 value={name}
-                                                disabled={busy}
+                                                disabled={
+                                                    busy ||
+                                                    confirmation !== null
+                                                }
                                                 onChange={(e) =>
                                                     setName(e.target.value)
                                                 }
@@ -612,7 +677,10 @@ export default function ReviewWorkspace({
                                                     className={field}
                                                     placeholder="Search canonical names"
                                                     value={matchQuery}
-                                                    disabled={busy}
+                                                    disabled={
+                                                        busy ||
+                                                        confirmation !== null
+                                                    }
                                                     onChange={(e) => {
                                                         setMatchQuery(
                                                             e.target.value,
@@ -629,7 +697,11 @@ export default function ReviewWorkspace({
                                                             target === m.id
                                                         }
                                                         className={`${button} ${target === m.id ? "border-copper bg-copper-dark text-white" : ""}`}
-                                                        disabled={busy}
+                                                        disabled={
+                                                            busy ||
+                                                            confirmation !==
+                                                                null
+                                                        }
                                                         onClick={() =>
                                                             setTarget(
                                                                 target === m.id
@@ -642,6 +714,121 @@ export default function ReviewWorkspace({
                                                     </button>
                                                 ))}
                                             </div>
+                                            <fieldset className="mt-4 space-y-2">
+                                                <legend className="font-semibold">
+                                                    Joint billing
+                                                </legend>
+                                                <p className="text-sm">
+                                                    For a credit naming several
+                                                    comedians, add each
+                                                    performer using the search
+                                                    above. Members must already
+                                                    be validated.
+                                                </p>
+                                                {matches.map((m) => (
+                                                    <button
+                                                        type="button"
+                                                        className={button}
+                                                        key={`joint-${m.id}`}
+                                                        disabled={
+                                                            busy ||
+                                                            confirmation !==
+                                                                null ||
+                                                            jointMembers.some(
+                                                                (x) =>
+                                                                    x.id ===
+                                                                    m.id,
+                                                            )
+                                                        }
+                                                        onClick={() =>
+                                                            setJointMembers(
+                                                                (v) => [
+                                                                    ...v,
+                                                                    m,
+                                                                ],
+                                                            )
+                                                        }
+                                                    >
+                                                        Add {m.name} to billing
+                                                    </button>
+                                                ))}
+                                                <ul aria-label="Joint billing performers">
+                                                    {jointMembers.map((m) => (
+                                                        <li key={m.id}>
+                                                            {m.name}{" "}
+                                                            <button
+                                                                type="button"
+                                                                disabled={
+                                                                    busy ||
+                                                                    confirmation !==
+                                                                        null
+                                                                }
+                                                                onClick={() =>
+                                                                    setJointMembers(
+                                                                        (v) =>
+                                                                            v.filter(
+                                                                                (
+                                                                                    x,
+                                                                                ) =>
+                                                                                    x.id !==
+                                                                                    m.id,
+                                                                            ),
+                                                                    )
+                                                                }
+                                                                aria-label={`Remove ${m.name}`}
+                                                            >
+                                                                Remove
+                                                            </button>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                                <label className="grid gap-1">
+                                                    Source billing observation
+                                                    <select
+                                                        className={field}
+                                                        value={billingEvidence}
+                                                        disabled={
+                                                            busy ||
+                                                            confirmation !==
+                                                                null
+                                                        }
+                                                        onChange={(e) => {
+                                                            setBillingEvidence(
+                                                                e.target.value,
+                                                            );
+                                                            setShowIds([]);
+                                                        }}
+                                                    >
+                                                        <option value="">
+                                                            Choose a source
+                                                        </option>
+                                                        {item.evidence
+                                                            .filter(
+                                                                (e) =>
+                                                                    e.source &&
+                                                                    e.source !==
+                                                                        "unknown",
+                                                            )
+                                                            .map((e) => (
+                                                                <option
+                                                                    key={e.id}
+                                                                    value={e.id}
+                                                                >
+                                                                    {e.source} ·{" "}
+                                                                    {e.title}
+                                                                </option>
+                                                            ))}
+                                                    </select>
+                                                </label>
+                                                <p className="text-sm text-muted-foreground">
+                                                    Save this exact billing for
+                                                    this source. Only checked
+                                                    appearances are added now.
+                                                    Future matching credits can
+                                                    reuse the approved
+                                                    performers.
+                                                </p>
+                                            </fieldset>
                                             <p className="mt-2 text-sm text-muted-foreground">
                                                 {target
                                                     ? "This existing profile will be validated; no duplicate profile will be created."
@@ -704,11 +891,22 @@ export default function ReviewWorkspace({
                                                 )}
                                             </p>
                                             {e.showId &&
+                                                (!billingObservation ||
+                                                    (e.source ===
+                                                        billingObservation.source &&
+                                                        e.rawName ===
+                                                            billingObservation.rawName &&
+                                                        e.clubId ===
+                                                            billingObservation.clubId)) &&
                                                 item.status === "pending" && (
                                                     <label className="mt-3 flex items-center gap-2 text-sm">
                                                         <input
                                                             type="checkbox"
-                                                            disabled={busy}
+                                                            disabled={
+                                                                busy ||
+                                                                confirmation !==
+                                                                    null
+                                                            }
                                                             checked={showIds.includes(
                                                                 e.showId,
                                                             )}
@@ -779,6 +977,42 @@ export default function ReviewWorkspace({
                                                 {item.title} · {item.subtitle}
                                             </p>
                                             <p>{reason}</p>
+                                            {confirmation ===
+                                                "revoke_billing" && (
+                                                <p>
+                                                    Stop reusing{" "}
+                                                    {
+                                                        item.billings?.find(
+                                                            (b) =>
+                                                                b.id ===
+                                                                billingId,
+                                                        )?.rawName
+                                                    }
+                                                    . Existing show appearances
+                                                    remain.
+                                                </p>
+                                            )}
+                                            {confirmation ===
+                                                "resolve_multiple" && (
+                                                <p>
+                                                    Resolve “{item.title}” to{" "}
+                                                    {jointMembers
+                                                        .map((m) => m.name)
+                                                        .join(" + ")}{" "}
+                                                    for source{" "}
+                                                    {
+                                                        item.evidence.find(
+                                                            (e) =>
+                                                                e.id ===
+                                                                billingEvidence,
+                                                        )?.source
+                                                    }
+                                                    . Add all members to{" "}
+                                                    {showIds.length} selected
+                                                    shows. No combined comedian
+                                                    profile is created.
+                                                </p>
+                                            )}
                                             <p className="text-sm text-muted-foreground">
                                                 {definition.confirmationNotice ??
                                                     "The worker rechecks the evidence before applying this decision."}
@@ -835,7 +1069,10 @@ export default function ReviewWorkspace({
                                                 ))}
                                             <button
                                                 className={`${button} ml-auto flex items-center gap-2`}
-                                                disabled={busy}
+                                                disabled={
+                                                    busy ||
+                                                    confirmation !== null
+                                                }
                                                 onClick={next}
                                             >
                                                 Skip <ChevronDown size={16} />
@@ -851,7 +1088,7 @@ export default function ReviewWorkspace({
                             {actions.length === 0 && (
                                 <button
                                     className={button}
-                                    disabled={busy}
+                                    disabled={busy || confirmation !== null}
                                     onClick={next}
                                 >
                                     Skip
