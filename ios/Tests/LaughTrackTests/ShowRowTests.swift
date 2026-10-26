@@ -365,15 +365,6 @@ struct ShowRowTests {
         #expect(ShowRow.venueLine(for: show) == "The Broadway Comedy Club")
     }
 
-    @Test("cards preserve supplied titles without inferring a billing role")
-    func cardTitlesPreserveEventIdentity() {
-        let performer = lineup(name: "J Valentino", imageURL: "", showCount: 1)
-        let title = "COMEDY MADNESS (Dwayne Perkins, J Valentino, Luz Pazos, Michael Quu)"
-        #expect(ShowRow.cardTitle(for: makeShow(name: title, lineup: [performer])) == title)
-        #expect(ShowRow.cardTitle(for: makeShow(name: performer.name, lineup: [performer])) == performer.name)
-        #expect(ShowRow.cardTitle(for: makeShow(name: "", lineup: [performer])) == "Comedy show")
-    }
-
     @Test("performer-led cards require explicit context identifying a listed canonical performer")
     func contextualCardsValidateIdentity() {
         let canonical = lineup(name: "Canonical", imageURL: "", showCount: 1)
@@ -949,8 +940,8 @@ struct SearchAgendaPresentationTests {
     }
 
     #if canImport(UIKit)
-    @Test("long agenda titles grow beyond two lines within phone and tablet columns")
-    func longTitlesRemainReadable() {
+    @Test("show titles do not affect ticket height at phone and tablet widths")
+    func showTitlesDoNotAffectTicketHeight() {
         let longTitle = "A wonderfully long comedy showcase with stories from every corner of the city"
         for width in [CGFloat(288), CGFloat(500)] {
             for size in [DynamicTypeSize.large, .accessibility5] {
@@ -958,8 +949,8 @@ struct SearchAgendaPresentationTests {
                     let short = measure(SearchAgendaFixtures.show("Comedy Night", lineup: lineup), width: width, size: size)
                     let long = measure(SearchAgendaFixtures.show(longTitle, lineup: lineup), width: width, size: size)
                     let longer = measure(SearchAgendaFixtures.show(Array(repeating: longTitle, count: 3).joined(separator: " "), lineup: lineup), width: width, size: size)
-                    #expect(long.height > short.height)
-                    #expect(longer.height > long.height + 20, "Title must continue growing instead of truncating at two lines")
+                    #expect(abs(long.height - short.height) < 1)
+                    #expect(abs(longer.height - short.height) < 1)
                     #expect(longer.width <= width + 1)
                     #expect(longer.height.isFinite)
                 }

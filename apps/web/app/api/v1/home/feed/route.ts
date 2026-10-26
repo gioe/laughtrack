@@ -300,19 +300,27 @@ export const GET = withRequestMetrics(
                         ),
                     )
                     .catch(logSectionError("getTrendingShowsThisWeek")),
-                optional(
-                    "podcast_episodes",
-                    [profileId],
-                    () => getPodcastEpisodeDiscovery(profileId),
-                    [],
-                ),
-                optional(
-                    "trending_podcasts",
-                    [zipCode, distanceMiles],
-                    () =>
-                        getTrendingPodcasts(zipCode, undefined, distanceMiles),
-                    [],
-                ),
+                req.nextUrl.searchParams.get("deferPodcasts") === "true"
+                    ? Promise.resolve([])
+                    : optional(
+                          "podcast_episodes",
+                          [profileId],
+                          () => getPodcastEpisodeDiscovery(profileId),
+                          [],
+                      ),
+                req.nextUrl.searchParams.get("deferPodcasts") === "true"
+                    ? Promise.resolve([])
+                    : optional(
+                          "trending_podcasts",
+                          [zipCode, distanceMiles],
+                          () =>
+                              getTrendingPodcasts(
+                                  zipCode,
+                                  undefined,
+                                  distanceMiles,
+                              ),
+                          [],
+                      ),
                 profileId
                     ? optional(
                           "followed_shows",

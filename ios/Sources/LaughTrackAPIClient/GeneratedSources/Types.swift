@@ -189,6 +189,11 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /shows/{id}`.
     /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)`.
     func getShow(_ input: Operations.GetShow.Input) async throws -> Operations.GetShow.Output
+    /// Precomputed public episode discovery; never recomputes on a request
+    ///
+    /// - Remark: HTTP `GET /home/podcast-discovery`.
+    /// - Remark: Generated from `#/paths//home/podcast-discovery/get(getPodcastDiscovery)`.
+    func getPodcastDiscovery(_ input: Operations.GetPodcastDiscovery.Input) async throws -> Operations.GetPodcastDiscovery.Output
     /// Composite home-screen feed with curated and personalized sections
     ///
     /// Returns hero context (zip/city/state + up to 3 near-you shows), curated discovery arrays, optional podcast episode recommendations, and followedComedianShows for authenticated profiles. Signed-out callers receive anonymous episode discovery and an empty followedComedianShows array. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: private, max-age=60 — response is personalized by profile, session zipCode, and Vercel geo-IP, so shared CDN caching is disabled.
@@ -676,6 +681,13 @@ extension APIProtocol {
             path: path,
             headers: headers
         ))
+    }
+    /// Precomputed public episode discovery; never recomputes on a request
+    ///
+    /// - Remark: HTTP `GET /home/podcast-discovery`.
+    /// - Remark: Generated from `#/paths//home/podcast-discovery/get(getPodcastDiscovery)`.
+    public func getPodcastDiscovery(headers: Operations.GetPodcastDiscovery.Input.Headers = .init()) async throws -> Operations.GetPodcastDiscovery.Output {
+        try await getPodcastDiscovery(Operations.GetPodcastDiscovery.Input(headers: headers))
     }
     /// Composite home-screen feed with curated and personalized sections
     ///
@@ -5353,6 +5365,44 @@ public enum Components {
                 case platform
                 case cycleIndex
                 case rails
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/PodcastDiscoveryResponse`.
+        public struct PodcastDiscoveryResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/PodcastDiscoveryResponse/data`.
+            public struct DataPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/PodcastDiscoveryResponse/data/generatedAt`.
+                public var generatedAt: Foundation.Date?
+                /// - Remark: Generated from `#/components/schemas/PodcastDiscoveryResponse/data/episodes`.
+                public var episodes: [Components.Schemas.HomeFeedPodcastEpisode]
+                /// Creates a new `DataPayload`.
+                ///
+                /// - Parameters:
+                ///   - generatedAt:
+                ///   - episodes:
+                public init(
+                    generatedAt: Foundation.Date? = nil,
+                    episodes: [Components.Schemas.HomeFeedPodcastEpisode]
+                ) {
+                    self.generatedAt = generatedAt
+                    self.episodes = episodes
+                }
+                public enum CodingKeys: String, CodingKey {
+                    case generatedAt
+                    case episodes
+                }
+            }
+            /// - Remark: Generated from `#/components/schemas/PodcastDiscoveryResponse/data`.
+            public var data: Components.Schemas.PodcastDiscoveryResponse.DataPayload
+            /// Creates a new `PodcastDiscoveryResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            public init(data: Components.Schemas.PodcastDiscoveryResponse.DataPayload) {
+                self.data = data
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
             }
         }
         /// - Remark: Generated from `#/components/schemas/HomeFeedResponse`.
@@ -14560,6 +14610,186 @@ public enum Operations {
             }
         }
     }
+    /// Precomputed public episode discovery; never recomputes on a request
+    ///
+    /// - Remark: HTTP `GET /home/podcast-discovery`.
+    /// - Remark: Generated from `#/paths//home/podcast-discovery/get(getPodcastDiscovery)`.
+    public enum GetPodcastDiscovery {
+        public static let id: Swift.String = "getPodcastDiscovery"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/home/podcast-discovery/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetPodcastDiscovery.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetPodcastDiscovery.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.GetPodcastDiscovery.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - headers:
+            public init(headers: Operations.GetPodcastDiscovery.Input.Headers = .init()) {
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/home/podcast-discovery/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/home/podcast-discovery/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.PodcastDiscoveryResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.PodcastDiscoveryResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetPodcastDiscovery.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetPodcastDiscovery.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Snapshot, or an empty selection before the first refresh or after invalidation
+            ///
+            /// - Remark: Generated from `#/paths//home/podcast-discovery/get(getPodcastDiscovery)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.GetPodcastDiscovery.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.GetPodcastDiscovery.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// Creates a new `TooManyRequests`.
+                public init() {}
+            }
+            /// Rate limited
+            ///
+            /// - Remark: Generated from `#/paths//home/podcast-discovery/get(getPodcastDiscovery)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.GetPodcastDiscovery.Output.TooManyRequests)
+            /// Rate limited
+            ///
+            /// - Remark: Generated from `#/paths//home/podcast-discovery/get(getPodcastDiscovery)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            public static var tooManyRequests: Self {
+                .tooManyRequests(.init())
+            }
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.GetPodcastDiscovery.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct ServiceUnavailable: Sendable, Hashable {
+                /// Creates a new `ServiceUnavailable`.
+                public init() {}
+            }
+            /// Snapshot storage unavailable
+            ///
+            /// - Remark: Generated from `#/paths//home/podcast-discovery/get(getPodcastDiscovery)/responses/503`.
+            ///
+            /// HTTP response code: `503 serviceUnavailable`.
+            case serviceUnavailable(Operations.GetPodcastDiscovery.Output.ServiceUnavailable)
+            /// Snapshot storage unavailable
+            ///
+            /// - Remark: Generated from `#/paths//home/podcast-discovery/get(getPodcastDiscovery)/responses/503`.
+            ///
+            /// HTTP response code: `503 serviceUnavailable`.
+            public static var serviceUnavailable: Self {
+                .serviceUnavailable(.init())
+            }
+            /// The associated value of the enum case if `self` is `.serviceUnavailable`.
+            ///
+            /// - Throws: An error if `self` is not `.serviceUnavailable`.
+            /// - SeeAlso: `.serviceUnavailable`.
+            public var serviceUnavailable: Operations.GetPodcastDiscovery.Output.ServiceUnavailable {
+                get throws {
+                    switch self {
+                    case let .serviceUnavailable(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "serviceUnavailable",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
     /// Composite home-screen feed with curated and personalized sections
     ///
     /// Returns hero context (zip/city/state + up to 3 near-you shows), curated discovery arrays, optional podcast episode recommendations, and followedComedianShows for authenticated profiles. Signed-out callers receive anonymous episode discovery and an empty followedComedianShows array. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: private, max-age=60 — response is personalized by profile, session zipCode, and Vercel geo-IP, so shared CDN caching is disabled.
@@ -14571,6 +14801,10 @@ public enum Operations {
         public struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/home/feed/GET/query`.
             public struct Query: Sendable, Hashable {
+                /// Skip podcast providers; updated clients load the public podcast discovery snapshot independently.
+                ///
+                /// - Remark: Generated from `#/paths/home/feed/GET/query/deferPodcasts`.
+                public var deferPodcasts: Swift.Bool?
                 /// Optional 5-digit US zip override. When supplied, beats the signed-in user's profile zipCode for this request — used for anonymous callers or profile-preview.
                 ///
                 /// - Remark: Generated from `#/paths/home/feed/GET/query/zip`.
@@ -14592,14 +14826,17 @@ public enum Operations {
                 /// Creates a new `Query`.
                 ///
                 /// - Parameters:
+                ///   - deferPodcasts: Skip podcast providers; updated clients load the public podcast discovery snapshot independently.
                 ///   - zip: Optional 5-digit US zip override. When supplied, beats the signed-in user's profile zipCode for this request — used for anonymous callers or profile-preview.
                 ///   - distance: Radius in miles for zip-scoped recommendations (1-500, default 25).
                 ///   - platform: Client platform used to select the server-directed Discover rail policy. Defaults to web for backward compatibility.
                 public init(
+                    deferPodcasts: Swift.Bool? = nil,
                     zip: Swift.String? = nil,
                     distance: Swift.Int? = nil,
                     platform: Operations.GetHomeFeed.Input.Query.PlatformPayload? = nil
                 ) {
+                    self.deferPodcasts = deferPodcasts
                     self.zip = zip
                     self.distance = distance
                     self.platform = platform

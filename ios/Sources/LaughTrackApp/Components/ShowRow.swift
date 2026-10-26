@@ -270,22 +270,33 @@ struct ShowRow: View {
                 }
             } else {
                 eventDetails
-                lineupBand {
-                    sectionCaption("Lineup")
-                    if let primary {
-                        artworkTextLayout {
-                            portrait(for: primary)
-                            VStack(alignment: .leading, spacing: theme.spacing.xs) {
-                                performerName(primary.name)
-                                if !remaining.isEmpty { rosterText(remaining) }
+                if let primary {
+                    lineupBand {
+                        sectionCaption("Lineup")
+                        if remaining.count == 1 || Self.absoluteArtworkImageURL(primary.imageUrl) == nil {
+                            let performers = [primary] + remaining
+                            ForEach(Array(performers.prefix(4)), id: \.id) { comedian in
+                                HStack(alignment: .center, spacing: theme.spacing.sm) {
+                                    portrait(for: comedian, size: 36)
+                                    performerName(comedian.name)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
                             }
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                            if performers.count > 4 {
+                                Text("+\(performers.count - 4) more")
+                                    .font(theme.laughTrackTokens.typography.metadata)
+                                    .foregroundStyle(ticketInkMuted)
+                            }
+                        } else {
+                            artworkTextLayout {
+                                portrait(for: primary)
+                                VStack(alignment: .leading, spacing: theme.spacing.xs) {
+                                    performerName(primary.name)
+                                    if !remaining.isEmpty { rosterText(remaining) }
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            }
                         }
-                    } else {
-                        Text("Lineup unavailable")
-                            .font(theme.laughTrackTokens.typography.metadata)
-                            .foregroundStyle(ticketInkMuted)
-                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }
@@ -300,14 +311,21 @@ struct ShowRow: View {
 
     private var eventDetails: some View {
         VStack(alignment: .leading, spacing: theme.spacing.xxs) {
-            Text(Self.cardTitle(for: show))
-                .font(theme.laughTrackTokens.typography.bodyEmphasis)
-                .foregroundStyle(ticketInk)
-                .fixedSize(horizontal: false, vertical: true)
-                .preservingSkeletonTextLayout()
-            if let venue = Self.venueLine(for: show) {
-                Text(venue)
-                    .font(theme.laughTrackTokens.typography.metadata)
+            if let venue = show.clubName?.trimmingCharacters(in: .whitespacesAndNewlines), !venue.isEmpty {
+                Text(venue.uppercased())
+                    .font(.custom("Chivo-Black", size: 17, relativeTo: .headline))
+                    .foregroundStyle(ticketInk)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .preservingSkeletonTextLayout()
+            }
+            let location = [show.clubCity, show.clubState]
+                .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty }
+                .joined(separator: ", ")
+            if !location.isEmpty {
+                Text(location.uppercased())
+                    .font(theme.laughTrackTokens.typography.eyebrow)
+                    .tracking(0.8)
                     .foregroundStyle(ticketInkMuted)
                     .fixedSize(horizontal: false, vertical: true)
                     .preservingSkeletonTextLayout()
@@ -395,7 +413,7 @@ struct ShowRow: View {
         }
     }
 
-    private func portrait(for comedian: Components.Schemas.ComedianLineup) -> some View {
+    private func portrait(for comedian: Components.Schemas.ComedianLineup, size: CGFloat = Self.artworkSlotSize) -> some View {
         Group {
             if redactionReasons.contains(.placeholder) {
                 Circle().fill(ticketInk.opacity(0.12))
@@ -411,7 +429,7 @@ struct ShowRow: View {
                 portraitFallback
             }
         }
-        .frame(width: Self.artworkSlotSize, height: Self.artworkSlotSize)
+        .frame(width: size, height: size)
         .clipShape(Circle())
         .overlay(Circle().stroke(ticketInkMuted.opacity(0.3), lineWidth: 1))
         .accessibilityHidden(true)
@@ -535,10 +553,6 @@ struct ShowRow: View {
     }
 
     /// Keep supplied event information intact; a roster is not evidence of billing.
-    static func cardTitle(for show: Components.Schemas.Show) -> String {
-        let title = show.name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        return title.isEmpty ? "Comedy show" : title
-    }
 
     static func contextualComedian(
         for show: Components.Schemas.Show,

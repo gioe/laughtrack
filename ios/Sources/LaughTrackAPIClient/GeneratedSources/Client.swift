@@ -4464,6 +4464,70 @@ public struct Client: APIProtocol {
             }
         )
     }
+    /// Precomputed public episode discovery; never recomputes on a request
+    ///
+    /// - Remark: HTTP `GET /home/podcast-discovery`.
+    /// - Remark: Generated from `#/paths//home/podcast-discovery/get(getPodcastDiscovery)`.
+    public func getPodcastDiscovery(_ input: Operations.GetPodcastDiscovery.Input) async throws -> Operations.GetPodcastDiscovery.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.GetPodcastDiscovery.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/home/podcast-discovery",
+                    parameters: []
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .get
+                )
+                suppressMutabilityWarning(&request)
+                converter.setAcceptHeader(
+                    in: &request.headerFields,
+                    contentTypes: input.headers.accept
+                )
+                return (request, nil)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 200:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.GetPodcastDiscovery.Output.Ok.Body
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.PodcastDiscoveryResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .ok(.init(body: body))
+                case 429:
+                    return .tooManyRequests(.init())
+                case 503:
+                    return .serviceUnavailable(.init())
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
     /// Composite home-screen feed with curated and personalized sections
     ///
     /// Returns hero context (zip/city/state + up to 3 near-you shows), curated discovery arrays, optional podcast episode recommendations, and followedComedianShows for authenticated profiles. Signed-out callers receive anonymous episode discovery and an empty followedComedianShows array. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: private, max-age=60 — response is personalized by profile, session zipCode, and Vercel geo-IP, so shared CDN caching is disabled.
@@ -4484,6 +4548,13 @@ public struct Client: APIProtocol {
                     method: .get
                 )
                 suppressMutabilityWarning(&request)
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
+                    name: "deferPodcasts",
+                    value: input.query.deferPodcasts
+                )
                 try converter.setQueryItemAsURI(
                     in: &request,
                     style: .form,

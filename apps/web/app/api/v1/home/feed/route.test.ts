@@ -178,6 +178,22 @@ beforeEach(() => {
 });
 
 describe("GET /api/v1/home/feed", () => {
+    it("does not start either podcast provider when clients defer discovery", async () => {
+        primeHappyPath();
+        mockGetPodcastEpisodeDiscovery.mockImplementation(
+            () => new Promise(() => {}),
+        );
+        mockGetTrendingPodcasts.mockImplementation(() => new Promise(() => {}));
+        const response = await GET(
+            makeRequest({ platform: "ios", deferPodcasts: "true" }),
+        );
+        expect(response.status).toBe(200);
+        expect(mockGetPodcastEpisodeDiscovery).not.toHaveBeenCalled();
+        expect(mockGetTrendingPodcasts).not.toHaveBeenCalled();
+        const body = await response.json();
+        expect(body.data.podcastEpisodes).toEqual([]);
+        expect(body.data.trendingPodcasts).toEqual([]);
+    });
     describe("rail plan", () => {
         it.each(["web", "ios", "android"] as const)(
             "returns a versioned plan for the validated %s platform",

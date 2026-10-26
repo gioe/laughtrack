@@ -232,13 +232,15 @@ struct HomeView: View {
                     .accessibilityIdentifier("laughtrack.home.plan-loading")
                     .transition(.opacity)
                 case .planned(let sections):
-                    if sections.isEmpty {
+                    let discoverySections = sections.filter { $0.id != "trending_podcasts" }
+                    if discoverySections.isEmpty {
                         EmptyCard(
                             title: "No discoveries nearby yet",
                             message: "Try a different location or explore Search for more comedy."
                         )
+                        PodcastDiscoverySnapshotRail(apiClient: apiClient, refreshKey: "\(railPlanModel.measurementGeneration)")
                     } else {
-                        ForEach(sections) { section in
+                        ForEach(Array(discoverySections.enumerated()), id: \.element.id) { index, section in
                             anchoredSection(id: section.id) {
                                 HomeDiscoverPlannedRail(
                                     section: section,
@@ -250,6 +252,9 @@ struct HomeView: View {
                                 if let parameters = railPlanModel.contentDidAppear(for: railPlanRequestKey) {
                                     DiscoverPerformanceMetrics.record(parameters)
                                 }
+                            }
+                            if index == min(2, discoverySections.count - 1) {
+                                PodcastDiscoverySnapshotRail(apiClient: apiClient, refreshKey: "\(railPlanModel.measurementGeneration)")
                             }
                         }
                     }
@@ -264,7 +269,12 @@ struct HomeView: View {
     private var legacySections: some View {
         ForEach(HomeContentSection.sections(for: selectedPrimitive), id: \.self) { section in
             anchoredSection(id: section.rawValue) {
-                sectionContent(section)
+                if section != .podcasts || selectedPrimitive != nil {
+                    sectionContent(section)
+                }
+                if section == .thisWeek && selectedPrimitive == nil {
+                    PodcastDiscoverySnapshotRail(apiClient: apiClient, refreshKey: railPlanRequestKey)
+                }
             }
         }
     }

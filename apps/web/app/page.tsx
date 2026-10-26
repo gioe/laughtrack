@@ -37,6 +37,7 @@ import TrendingComedianGrid from "@/ui/pages/home/comedians";
 import TrendingClubsCarousel from "@/ui/pages/home/clubs";
 import ShowDiscoverySection from "@/ui/pages/home/shows";
 import DiscoveryRailPlan from "@/ui/pages/home/DiscoveryRailPlan";
+import PodcastDiscoveryRail from "@/ui/pages/home/PodcastDiscoveryRail";
 import FooterComponent from "@/ui/pages/home/footer";
 import JsonLd from "@/ui/components/JsonLd";
 import { buildWebSiteJsonLd } from "@/util/jsonLd";
@@ -299,6 +300,7 @@ export default async function HomePage() {
                     />
                 </section>
             )}
+            <PodcastDiscoveryRail />
             {zipCode && showsNearYou.length > 0 && (
                 <section className="w-full bg-coconut-cream">
                     <ShowDiscoverySection

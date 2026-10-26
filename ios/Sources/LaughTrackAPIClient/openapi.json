@@ -2043,6 +2043,36 @@
         }
       }
     },
+    "/home/podcast-discovery": {
+      "get": {
+        "operationId": "getPodcastDiscovery",
+        "summary": "Precomputed public episode discovery; never recomputes on a request",
+        "tags": [
+          "home"
+        ],
+        "security": [
+          {}
+        ],
+        "responses": {
+          "200": {
+            "description": "Snapshot, or an empty selection before the first refresh or after invalidation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PodcastDiscoveryResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Snapshot storage unavailable"
+          }
+        }
+      }
+    },
     "/home/feed": {
       "get": {
         "operationId": "getHomeFeed",
@@ -2051,6 +2081,13 @@
         "tags": ["home"],
         "security": [{ "bearerAuth": [] }, {}],
         "parameters": [
+          {
+            "name": "deferPodcasts",
+            "in": "query",
+            "required": false,
+            "description": "Skip podcast providers; updated clients load the public podcast discovery snapshot independently.",
+            "schema": { "type": "boolean", "default": false }
+          },
           {
             "name": "zip",
             "in": "query",
@@ -4952,6 +4989,34 @@
           "rails": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/HomeFeedRailPlanEntry" }
+          }
+        }
+      },
+      "PodcastDiscoveryResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "episodes"
+            ],
+            "properties": {
+              "generatedAt": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true
+              },
+              "episodes": {
+                "type": "array",
+                "maxItems": 5,
+                "items": {
+                  "$ref": "#/components/schemas/HomeFeedPodcastEpisode"
+                }
+              }
+            }
           }
         }
       },

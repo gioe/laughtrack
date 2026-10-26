@@ -101,3 +101,25 @@ final class HomeTrendingPodcastsModel: ObservableObject {
         return Date().timeIntervalSince(loadedAt) < cacheTTL
     }
 }
+
+
+/// Public, independently loaded discovery. Never stored in the account-scoped feed.
+@MainActor
+final class PodcastDiscoverySnapshotModel: ObservableObject {
+    @Published private(set) var episodes: [Components.Schemas.HomeFeedPodcastEpisode] = []
+    private var generation = 0
+
+    func refresh(load: () async throws -> [Components.Schemas.HomeFeedPodcastEpisode]) async {
+        generation += 1
+        let current = generation
+        do {
+            let value = try await load()
+            guard !Task.isCancelled, current == generation else { return }
+            episodes = Array(value.prefix(5))
+        } catch {
+            // Fail closed: an unavailable response cannot confirm moderation status.
+            guard !Task.isCancelled, current == generation else { return }
+            episodes = []
+        }
+    }
+}

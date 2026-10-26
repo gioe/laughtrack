@@ -6,6 +6,8 @@ import type { DiscoveryRailKey } from "@/lib/discovery/railPolicy";
 import TrendingClubsCarousel from "./clubs";
 import TrendingComedianGrid from "./comedians";
 import ShowDiscoverySection from "./shows";
+import { Fragment } from "react";
+import PodcastDiscoveryRail from "./PodcastDiscoveryRail";
 
 export interface DiscoveryRailPlanEntryData {
     railKey: string;
@@ -290,8 +292,21 @@ export default function DiscoveryRailPlan(props: DiscoveryRailPlanProps) {
 
     const rails = props.plan.rails.flatMap((entry) => {
         const rendered = renderRail(entry, props);
-        return rendered ? [rendered] : [];
+        return rendered ? [{ key: entry.railKey, rendered }] : [];
     });
 
-    return rails.length > 0 ? <>{rails}</> : <>{props.fallback}</>;
+    return rails.length > 0 ? (
+        <>
+            {rails.map((rail, index) => (
+                <Fragment key={rail.key}>
+                    {rail.rendered}
+                    {index === Math.min(2, rails.length - 1) && (
+                        <PodcastDiscoveryRail />
+                    )}
+                </Fragment>
+            ))}
+        </>
+    ) : (
+        <>{props.fallback}</>
+    );
 }

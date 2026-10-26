@@ -14,7 +14,8 @@ const RECENCY_DAYS = 30;
 const MIN_CANDIDATE_POOL = 200;
 const CANDIDATE_POOL_MULTIPLIER = 25;
 const MAX_CANDIDATE_POOL = 1_000;
-const MAX_PER_PODCAST = 2;
+const MIN_DURATION_SECONDS = 60 * 60;
+const MAX_PER_PODCAST = 1;
 const MAX_PER_COMEDIAN = 2;
 
 export type PodcastEpisodeRecommendationReason =
@@ -179,6 +180,7 @@ export function buildPodcastEpisodeDiscoveryQuery({
           AND pe.release_date >= ${cutoff}
           AND pe.release_date <= ${now}
           AND curation_podcast_allowed(p.id)
+          AND pe.duration_seconds >= ${MIN_DURATION_SECONDS}
           AND c.visible = true
           AND c.parent_comedian_id IS NULL
           AND NOT EXISTS (
@@ -301,11 +303,17 @@ export function rankPodcastEpisodeDiscoveryCandidates(
     if (safeLimit === 0) return [];
 
     const seenEpisodes = new Set<string>();
+    const seenPodcastIds = new Set<number>();
     const podcastCounts = new Map<string, number>();
     const comedianCounts = new Map<number, number>();
     const selected: PodcastEpisodeDiscoveryCandidate[] = [];
 
     for (const candidate of [...candidates].sort(compareCandidates)) {
+        if (
+            candidate.durationSeconds == null ||
+            candidate.durationSeconds < MIN_DURATION_SECONDS
+        )
+            continue;
         const episodeKeys = logicalEpisodeKeys(candidate);
         if (episodeKeys.some((key) => seenEpisodes.has(key))) continue;
         for (const key of episodeKeys) seenEpisodes.add(key);
@@ -314,6 +322,7 @@ export function rankPodcastEpisodeDiscoveryCandidates(
         const podcastCount = podcastCounts.get(podcastKey) ?? 0;
         const comedianCount = comedianCounts.get(candidate.comedianId) ?? 0;
         if (
+            seenPodcastIds.has(candidate.podcastId) ||
             podcastCount >= MAX_PER_PODCAST ||
             comedianCount >= MAX_PER_COMEDIAN
         ) {
@@ -321,6 +330,7 @@ export function rankPodcastEpisodeDiscoveryCandidates(
         }
 
         selected.push(candidate);
+        seenPodcastIds.add(candidate.podcastId);
         podcastCounts.set(podcastKey, podcastCount + 1);
         comedianCounts.set(candidate.comedianId, comedianCount + 1);
         if (selected.length === safeLimit) break;

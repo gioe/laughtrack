@@ -10,6 +10,32 @@ import Testing
 @Suite("Home podcast episode discovery")
 @MainActor
 struct HomePodcastEpisodeDiscoveryTests {
+    @Test("public snapshot refresh replaces invalidated content and fails independently")
+    func publicSnapshotRefresh() async {
+        let model = PodcastDiscoverySnapshotModel()
+        await model.refresh { [makeEpisode()] }
+        #expect(model.episodes.map(\.id) == [701])
+        await model.refresh { [] }
+        #expect(model.episodes.isEmpty)
+        await model.refresh { [makeEpisode()] }
+        await model.refresh { throw URLError(.notConnectedToInternet) }
+        #expect(model.episodes.isEmpty)
+    }
+
+    @Test("a superseded snapshot response cannot replace the newer selection")
+    func supersededSnapshot() async {
+        let model = PodcastDiscoverySnapshotModel()
+        var continuation: CheckedContinuation<[Components.Schemas.HomeFeedPodcastEpisode], Never>?
+        let task = Task {
+            await model.refresh { await withCheckedContinuation { continuation = $0 } }
+        }
+        while continuation == nil { await Task.yield() }
+        await model.refresh { [] }
+        continuation?.resume(returning: [makeEpisode()])
+        await task.value
+        #expect(model.episodes.isEmpty)
+    }
+
     @Test("episode presentation includes discovery context")
     func episodePresentationIncludesDiscoveryContext() {
         let now = Date(timeIntervalSince1970: 1_786_003_200)

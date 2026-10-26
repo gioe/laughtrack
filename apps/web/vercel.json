@@ -2,6 +2,10 @@
   "buildCommand": "bin/vercel-build",
   "crons": [
     {
+      "path": "/api/cron/podcast-discovery",
+      "schedule": "15 * * * *"
+    },
+    {
       "path": "/api/cron/youtube-websub-renewals",
       "schedule": "0 9 * * *"
     },

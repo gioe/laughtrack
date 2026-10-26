@@ -32,6 +32,7 @@ export const PGLITE_TEST_FILES = [
     "prisma/discoveryEventsMigration.test.ts",
     "prisma/improvAsylumSourceMigration.test.ts",
     "prisma/podcastEpisodeUniqueRelease.test.ts",
+    "prisma/podcastDiscoverySnapshot.test.ts",
     "prisma/podcastGraphMigration.test.ts",
     "prisma/podcastSlugMigration.test.ts",
     "prisma/schema.youtube-live-notifications.test.ts",

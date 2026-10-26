@@ -82,6 +82,35 @@ beforeEach(() => {
 });
 
 describe("getPodcastEpisodeDiscovery", () => {
+    it("requires a known duration of at least an hour", () => {
+        const inputs = [
+            candidate(1, { durationSeconds: 3599 }),
+            candidate(2, { durationSeconds: null }),
+            candidate(3, { durationSeconds: 0 }),
+            candidate(4, { durationSeconds: 3600 }),
+            candidate(5, { durationSeconds: 7200 }),
+        ];
+        expect(
+            rankPodcastEpisodeDiscoveryCandidates(inputs).map(
+                (x) => x.episodeId,
+            ),
+        ).toEqual([4, 5]);
+    });
+
+    it("fills five slots with different podcasts even when the freshest episodes share a show", () => {
+        const inputs = Array.from({ length: 9 }, (_, index) =>
+            candidate(index + 1, {
+                podcastId: index < 5 ? 1 : index + 1,
+                podcastFeedUrl: `https://feeds.example.com/${index < 5 ? 1 : index + 1}.xml`,
+            }),
+        );
+        expect(
+            rankPodcastEpisodeDiscoveryCandidates(inputs).map(
+                (x) => x.episodeId,
+            ),
+        ).toEqual([1, 6, 7, 8, 9]);
+    });
+
     it("limits Episodes for you to five by default", () => {
         const inputs = Array.from({ length: 7 }, (_, index) =>
             candidate(index + 1),
@@ -143,7 +172,7 @@ describe("getPodcastEpisodeDiscovery", () => {
                     title TEXT NOT NULL,
                     description TEXT,
                     release_date TIMESTAMPTZ,
-                    duration_seconds INTEGER,
+                    duration_seconds INTEGER DEFAULT 3600,
                     episode_url TEXT,
                     audio_url TEXT
                 );
@@ -252,6 +281,16 @@ describe("getPodcastEpisodeDiscovery", () => {
                     (5, 1, NULL, true, '2026-08-04T00:00:00Z');
             `);
 
+                await pg.exec(`
+                    INSERT INTO podcast_episodes
+                        (id, podcast_id, title, release_date, duration_seconds)
+                    VALUES (118, 1, 'Short episode', '2026-08-06T12:00:00Z', 3599),
+                           (119, 1, 'Unknown duration', '2026-08-06T12:00:00Z', NULL);
+                    INSERT INTO episode_appearances
+                        (id, comedian_id, episode_id, appearance_role, review_status)
+                    VALUES (118, 1, 118, 'host', 'accepted'),
+                           (119, 1, 119, 'host', 'accepted');
+                `);
                 const query = buildPodcastEpisodeDiscoveryQuery({
                     profileId,
                     cutoff: new Date("2026-07-07T12:00:00.000Z"),
@@ -369,7 +408,7 @@ describe("getPodcastEpisodeDiscovery", () => {
                 episode_title: "Episode Thirty",
                 episode_description: "<p>A &amp; B</p>",
                 release_date: RECENT,
-                duration_seconds: 1_800,
+                duration_seconds: 3_600,
                 episode_url: "https://example.com/30",
                 audio_url: "https://cdn.example.com/30.mp3",
                 podcast_id: 20,
@@ -461,7 +500,7 @@ describe("getPodcastEpisodeDiscovery", () => {
             rankPodcastEpisodeDiscoveryCandidates(inputs, 6).map(
                 ({ episodeId }) => episodeId,
             ),
-        ).toEqual([99, 2, 4, 6]);
+        ).toEqual([99, 4, 6]);
 
         const feedScopedGuids = [
             candidate(7, { episodeGuid: "episode-1" }),
@@ -501,7 +540,7 @@ describe("getPodcastEpisodeDiscovery", () => {
                 sameTimestampDistinctEpisodes,
                 2,
             ),
-        ).toHaveLength(2);
+        ).toHaveLength(1);
 
         const audioDuplicates = [
             candidate(20, {

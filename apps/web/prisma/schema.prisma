@@ -1031,6 +1031,15 @@ model Show {
   @@map("shows")
 }
 
+model PodcastDiscoverySnapshot {
+  id          Int       @id
+  revision    Int       @default(0)
+  generatedAt DateTime? @map("generated_at") @db.Timestamptz(6)
+  payload     Json?
+
+  @@map("podcast_discovery_snapshots")
+}
+
 model DiscoveryShowFeatureSnapshot {
   id             BigInt   @id @default(autoincrement())
   showId         Int      @map("show_id")

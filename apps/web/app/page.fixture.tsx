@@ -1,4 +1,5 @@
 import ShowDiscoverySection from "@/ui/pages/home/shows";
+import PodcastDiscoveryRail from "@/ui/pages/home/PodcastDiscoveryRail";
 import {
     CAROUSEL_TEST_IDS,
     FIXTURE_SHOWS_NEARBY,
@@ -41,6 +42,7 @@ export default function FixtureHomePage() {
                     testId={CAROUSEL_TEST_IDS.trendingThisWeek}
                 />
             </section>
+            <PodcastDiscoveryRail />
         </main>
     );
 }

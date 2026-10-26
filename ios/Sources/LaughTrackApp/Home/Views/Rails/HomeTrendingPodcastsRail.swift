@@ -251,68 +251,76 @@ struct PodcastEpisodeDiscoveryRow: View {
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        HStack(alignment: .center, spacing: theme.spacing.sm) {
+        VStack(alignment: .leading, spacing: theme.spacing.sm) {
             Button(action: onSelect) {
-                HStack(alignment: .top, spacing: theme.spacing.sm) {
-                    artwork
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(item.podcastName)
-                            .font(laughTrack.typography.metadata.weight(.bold))
-                            .foregroundStyle(laughTrack.colors.accentStrong)
-                            .lineLimit(1)
-
-                        Text(item.title)
-                            .font(laughTrack.typography.body.weight(.semibold))
-                            .foregroundStyle(laughTrack.colors.textPrimary)
-                            .multilineTextAlignment(.leading)
-                            .lineLimit(2)
-
-                        Text(item.releaseMetadata)
-                            .font(laughTrack.typography.metadata)
-                            .foregroundStyle(laughTrack.colors.textSecondary)
-
-                        Text("\(item.comedianRole): \(item.comedianName)")
-                            .font(laughTrack.typography.metadata.weight(.semibold))
-                            .foregroundStyle(laughTrack.colors.textPrimary)
-                            .lineLimit(1)
-
+                VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                    HStack(alignment: .center, spacing: theme.spacing.sm) {
+                        artwork
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(item.podcastName)
+                                .font(laughTrack.typography.metadata.weight(.bold))
+                                .foregroundStyle(laughTrack.colors.accentStrong)
+                                .lineLimit(2)
+                            Text(credit)
+                                .font(laughTrack.typography.metadata)
+                                .foregroundStyle(laughTrack.colors.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Text(item.title)
+                        .font(.custom("DMSans-Medium", size: 15, relativeTo: .subheadline))
+                        .foregroundStyle(laughTrack.colors.textPrimary)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                .multilineTextAlignment(.leading)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel(
-                [
-                    "Open \(item.title)",
-                    item.podcastName,
-                    item.releaseMetadata,
-                    "\(item.comedianRole) \(item.comedianName)",
-                ]
-                .joined(separator: ", ")
+                ["Open \(item.title)", item.podcastName, credit].joined(separator: ", ")
             )
             .accessibilityIdentifier(LaughTrackViewTestID.homePodcastEpisodeButton(item.id))
 
-            if let onPlay {
-                Button(action: onPlay) {
-                    Image(systemName: "play.circle.fill")
-                        .font(.system(size: 28, weight: .semibold))
-                        .symbolRenderingMode(.palette)
-                        .foregroundStyle(laughTrack.colors.accentStrong, laughTrack.colors.surfaceElevated)
+            HStack(spacing: theme.spacing.sm) {
+                Text(item.releaseMetadata)
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 0)
+                if let onPlay {
+                    Button(action: onPlay) {
+                        Label("Play", systemImage: "play.fill")
+                            .font(laughTrack.typography.metadata.weight(.bold))
+                            .foregroundStyle(laughTrack.colors.accentStrong)
+                            .padding(.horizontal, 14)
+                            .frame(minHeight: 44)
+                            .background(laughTrack.colors.accentStrong.opacity(0.12), in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Play \(item.title)")
+                    .accessibilityIdentifier(LaughTrackViewTestID.homePodcastEpisodePlayButton(item.id))
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Play \(item.title)")
-                .accessibilityIdentifier(LaughTrackViewTestID.homePodcastEpisodePlayButton(item.id))
             }
         }
-        .padding(theme.spacing.sm)
+        .padding(theme.spacing.md)
         .background(laughTrack.colors.surface)
         .overlay(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
         )
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    private var credit: String {
+        switch item.comedianRole {
+        case "Host": return "Hosted by \(item.comedianName)"
+        case "Cohost": return "Co-hosted by \(item.comedianName)"
+        default: return "With guest \(item.comedianName)"
+        }
     }
 
     @ViewBuilder
@@ -339,7 +347,7 @@ struct PodcastEpisodeDiscoveryRow: View {
                 fallback
             }
         }
-        .frame(width: 78, height: 78)
+        .frame(width: 56, height: 56)
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 }
@@ -505,5 +513,48 @@ private struct HomeTrendingPodcastCard: View {
                     .font(.system(size: theme.iconSizes.lg, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.accentStrong)
             }
+    }
+}
+
+
+struct PodcastDiscoverySnapshotRail: View {
+    let apiClient: Client
+    let refreshKey: String
+    @StateObject private var model = PodcastDiscoverySnapshotModel()
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
+    @EnvironmentObject private var podcastPlayer: PodcastPlaybackController
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        VStack(spacing: 0) {
+            if !model.episodes.isEmpty {
+                HomeDiscoverRailCard(
+                    variant: .listeningRoom,
+                    eyebrow: "Funny listening",
+                    title: "Hear a new comedian",
+                    subtitle: nil,
+                    accessibilityIdentifier: "laughtrack.home.podcast-discovery"
+                ) {
+                    VStack(spacing: theme.spacing.sm) {
+                        ForEach(model.episodes, id: \.id) { episode in
+                            let item = HomePodcastEpisodeDiscoveryPresentation.item(from: episode)
+                            PodcastEpisodeDiscoveryRow(
+                                item: item,
+                                onSelect: { coordinator.push(HomePodcastEpisodeDiscoveryPresentation.route(for: item)) },
+                                onPlay: item.playbackItem.map { playbackItem in
+                                    { podcastPlayer.start(playbackItem) }
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        .task(id: refreshKey) {
+            await model.refresh {
+                let response = try await apiClient.getPodcastDiscovery(.init())
+                return try response.ok.body.json.data.episodes
+            }
+        }
     }
 }

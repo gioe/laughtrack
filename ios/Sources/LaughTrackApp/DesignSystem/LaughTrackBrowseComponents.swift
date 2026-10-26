@@ -655,15 +655,16 @@ struct LaughTrackSearchEntityRow<TrailingAccessory: View>: View {
 
                         VStack(alignment: .leading, spacing: 4) {
                             Text(title)
-                                .font(laughTrack.typography.cardTitle)
+                                .font(.custom("DMSans-Medium", size: 18, relativeTo: .headline))
                                 .foregroundStyle(laughTrack.colors.textPrimary)
                                 .lineLimit(metrics.titleLineLimit)
                                 .fixedSize(horizontal: false, vertical: true)
                                 .preservingSkeletonTextLayout()
 
                             if let subtitle, !subtitle.isEmpty {
-                                Text(subtitle)
-                                    .font(laughTrack.typography.metadata)
+                                Text(kind == .club ? subtitle.uppercased() : subtitle)
+                                    .font(kind == .club ? laughTrack.typography.eyebrow : laughTrack.typography.metadata)
+                                    .tracking(kind == .club ? 0.6 : 0)
                                     .foregroundStyle(laughTrack.colors.textSecondary)
                                     .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : metrics.subtitleLineLimit)
                                     .fixedSize(horizontal: false, vertical: true)
@@ -713,7 +714,25 @@ struct LaughTrackSearchEntityRow<TrailingAccessory: View>: View {
         }
         .padding(.horizontal, laughTrack.browseDensity.compactCardPadding)
         .padding(.vertical, metrics.verticalCardPadding)
+        .background {
+            if kind == .comedian {
+                LinearGradient(
+                    colors: [laughTrack.colors.accentStrong.opacity(0.09), .clear],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            }
+        }
         .background(laughTrack.colors.surfaceElevated)
+        .overlay {
+            if kind == .comedian {
+                RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                    .strokeBorder(laughTrack.colors.accentStrong.opacity(0.18), lineWidth: 1)
+            } else {
+                RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                    .strokeBorder(laughTrack.colors.borderSubtle, lineWidth: 1)
+            }
+        }
         .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
     }
 
@@ -724,12 +743,52 @@ struct LaughTrackSearchEntityRow<TrailingAccessory: View>: View {
         return "\(title), \(subtitle)"
     }
 
+    @ViewBuilder
     private var artwork: some View {
-        artworkImage
-            .frame(width: 56, height: 56)
-            .background(theme.laughTrackTokens.colors.surfaceMuted)
-            .modifier(LaughTrackEntityArtworkClip(shape: kind.artworkShape))
-            .accessibilityHidden(true)
+        if kind == .comedian {
+            artworkImage
+                .frame(width: 56, height: 64)
+                .clipped()
+                .padding(3)
+                .background(Color(red: 0.84, green: 0.78, blue: 0.66))
+                .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                .shadow(color: .black.opacity(0.22), radius: 3, x: 0, y: 2)
+                .accessibilityHidden(true)
+        } else if kind == .club {
+            artworkImage
+                .frame(width: 48, height: 48)
+                .clipped()
+                .padding(8)
+                .background(theme.laughTrackTokens.colors.surfaceMuted)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .strokeBorder(theme.laughTrackTokens.colors.accentStrong.opacity(0.25), lineWidth: 1)
+                }
+                .accessibilityHidden(true)
+        } else {
+            artworkImage
+                .frame(width: 60, height: 60)
+                .background(theme.laughTrackTokens.colors.surfaceMuted)
+                .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 5, style: .continuous)
+                        .strokeBorder(theme.laughTrackTokens.colors.borderSubtle, lineWidth: 1)
+                }
+                .background {
+                    RoundedRectangle(cornerRadius: 5, style: .continuous)
+                        .fill(theme.laughTrackTokens.colors.accentStrong.opacity(0.16))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 5, style: .continuous)
+                                .strokeBorder(theme.laughTrackTokens.colors.accentStrong.opacity(0.2), lineWidth: 1)
+                        }
+                        .offset(x: 4, y: 3)
+                }
+                .shadow(color: .black.opacity(0.2), radius: 3, x: 0, y: 2)
+                .padding(.trailing, 4)
+                .padding(.bottom, 3)
+                .accessibilityHidden(true)
+        }
     }
 
     @ViewBuilder

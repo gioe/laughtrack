@@ -80,7 +80,7 @@ enum HomeFeedRequest {
             sessionDiscriminator: sessionDiscriminator, cache: cache, cacheTTL: cacheTTL,
             badParamsMessage: badParamsMessage, rateLimitMessage: rateLimitMessage,
             undocumentedContext: undocumentedContext, networkContext: networkContext,
-            networkMessage: networkMessage, persistentCache: persistentCache, coalescer: coalescer).result
+            networkMessage: networkMessage, persistentCache: persistentCache, coalescer: coalescer, deferPodcasts: false).result
     }
 
     static func loadMeasured(
@@ -96,13 +96,14 @@ enum HomeFeedRequest {
         networkContext: String,
         networkMessage: String,
         persistentCache: PersistentMainPageCache?,
-        coalescer: HomeFeedRequestCoalescer
+        coalescer: HomeFeedRequestCoalescer,
+        deferPodcasts: Bool = true
     ) async -> MeasuredHomeFeedResult {
         await coalescer.loadMeasured(requestKey: requestKey(
             zipCode: zipCode,
             distanceMiles: distanceMiles,
             sessionDiscriminator: sessionDiscriminator
-        )) {
+        ) + "|deferPodcasts=\(deferPodcasts)") {
             await fetch(
                 apiClient: apiClient,
                 zipCode: zipCode,
@@ -114,7 +115,8 @@ enum HomeFeedRequest {
                 undocumentedContext: undocumentedContext,
                 networkContext: networkContext,
                 networkMessage: networkMessage,
-                persistentCache: persistentCache
+                persistentCache: persistentCache,
+                deferPodcasts: deferPodcasts
             )
         }
     }
@@ -130,7 +132,8 @@ enum HomeFeedRequest {
         undocumentedContext: String,
         networkContext: String,
         networkMessage: String,
-        persistentCache: PersistentMainPageCache?
+        persistentCache: PersistentMainPageCache?,
+        deferPodcasts: Bool
     ) async -> Result<Components.Schemas.HomeFeed, LoadFailure> {
         do {
             let timezone = MockModeDetector.isMockMode
@@ -139,6 +142,7 @@ enum HomeFeedRequest {
             let output = try await apiClient.getHomeFeed(
                 .init(
                     query: .init(
+                        deferPodcasts: deferPodcasts,
                         zip: zipCode,
                         distance: zipCode == nil ? nil : distanceMiles,
                         platform: .ios
