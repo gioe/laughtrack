@@ -486,7 +486,8 @@ struct ShowRowTests {
         #expect(ShowRow.artworkSlotSize == 60)
         #expect(source.contains("private func portrait(for comedian:"))
         #expect(source.contains("Image(systemName: ArtworkFallbackKind.person.systemImage)"))
-        #expect(source.components(separatedBy: "artworkSlot").count >= 4)
+        #expect(source.contains("size: CGFloat = Self.artworkSlotSize"))
+        #expect(source.contains(".frame(width: size, height: size)"))
     }
 
     @Test("show row uses the first lineup image when popularity counts are absent")
