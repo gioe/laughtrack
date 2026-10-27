@@ -1056,6 +1056,7 @@ platform :ios do
 
   desc "Upload metadata and screenshots to App Store Connect"
   lane :upload_metadata do
+    generate_release_notes
     load_asc_api_key
 
     deliver(
@@ -1075,6 +1076,7 @@ platform :ios do
 
   desc "Upload IPA + metadata + screenshots to ASC in one deliver call (creates the version record)"
   lane :upload_app_store do
+    generate_release_notes
     load_asc_api_key
 
     deliver(
@@ -1085,6 +1087,7 @@ platform :ios do
       skip_metadata: false,
       skip_screenshots: false,
       skip_binary_upload: false,
+      overwrite_screenshots: true,
       precheck_include_in_app_purchases: false,
       app_review_information: {
         demo_account_required: false
@@ -1117,7 +1120,7 @@ platform :ios do
   # 1470x3000 PNGs, so it's excluded from this pipeline too. The framed images
   # remain available via the standalone `frames` lane for marketing exports.
   lane :release do |options|
-    generate_release_notes
+    generate_release_notes(version: options[:skip_marketing_bump] ? read_project_yml_setting("MARKETING_VERSION") : bump_marketing_version(read_project_yml_setting("MARKETING_VERSION"), options[:bump]))
     screenshots
     bump_build_number(bump: options[:bump], skip_marketing_bump: options[:skip_marketing_bump])
     build
@@ -1128,7 +1131,8 @@ platform :ios do
 
   desc "Build and upload to App Store Connect (creates version, uploads metadata + screenshots, pushes to TestFlight). Pass bump: :major | :minor | :patch (default :patch), or skip_marketing_bump:true to reuse the current MARKETING_VERSION (TestFlight-only hotfix)."
   lane :beta do |options|
-    generate_release_notes
+    generate_release_notes(version: options[:skip_marketing_bump] ? read_project_yml_setting("MARKETING_VERSION") : bump_marketing_version(read_project_yml_setting("MARKETING_VERSION"), options[:bump]))
+    screenshots
     bump_build_number(bump: options[:bump], skip_marketing_bump: options[:skip_marketing_bump])
     build
     upload_app_store
@@ -1150,55 +1154,23 @@ platform :ios do
     end
   end
 
-  desc "Generate release notes from commits since the last tag"
-  lane :generate_release_notes do
-    tag = last_git_tag
-
-    if tag.nil? || tag.empty?
-      UI.important("No previous tag found — using last 50 commits that touched ios/")
-      raw = changelog_from_git_commits(commits_count: 50, pretty: "%s", app_path: ".")
-    else
-      raw = changelog_from_git_commits(between: [tag, "HEAD"], pretty: "%s", app_path: ".")
+  desc "Load reviewed, version-specific release notes (never publish raw commit subjects)"
+  lane :generate_release_notes do |options|
+    version = options[:version] || read_project_yml_setting("MARKETING_VERSION")
+    unless version.match?(/\A\d+\.\d+\.\d+\z/)
+      UI.user_error!("Invalid release notes version: #{version.inspect}")
     end
-
-    lines = raw.split("\n").map(&:strip).reject(&:empty?)
-
-    entries = lines.reject { |line| line.match?(/^Merge |^Co-Authored-By:/i) }
-
-    features = []
-    fixes = []
-    improvements = []
-
-    entries.each do |summary|
-      lower = summary.downcase
-      if lower.match?(/\bfix(es|ed)?\b|\bbug\b|\bcrash\b|\bresolve[sd]?\b|\bpatch\b/)
-        fixes << summary
-      elsif lower.match?(/\badd(s|ed)?\b|\bnew\b|\bcreate[sd]?\b|\bintroduce[sd]?\b|\bimplement[sed]?\b|\bfeature\b/)
-        features << summary
-      else
-        improvements << summary
-      end
+    source = File.join(__dir__, "release_notes", "#{version}.txt")
+    unless File.file?(source)
+      UI.user_error!("Write and review customer-facing release notes in #{source} before releasing #{version}.")
     end
-
-    sections = []
-    sections << "New Features\n#{features.map { |f| "• #{f}" }.join("\n")}" unless features.empty?
-    sections << "Bug Fixes\n#{fixes.map { |f| "• #{f}" }.join("\n")}" unless fixes.empty?
-    sections << "Improvements\n#{improvements.map { |f| "• #{f}" }.join("\n")}" unless improvements.empty?
-
-    notes_text = sections.empty? ? "• Bug fixes and performance improvements" : sections.join("\n\n")
-
-    max_len = 4000
-    if notes_text.length > max_len
-      truncated = notes_text[0...max_len]
-      last_newline = truncated.rindex("\n")
-      notes_text = last_newline ? truncated[0...last_newline] : truncated
+    notes_text = File.read(source).strip
+    if notes_text.empty? || notes_text.length > 4000
+      UI.user_error!("Release notes for #{version} must contain 1–4000 characters.")
     end
-
-    release_notes_path = File.join(Dir.pwd, "metadata", "en-US", "release_notes.txt")
-    FileUtils.mkdir_p(File.dirname(release_notes_path))
-    File.write(release_notes_path, notes_text)
-    UI.success("Wrote release_notes.txt (#{notes_text.length} chars)")
-
+    destination = File.join(__dir__, "metadata", "en-US", "release_notes.txt")
+    File.write(destination, notes_text + "\n")
+    UI.success("Loaded reviewed release notes for #{version} (#{notes_text.length} chars)")
     notes_text
   end
 end

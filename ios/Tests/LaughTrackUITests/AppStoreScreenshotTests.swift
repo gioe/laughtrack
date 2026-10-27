@@ -287,6 +287,8 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
                 screen: identified(Identifier.showDetailScreen, as: "show detail screen"),
                 content: [
                     text("Taylor Tomlinson & Friends", as: "show title"),
+                    identified("show-detail-ticket-action", as: "upcoming show ticket action"),
+                    identified("show-detail-add-to-calendar", as: "upcoming show calendar action"),
                     noLoadingLabels(["Loading"]),
                 ]
             )
@@ -443,9 +445,9 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
                 comparisonScreens: true,
                 environment: [UITestLaunchArgs.nowPlayingScreenshotArtworkURL: artworkURL]
             )
-            let miniPlayer = element("laughtrack.podcast-mini-player")
+            let miniPlayer = app.buttons["Open player for Watch Your Tone with Ryan Sickler | History Hyenas, History Hyenas"]
             XCTAssertTrue(miniPlayer.waitForExistence(timeout: 10), "Expected seeded podcast mini player")
-            miniPlayer.coordinate(withNormalizedOffset: CGVector(dx: 0.35, dy: 0.5)).tap()
+            miniPlayer.tap()
             assertExists("laughtrack.now-playing-screen", message: "Expected Now Playing screen")
             let closeNowPlaying = element("laughtrack.now-playing.close")
             XCTAssertTrue(closeNowPlaying.waitForExistence(timeout: 15), "Expected Now Playing close control")
@@ -502,7 +504,7 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         try runScenario("15_AuthenticatedFavorites") {
             relaunch(route: "favorites:0", authenticatedPersona: true)
             assertExists("laughtrack.favorites-tab.screen", message: "Expected authenticated Favorites screen")
-            let savedShow = app.staticTexts["Atsuko Okatsuka: Full Grown Tour"].firstMatch
+            let savedShow = app.buttons["laughtrack.library.fixture-shows-41001"]
             XCTAssertTrue(
                 scrollElementIntoView(savedShow, in: app, maxDrags: 4),
                 "Expected upcoming saved show to be visible before capture"
@@ -706,6 +708,8 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
             guard
                 let payload = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                 payload["mode"] as? String == mode,
+                let referenceDate = payload["reference_date"] as? String,
+                ISO8601DateFormatter().date(from: referenceDate) != nil,
                 let resultCount = payload["result_count"] as? Int,
                 resultCount > 0,
                 let fingerprint = payload["fingerprint"] as? String,
@@ -716,6 +720,7 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
                 XCTFail("Screenshot fixture returned an invalid \(mode) contract")
                 return
             }
+            app.launchEnvironment["LAUGHTRACK_SCREENSHOT_REFERENCE_DATE"] = referenceDate
         } catch {
             XCTFail("Could not configure screenshot fixture mode \(mode): \(error)")
         }

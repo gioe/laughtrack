@@ -43,6 +43,19 @@ struct ShowDetailView: View {
         serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
     }
 
+    // Capture the same upcoming-show state even after the fixture dates pass.
+    // Release builds always use the real timeline date.
+    private var screenshotReferenceDate: Date? {
+        #if DEBUG
+        let environment = ProcessInfo.processInfo.environment
+        guard environment["LAUGHTRACK_SCREENSHOT_FIXTURE_MODE"] != nil,
+              let value = environment["LAUGHTRACK_SCREENSHOT_REFERENCE_DATE"] else { return nil }
+        return ISO8601DateFormatter().date(from: value)
+        #else
+        return nil
+        #endif
+    }
+
     var body: some View {
         Group {
             switch model.phase {
@@ -61,7 +74,7 @@ struct ShowDetailView: View {
                 let isOpenMic = ShowDetailPresentation.isOpenMic(show)
                 // Refresh at the scheduled start, then keep alternative shows current.
                 TimelineView(.periodic(from: show.date, by: 60)) { timeline in
-                    let now = timeline.date
+                    let now = screenshotReferenceDate ?? timeline.date
                     let temporal = ShowPastEventPresentation(showDate: show.date, now: now)
                     ScrollView {
                         AdaptiveDetailCatalogLayout {

@@ -572,7 +572,7 @@ def test_ios_search_capture_enters_the_real_tab_and_keeps_loaded_comedian_gates(
     assert "relaunch()" in search_relaunch
     assert 'app.buttons["Search"].firstMatch' in search_relaunch
     assert "searchTab.tap()" in search_relaunch
-    assert "Identifier.primitiveFilterScroller" in search_relaunch
+    assert 'app.buttons["laughtrack.primitive-filter.shows"].waitForExistence' in search_relaunch
     assert 'element("laughtrack.shows-search.screen")' in search_relaunch
 
     search_comedians = source.split('try runScenario("03_SearchComedians") {', 1)[1].split(

@@ -30,6 +30,17 @@ App Store Connect credentials load automatically from `ios/fastlane/.env`
 (gitignored — copy `ios/fastlane/.env.example` and fill in the ASC key); the
 wrapper fails fast with a hint if that file is missing for an ASC lane.
 
+**Release metadata:** Write and review `ios/fastlane/release_notes/<version>.txt`
+for the intended marketing version before running `beta` or `release`. Both lanes
+validate those notes before bumping; commit subjects are never published as store
+copy. `generate_release_notes` copies the current version's reviewed text into
+metadata (or pass `version:2.25.0`). Both pipelines refresh the validated screenshot
+projection, reusing captures only when their source/environment fingerprints match.
+Uploads replace the existing screenshot set instead of silently appending past
+Apple's ten-image limit. Review the exported iPhone images before uploading;
+the iPad capture is diagnostic only. For metadata corrections to an existing build,
+use `screenshots` and review the images, then `upload_metadata`; no build bump is needed.
+
 **Before `beta`/`release`:** the lane pushes the version-bump commit to `main`
 through the husky pre-push hook, which runs `apps/web` `npm run type-check`. If
 the working tree doesn't typecheck clean (e.g. an in-flight change elsewhere in

@@ -28,6 +28,7 @@ from scripts.screenshots.fixture_server import (
     SECONDARY_SHOW_DATE,
     artwork_png,
     fixture_mode_fingerprint,
+    fixture_mode_summary,
     fixture_response,
 )
 
@@ -683,6 +684,7 @@ def test_control_endpoint_configures_server_mode(fixture_server: str) -> None:
     assert configured == {
         "mode": FALLBACK_MODE,
         "result_count": 5,
+        "reference_date": f"{REVIEW_ANCHOR_DATE.isoformat()}T12:00:00Z",
         "fingerprint": fixture_mode_fingerprint(FALLBACK_MODE),
         "required_assets": CONTENT_FIXTURE["modes"][FALLBACK_MODE]["artwork"]["required_keys"],
     }
@@ -696,3 +698,21 @@ def test_control_endpoint_rejects_unknown_mode_without_changing_state(fixture_se
 
     assert error.value.code == 400
     assert get_json(f"{fixture_server}/fixture/status")["mode"] == CURATED_MODE
+
+
+@pytest.mark.parametrize("mode", [CURATED_MODE, FALLBACK_MODE])
+def test_independent_podcast_discovery_remains_available_when_home_defers(mode: str) -> None:
+    home = fixture_response("/api/v1/home/feed", "http://fixture", mode, {"deferPodcasts": ["true"]})["data"]
+    discovery = fixture_response("/api/v1/home/podcast-discovery", "http://fixture", mode)["data"]
+    assert home["podcastEpisodes"] == []
+    assert discovery["episodes"][0]["id"] == 501
+    assert discovery["episodes"][0]["durationSeconds"] == 4654
+    assert discovery["generatedAt"] == HOME_FEED_EPISODE_RELEASE_DATETIME
+
+
+def test_screenshot_clock_precedes_upcoming_show_fixture():
+    summary = fixture_mode_summary(CURATED_MODE)
+    reference = datetime.fromisoformat(summary["reference_date"].replace("Z", "+00:00"))
+    show = fixture_response("/api/v1/shows/201", "http://fixture")["data"]
+    assert reference.date() == REVIEW_ANCHOR_DATE
+    assert reference < datetime.fromisoformat(show["date"])

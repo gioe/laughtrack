@@ -20,7 +20,7 @@
         "text": "LAUGHTRACK"
       },
       "title": {
-        "text": "Live stand-up comedy near you"
+        "text": "Discover your next comedy night"
       }
     },
     {
@@ -29,7 +29,7 @@
         "text": "LAUGHTRACK"
       },
       "title": {
-        "text": "Every show, every night"
+        "text": "Find upcoming comedy shows"
       }
     },
     {
@@ -56,7 +56,7 @@
         "text": "LAUGHTRACK"
       },
       "title": {
-        "text": "Every venue, full schedule"
+        "text": "Explore venues and listed shows"
       }
     },
     {
@@ -92,7 +92,16 @@
         "text": "LAUGHTRACK"
       },
       "title": {
-        "text": "Listen to every episode"
+        "text": "Browse episodes and listen"
+      }
+    },
+    {
+      "filter": "10_PodcastEpisodeDetail",
+      "keyword": {
+        "text": "LAUGHTRACK"
+      },
+      "title": {
+        "text": "Explore episodes featuring comedians"
       }
     }
   ]

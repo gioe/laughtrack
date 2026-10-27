@@ -1,13 +1,13 @@
-Laughtrack is a comedy show discovery app. Sign-in is optional — all browsing (comedians, shows, clubs, location-based discovery) works without an account. Sign-in (Apple or Google) is only required to favorite comedians and to add shows to the device calendar.
+Laughtrack is a live comedy and podcast discovery app. On first launch, choose Continue as guest to browse without an account, or continue with Apple or Google. Sign-in is required for saved shows and favorites; it is not required for browsing or adding an upcoming show to the device calendar.
 
-The app is intentionally dark-mode-only for this release. It forces a dark appearance by design, regardless of the device's current light or dark mode setting.
+The app intentionally uses a dark appearance.
 
-To test full functionality:
+To test:
+1. Open Discover. Choose a location or use location access for nearby shows. Location permission is optional; manual location selection and Search remain available.
+2. Open Search and select Shows, Comedians, Clubs, or Podcasts. Search by name and use the available filters.
+3. Open a show for lineup, venue, and ticket information. Ticket links open an external ticketing website; the app does not sell tickets.
+4. For an upcoming show, use Add to calendar. The app requests calendar permission and adds the event to a writable device calendar.
+5. Search for a podcast and open an episode. Episodes with an audio source can play in the app. Discover also recommends podcast episodes when qualifying content is available.
+6. Sign in with Apple or Google to save a show or favorite a comedian, club, or podcast. View saved items in Library. Use the profile button at the top of Discover for account options.
 
-1. Open the app — the Near Me tab requests location permission for nearby show discovery. If denied, browsing still works via manual search.
-2. Tap the Search tab to browse comedians, shows, and clubs by name. Use the filter controls to narrow by date or distance.
-3. Tap any comedian or show to view a detail page. Show detail pages include a ticket link that opens the venue's official ticketing page in Safari.
-4. Sign in (Apple or Google, top-right of the Profile tab) to favorite a comedian and save them to the Favorites tab.
-5. On a show detail page, the Add to Calendar action requests calendar permission and adds an event with the show date, time, venue address, and ticket URL.
-
-Comedy show data is sourced from comedy club websites and updated nightly. The app does not handle ticket purchases — all ticketing is delegated to the venue's website.
+Show listings, podcast recommendations, and playable audio depend on source availability. Store screenshots use curated sample content rendered by the app's actual screens.

@@ -510,6 +510,7 @@ def fixture_mode_summary(mode: str) -> dict:
     return {
         "mode": mode,
         "result_count": contract["result_count"],
+        "reference_date": f"{REVIEW_ANCHOR_DATE.isoformat()}T12:00:00Z",
         "fingerprint": fixture_mode_fingerprint(mode),
         "required_assets": contract["artwork"]["required_keys"],
     }
@@ -855,6 +856,11 @@ def fixture_response(
 ) -> dict | None:
     """Return the canonical payload for an API path and optional pagination query."""
     result_count = fixture_contract(mode)["result_count"]
+    if path == f"{API_PREFIX}home/podcast-discovery":
+        return {"data": {
+            "generatedAt": HOME_FEED_EPISODE_RELEASE_DATETIME,
+            "episodes": [_home_feed_podcast_episode(base_url, mode)],
+        }}
     if path == f"{API_PREFIX}home/feed":
         primary = _show(base_url, mode=mode)
         nearby_count = 1 if mode == FALLBACK_MODE else min(result_count - 1, 4)
@@ -899,7 +905,7 @@ def fixture_response(
                     mode=mode,
                 )
             ],
-            "podcastEpisodes": [_home_feed_podcast_episode(base_url, mode)],
+            "podcastEpisodes": [] if (query or {}).get("deferPodcasts") == ["true"] else [_home_feed_podcast_episode(base_url, mode)],
             "trendingPodcasts": [{"id": 401, "slug": "history-hyenas", "title": "History Hyenas", "episodeCount": 130, "authorName": "Chris Distefano & Yannis Pappas", "imageUrl": _artwork_url(base_url, "history-hyenas", mode)}],
             "popularClubs": [{"id": 201, "address": "8162 Melrose Ave, Hollywood, CA", "name": "Hollywood Improv", "imageUrl": _artwork_url(base_url, "hollywood-improv" if mode == CURATED_MODE else "comedy-store", mode), "activeComedianCount": 120, "zipCode": "90046"}],
         }}
